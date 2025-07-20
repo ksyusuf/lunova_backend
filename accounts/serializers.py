@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
+from accounts.models import UserRole
 
 from .models import AdminProfile, ExpertProfile, ClientProfile
 
@@ -29,7 +30,7 @@ class ClientProfileSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
-    role = serializers.ChoiceField(choices=User.ROLE_CHOICES)
+    role = serializers.ChoiceField(choices=UserRole)
     tc_kimlik = serializers.CharField(write_only=True, required=False)
 
     class Meta:
@@ -56,11 +57,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
 
-        if role == 'admin':
+        if role == UserRole.ADMIN:
             AdminProfile.objects.create(user=user)
-        elif role == 'expert':
+        elif role == UserRole.EXPERT:
             ExpertProfile.objects.create(user=user, tc_kimlik=tc_kimlik)
-        elif role == 'client':
+        elif role == UserRole.CLIENT:
             ClientProfile.objects.create(user=user, tc_kimlik=tc_kimlik)
 
         return user
