@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # Senin app'lerin
     'accounts',  # kullanıcı yönetim uygulaman
     'api',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
