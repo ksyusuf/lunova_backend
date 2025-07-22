@@ -1,0 +1,24 @@
+# Ortak Python ve Django dosyaları
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+
+# Sanal ortamlar
+venv/
+.venv/
+
+# Ortam dosyaları
+.env
+.env.*
+
+# Django statik ve medya dosyaları
+/media/
+/static/
+
+# VSCode ve IDE dosyaları
+.vscode/
+.idea/
+
+# MacOS
+.DS_Store
