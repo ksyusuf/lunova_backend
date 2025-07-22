@@ -151,9 +151,20 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # React çalıştığı port (vite)
-]
+
+if ENVIRONMENT == 'Production':
+    CORS_ALLOWED_ORIGINS = [
+        "https://lunova.tr",
+        "https://uzman.lunova.tr",
+        "https://danisan.lunova.tr",
+    ]
+    SESSION_COOKIE_DOMAIN = ".lunova.tr"
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+    ]
+    # Localde domain ayarı gerekmez
+    SESSION_COOKIE_DOMAIN = None
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
