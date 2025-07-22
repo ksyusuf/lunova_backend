@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 User = get_user_model()
 
@@ -35,25 +36,30 @@ class LoginView(APIView):
             "email": user.email,
         }, status=status.HTTP_200_OK)
         # JWT'yi httpOnly cookie olarak ekle
+        cookie_params = {
+            'httponly': True,
+            'samesite': 'None',
+            'secure': True,
+            'max_age': 60*15,
+            'path': '/',
+        }
+        refresh_cookie_params = cookie_params.copy()
+        refresh_cookie_params['max_age'] = 60*60*24*7
+
+        # Ortam kontrolü: prod ise domain ekle
+        if getattr(settings, 'ENVIRONMENT', '').lower() == 'production':
+            cookie_params['domain'] = 'lunova.tr'
+            refresh_cookie_params['domain'] = 'lunova.tr'
+
         response.set_cookie(
             key="access_token",
             value=access_token,
-            httponly=True,
-            samesite="None",
-            secure=True,  # PROD: HTTPS zorunlu! Geliştirmede de True bırak, test için https kullan.
-            # PROD: domain parametresi ekle (ör: .seninprojen.com) -> domain=".seninprojen.com",
-            max_age=60*15,  # 15 dakika
-            path="/"
+            **cookie_params
         )
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
-            httponly=True,
-            samesite="None",
-            secure=True,  # PROD: HTTPS zorunlu! Geliştirmede de True bırak, test için https kullan.
-            # PROD: domain parametresi ekle (ör: .seninprojen.com) -> domain=".seninprojen.com",
-            max_age=60*60*24*7,  # 7 gün
-            path="/"
+            **refresh_cookie_params
         )
         return response
 
@@ -68,17 +74,22 @@ class LogoutView(APIView):
             token.blacklist()
             response = Response({"detail": "Başarıyla çıkış yapıldı."}, status=status.HTTP_205_RESET_CONTENT)
             # Cookie'leri expire et
+            cookie_params = {
+                'expires': 0,
+                'path': '/',
+            }
+            # Ortam kontrolü: prod ise domain ekle
+            if getattr(settings, 'ENVIRONMENT', '').lower() == 'production':
+                cookie_params['domain'] = 'lunova.tr'
             response.set_cookie(
                 key="access_token",
                 value="",
-                expires=0,
-                path="/"
+                **cookie_params
             )
             response.set_cookie(
                 key="refresh_token",
                 value="",
-                expires=0,
-                path="/"
+                **cookie_params
             )
             return response
         except KeyError:
