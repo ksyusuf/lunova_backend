@@ -1,7 +1,6 @@
 # Ortak Python ve Django dosyaları
 __pycache__/
 *.py[cod]
-*.sqlite3
 *.log
 
 # Sanal ortamlar
@@ -10,7 +9,7 @@ venv/
 
 # Ortam dosyaları
 .env
-.env.*
+.env.production
 
 # Django statik ve medya dosyaları
 /media/

@@ -19,6 +19,13 @@ class RegisterView(generics.CreateAPIView):
 
 class LoginView(APIView):
     serializer_class = LoginSerializer
+    """
+    POST /login/ endpointi artık email ve password bekler.
+    {
+        "email": "kullanici@ornek.com",
+        "password": "sifre"
+    }
+    """
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -108,4 +115,6 @@ class MeView(APIView):
             "username": user.username,
             "email": user.email,
             "role": getattr(user, "role", None),
+            "first_name": user.first_name,
+            "last_name": user.last_name,
         }, status=status.HTTP_200_OK)
