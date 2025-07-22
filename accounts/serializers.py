@@ -18,13 +18,32 @@ class AdminProfileSerializer(serializers.ModelSerializer):
 class ExpertProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpertProfile
-        fields = ['tc_kimlik']
+        fields = [
+            'tc_kimlik',
+            'diploma_dosyasi',
+            'universite',
+            'gsm_no',
+            'uzmanlik_alani',
+            'hakkinda',
+            'onay_durumu',
+            'profil_fotografi',
+        ]
 
 
 class ClientProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientProfile
-        fields = ['tc_kimlik']
+        fields = [
+            'tc_kimlik',
+            'daha_once_hizmet_aldi_mi',
+            'kullandigi_maddeler',
+            'bagimlilik_turu',
+            'destek_amaci',
+            'yas',
+            'cinsiyet',
+            'gsm_no',
+            'profil_fotografi',
+        ]
 
 
 class RegisterSerializer(serializers.ModelSerializer):
