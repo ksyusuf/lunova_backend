@@ -2,6 +2,10 @@
 
 ## Geliştirme (Development) Ortamı
 
+> **Not:** Aşağıdaki işlemlere başlamadan önce sanal ortamı aktive etmelisin.
+> - Windows: `venv\Scripts\activate`
+> - Mac/Linux: `source venv/bin/activate`
+
 1. Gerekli bağımlılıkları yükle:
    ```bash
    pip install -r requirements.txt
@@ -47,6 +51,10 @@
    ENVIRONMENT=Production
    ```
 
+> **Not:** Aşağıdaki işlemlere başlamadan önce sanal ortamı aktive etmelisin.
+> - Windows: `venv\Scripts\activate`
+> - Mac/Linux: `source venv/bin/activate`
+
 2. Gerekli bağımlılıkları yükle:
    ```bash
    pip install -r requirements.txt
@@ -63,10 +71,6 @@
    ```
 
 5. **Production sunucusunu başlatmak için:**
-   - Sanal ortamı aktive et:
-     ```bash
-     source venv/bin/activate  # veya Windows için: venv\Scripts\activate
-     ```
    - Sunucuyu başlat:
      ```bash
      python serve.py
