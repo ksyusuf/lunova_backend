@@ -17,12 +17,19 @@ import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# .env dosyasını oku
+# Öncelik sırası: .env.production > .env
+if (BASE_DIR / '.env.production').exists():
+    env_file = '.env.production'
+elif (BASE_DIR / '.env').exists():
+    env_file = '.env'
+else:
+    raise FileNotFoundError('Hiçbir .env dosyası bulunamadı!')
+
 env = environ.Env()
-environ.Env.read_env(BASE_DIR / '.env')
+env.read_env(BASE_DIR / env_file)
 
 
-# Quick-start development settings - unsuitable for production
+# Quick-start Development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -32,7 +39,6 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
-ENVIRONMENT = env('ENVIRONMENT')
 
 
 # Application definition
@@ -89,7 +95,14 @@ WSGI_APPLICATION = 'lunova_backend.wsgi.application'
 
 
 # Database ayarları
-if env('ENVIRONMENT', default=None) == 'Development':
+if env('ENVIRONMENT', default='Development') == 'Development':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -98,13 +111,6 @@ if env('ENVIRONMENT', default=None) == 'Development':
             'PASSWORD': env('DB_PASSWORD'),
             'HOST': env('DB_HOST'),
             'PORT': env('DB_PORT'),
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -152,7 +158,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 
-if ENVIRONMENT == 'Production':
+# CORS ve SESSION ayarları
+if env('ENVIRONMENT', default='Development') == 'Production':
     CORS_ALLOWED_ORIGINS = [
         "https://lunova.tr",
         "https://uzman.lunova.tr",
