@@ -97,7 +97,7 @@ WSGI_APPLICATION = 'lunova_backend.wsgi.application'
 
 
 # Database ayarları
-if env('ENVIRONMENT', default='Development') == 'Development':
+if env('ENVIRONMENT', default='Development') == 'MiniTest':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
