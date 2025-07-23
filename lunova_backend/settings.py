@@ -29,6 +29,8 @@ env = environ.Env()
 env.read_env(BASE_DIR / env_file)
 
 
+STATIC_ROOT = 'C:/production-versions/django-builds'
+
 # Quick-start Development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -163,7 +165,7 @@ if env('ENVIRONMENT', default='Development') == 'Production':
     CORS_ALLOWED_ORIGINS = [
         "https://lunova.tr",
         "https://uzman.lunova.tr",
-        "https://danisan.lunova.tr",
+        "https://danisan.lunova.tr"
     ]
     SESSION_COOKIE_DOMAIN = ".lunova.tr"
 else:
