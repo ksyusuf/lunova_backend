@@ -1,81 +1,90 @@
 # Lunova Backend
 
-Bu dizin, Lunova projesinin Django tabanlı backend uygulamasını içerir.
+## Geliştirme (Development) Ortamı
 
-## Gereksinimler
-- Python 3.11+
-- pip
-- (Tavsiye edilen) virtualenv veya venv
-
-## Ortam Değişkenleri (.env)
-Aşağıdaki ortam değişkenlerini içeren bir `.env` dosyası oluşturmalısınız (örnek):
-
-```
-DB_NAME=***
-DB_USER=***
-DB_PASSWORD=***
-DB_HOST=localhost
-DB_PORT=5432
-ENVIRONMENT=Development
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-MEDIA_URL=/media/
-MEDIA_ROOT=/media/
-SECRET_KEY=***
-```
-
-> **Not:** Gerekli değişkenler projenizin ayarlarına göre değişebilir. `DJANGO_SECRET_KEY` zorunludur. `DATABASE_URL` yoksa varsayılan olarak `db.sqlite3` kullanılır.
-
-## Kurulum ve Çalıştırma
-1. **Dizine girin:**
-   ```bash
-   cd backend
-   ```
-2. **Sanal ortam oluşturun ve aktif edin:**
-   ```bash
-   python -m venv venv
-   # Windows:
-   venv\Scripts\activate
-   # Mac/Linux:
-   source venv/bin/activate
-   ```
-3. **Gereksinimleri yükleyin:**
+1. Gerekli bağımlılıkları yükle:
    ```bash
    pip install -r requirements.txt
    ```
-   
-4. **.env dosyasını oluşturun:**
-   Proje kök dizinine `.env` dosyasını ekleyin ve yukarıdaki örneğe göre doldurun.
 
-5. **Veritabanı migrasyonlarını çalıştırın:**
+2. Ana dizinde `.env` dosyanı bulundur. Örnek bir `.env` dosyası:
+   ```env
+   SECRET_KEY=senin_secret_keyin
+   DEBUG=True
+   ALLOWED_HOSTS=localhost,127.0.0.1
+   DB_NAME=veritabani_adi
+   DB_USER=kullanici_adi
+   DB_PASSWORD=sifre
+   DB_HOST=localhost
+   DB_PORT=5432
+   ENVIRONMENT=Development
+   ```
+
+3. Veritabanı migrasyonlarını uygula:
    ```bash
    python manage.py migrate
    ```
 
-6. **Geliştirme sunucusunu başlatın:**
+4. Geliştirme sunucusunu başlat:
    ```bash
    python manage.py runserver
    ```
 
-Sunucu başlatıldığında, [http://127.0.0.1:8000](http://127.0.0.1:8000) adresinden projeye erişebilirsiniz.
+---
+
+## Production Ortamı
+
+1. Ana dizinde **sadece** `.env.production` dosyanı bulundur. Örnek bir `.env.production` dosyası:
+   ```env
+   SECRET_KEY=guclu_secret_key
+   DEBUG=False
+   ALLOWED_HOSTS=senin_domainin.com
+   DB_NAME=prod_db_adi
+   DB_USER=prod_kullanici
+   DB_PASSWORD=prod_sifre
+   DB_HOST=localhost
+   DB_PORT=5432
+   ENVIRONMENT=Production
+   ```
+
+2. Gerekli bağımlılıkları yükle:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Veritabanı migrasyonlarını uygula:
+   ```bash
+   python manage.py migrate
+   ```
+
+4. Statik dosyaları topla:
+   ```bash
+   python manage.py collectstatic
+   ```
+
+5. **Production sunucusunu başlatmak için:**
+   - Sanal ortamı aktive et:
+     ```bash
+     source venv/bin/activate  # veya Windows için: venv\Scripts\activate
+     ```
+   - Sunucuyu başlat:
+     ```bash
+     python serve.py
+     ```
 
 ---
 
-Herhangi bir sorunla karşılaşırsanız, hata mesajını kontrol edin ve eksik bağımlılıkları yükleyin veya ortam değişkenlerini gözden geçirin. 
+## Ortam Dosyası Yönetimi
 
-## SECRET_KEY Nasıl Oluşturulur?
+- **Development ortamında:** Sadece `.env` dosyası bulundur.
+- **Production ortamında:** Sadece `.env.production` dosyası bulundur.
+- Her iki dosya da varsa, `.env.production` öncelikli olarak okunur.
+- Ortam değişkeni ayarlamaya gerek yoktur; dosya varlığına göre ortam otomatik belirlenir.
 
-Django projelerinde güvenlik için gizli bir anahtar (SECRET_KEY) gereklidir. Kendi anahtarınızı oluşturmak için aşağıdaki adımları izleyin:
+---
 
-1. Aşağıdaki komutu terminalde çalıştırın:
-   ```bash
-   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-   ```
-   Bu komut size rastgele ve güvenli bir SECRET_KEY üretecektir.
+## Ekstra Notlar
 
-2. Üretilen anahtarı kopyalayın ve `.env` dosyanıza aşağıdaki gibi ekleyin:
-   ```env
-   SECRET_KEY=buraya-olusan-anahtari-yapistirin
-   ```
-
-> `.env` dosyanız asla versiyon kontrolüne (git) eklenmemelidir. Her geliştirici kendi anahtarını oluşturmalıdır. 
+- `.env` ve `.env.production` dosyalarını asla git'e ekleme! (Zaten .gitignore'da olmalı)
+- Migration ve collectstatic işlemlerini production deploy öncesi mutlaka yap.
+- Sorun yaşarsan veya özel bir servis dosyası (systemd, pm2, vs.) örneği istersen, README'yi güncelleyebilirsin. 
