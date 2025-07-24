@@ -175,6 +175,9 @@ else:
     # Localde domain ayarı gerekmez
     SESSION_COOKIE_DOMAIN = None
 
+# HTTPS reverse proxy arkasında çalışırken güvenli protokolü algılaması için:
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'accounts.authentication.CookieJWTAuthentication',
