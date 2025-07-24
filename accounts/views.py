@@ -26,20 +26,16 @@ class LoginView(APIView):
         "password": "sifre"
     }
     """
-
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
-
         response = Response({
             "refresh": refresh_token,
             "access": access_token,
-            "username": user.username,
             "email": user.email,
         }, status=status.HTTP_200_OK)
         # JWT'yi httpOnly cookie olarak ekle

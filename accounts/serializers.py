@@ -74,7 +74,12 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"gsm_no": "GSM zorunludur."})
         if not attrs.get('tc_kimlik'):
             raise serializers.ValidationError({"tc_kimlik": "TC Kimlik numarası zorunludur."})
-
+        # Email benzersiz mi?
+        if User.objects.filter(email=attrs['email']).exists():
+            raise serializers.ValidationError({"email": "Bu email adresi ile kayıtlı bir kullanıcı zaten var."})
+        # TC Kimlik benzersiz mi? (hem Expert hem Client için kontrol)
+        if ExpertProfile.objects.filter(tc_kimlik=attrs['tc_kimlik']).exists() or ClientProfile.objects.filter(tc_kimlik=attrs['tc_kimlik']).exists():
+            raise serializers.ValidationError({"tc_kimlik": "Bu TC Kimlik numarası ile kayıtlı bir kullanıcı zaten var."})
         return attrs
 
     def create(self, validated_data):
@@ -84,8 +89,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         tc_kimlik = validated_data.pop('tc_kimlik')
         role = validated_data.get('role')
         email = validated_data.get('email')
-
-        # username'i email olarak set et
         user = User(username=email, **validated_data)
         user.set_password(password)
         user.save()

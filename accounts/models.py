@@ -10,7 +10,11 @@ class UserRole(models.TextChoices):
 
 
 class User(AbstractUser):
+    email = models.EmailField(unique=True)
     role = models.CharField(max_length=10, choices=UserRole.choices)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'role']
 
 
 class AdminProfile(models.Model):
@@ -29,7 +33,7 @@ def client_profile_photo_upload_path(instance, filename):
 
 class ExpertProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='expert_profile')
-    tc_kimlik = models.CharField(max_length=11)
+    tc_kimlik = models.CharField(max_length=11, unique=True)
     diploma_dosyasi = models.FileField(upload_to=expert_diploma_upload_path, null=True, blank=True)
     universite = models.CharField(max_length=128, null=True, blank=True)
     gsm_no = models.CharField(max_length=20, null=True, blank=True)
@@ -61,7 +65,7 @@ BAGIMLILIK_TURU_CHOICES = [
 
 class ClientProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='client_profile')
-    tc_kimlik = models.CharField(max_length=11)
+    tc_kimlik = models.CharField(max_length=11, unique=True)
     daha_once_hizmet_aldi_mi = models.BooleanField(default=False)
     kullandigi_maddeler = models.TextField(null=True, blank=True)
     bagimlilik_turu = models.CharField(max_length=32, choices=BAGIMLILIK_TURU_CHOICES, null=True, blank=True)
