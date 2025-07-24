@@ -160,6 +160,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 
+USE_X_FORWARDED_HOST = True
+
 # CORS ve SESSION ayarları
 if env('ENVIRONMENT', default='Development') == 'Production':
     CORS_ALLOWED_ORIGINS = [
