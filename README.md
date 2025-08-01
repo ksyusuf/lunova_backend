@@ -23,13 +23,18 @@
    DB_PORT=5432
    ENVIRONMENT=Development
    ```
-
-3. Veritabanı migrasyonlarını uygula:
+   
+3. Veritabanı migrasyonlarını oluştur:
+   ```bash
+   python manage.py makemigrations
+   ```
+ 
+4. Veritabanı migrasyonlarını uygula:
    ```bash
    python manage.py migrate
    ```
 
-4. Geliştirme sunucusunu başlat:
+5. Geliştirme sunucusunu başlat:
    ```bash
    python manage.py runserver
    ```

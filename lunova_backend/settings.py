@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     # Senin app'lerin
     'accounts',  # kullanıcı yönetim uygulaman
     'api',
+    'zoom',  # Zoom entegrasyonu
+    'appointments',  # Randevu yönetimi
     'rest_framework_simplejwt.token_blacklist',
 ]
 
@@ -197,3 +199,8 @@ SIMPLE_JWT = {
 
 MEDIA_ROOT = env('MEDIA_ROOT', default=BASE_DIR / 'media')
 MEDIA_URL = env('MEDIA_URL', default='/media/')
+
+# Zoom API Settings
+ZOOM_CLIENT_ID = env('ZOOM_CLIENT_ID')
+ZOOM_CLIENT_SECRET = env('ZOOM_CLIENT_SECRET')
+ZOOM_ACCOUNT_ID = env('ZOOM_ACCOUNT_ID')
