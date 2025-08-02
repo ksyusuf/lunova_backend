@@ -16,8 +16,10 @@ class Appointment(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
-            ('pending', 'Beklemede'),
+            ('pending', 'Beklemede'),                   # uzman tarafından oluşturuldu, onay bekliyor
+            ('waiting_approval', 'Onay Bekliyor'),     # danışan tarafından oluşturuldu
             ('confirmed', 'Onaylandı'),
+            ('cancel_requested', 'İptal Talep Edildi'),# danışan iptal istedi
             ('cancelled', 'İptal Edildi'),
             ('completed', 'Tamamlandı'),
         ],
