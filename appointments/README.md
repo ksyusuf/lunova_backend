@@ -6,4 +6,4 @@ DELETE /api/v1/appointments/<id>/ - Randevu sil
 GET    /api/v1/appointments/user/ - Kullanıcı randevuları
 POST   /api/v1/appointments/<id>/confirm/ - Randevu onayla
 GET    /api/v1/appointments/<id>/meeting-info/ - Zoom bilgileri
-kontrol2
+kontrol3
