@@ -1,0 +1,16 @@
+name: Block Direct Push to Main
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  block-direct-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if push is a PR
+        if: github.event.pusher.name != 'ksyusuf' || github.event.pull_request == null
+        run: |
+          echo "Direct push to main is not allowed!"
+          exit 1
