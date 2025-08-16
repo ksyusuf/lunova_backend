@@ -92,6 +92,25 @@
 
 ---
 
+## Apps
+
+### Accounts
+- Kullanıcı yönetimi ve authentication
+- Client, Expert, Admin profilleri
+
+### Zoom
+- Zoom meeting entegrasyonu
+- Uzmanlar için meeting oluşturma
+
+### Appointments
+- Randevu yönetimi sistemi
+- Client-Expert randevu takibi
+
+### Forms
+- Dinamik form sistemi
+- Farklı soru tipleri (text, test, çok seçimli)
+- Authentication korumalı API endpoints
+
 ## Ekstra Notlar
 
 - `.env` ve `.env.production` dosyalarını asla git'e ekleme! (Zaten .gitignore'da olmalı)

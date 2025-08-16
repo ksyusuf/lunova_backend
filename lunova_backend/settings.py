@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'api',
     'zoom',  # Zoom entegrasyonu
     'appointments',  # Randevu yönetimi
+    'forms',  # Form yönetimi
     'rest_framework_simplejwt.token_blacklist',
 ]
 
