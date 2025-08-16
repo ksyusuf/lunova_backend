@@ -1,0 +1,191 @@
+{
+	"info": {
+		"_postman_id": "forms-api-collection",
+		"name": "Forms API",
+		"description": "Forms app için API endpoint'leri - Authentication gerekli",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Forms List",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/v1/forms/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"forms",
+						""
+					]
+				},
+				"description": "Aktif formların listesini getirir. Authentication gerekli."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Form Detail",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/v1/forms/1/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"forms",
+						"1",
+						""
+					]
+				},
+				"description": "Belirli bir formun detaylarını ve sorularını getirir. Authentication gerekli."
+			},
+			"response": []
+		},
+		{
+			"name": "Submit Form",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"form_id\": 1,\n    \"answers\": [\n        {\n            \"question_id\": 1,\n            \"text_answer\": \"Baş ağrısı ve mide bulantısı yaşıyorum\"\n        },\n        {\n            \"question_id\": 2,\n            \"selected_option_ids\": [3]\n        },\n        {\n            \"question_id\": 3,\n            \"selected_option_ids\": [6, 9, 10]\n        },\n        {\n            \"question_id\": 4,\n            \"text_answer\": \"Evet, 2 yıl önce benzer şikayetlerim vardı. Ağrı kesici ile tedavi edildi.\"\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/forms/submit/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"forms",
+						"submit",
+						""
+					]
+				},
+				"description": "Form cevaplarını gönderir. Authentication gerekli. Bir kullanıcı bir formu sadece bir kez doldurabilir."
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Responses",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/v1/forms/my-responses/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"forms",
+						"my-responses",
+						""
+					]
+				},
+				"description": "Kullanıcının doldurduğu formları getirir. Authentication gerekli."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Form Response Detail",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/v1/forms/responses/1/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"forms",
+						"responses",
+						"1",
+						""
+					]
+				},
+				"description": "Belirli bir form cevabının detaylarını getirir. Authentication gerekli. Sadece kendi cevaplarını görüntüleyebilir."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "your_jwt_token_here",
+			"type": "string"
+		}
+	]
+}
