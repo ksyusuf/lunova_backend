@@ -146,6 +146,15 @@ class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
         """
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        """
+        Soft delete: kaydı silmek yerine is_deleted=True yapar
+        """
+        instance = self.get_object()
+        instance.is_deleted = True
+        instance.save(update_fields=["is_deleted", "updated_at"])
+        return Response({"detail": "Appointment marked as deleted."}, status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
@@ -250,11 +259,15 @@ def approve_appointment(request, appointment_id):
         meeting_datetime = datetime.combine(appointment.date, appointment.time)
         topic = f"Danışmanlık: {appointment.client.get_full_name()} - Uzman {appointment.expert.get_full_name()}"
         
-        zoom_info = create_zoom_meeting(
-            topic=topic,
-            start_time=meeting_datetime,
-            duration=appointment.duration
-        )
+        # zoom_info = create_zoom_meeting(
+        #     topic=topic,
+        #     start_time=meeting_datetime,
+        #     duration=validated_data.get('duration', 45)
+        # )
+        # Mocked for example purposes
+        zoom_info = {"start_url":"confirm mock url",
+                    "join_url":"confirm mock url",
+                    "id":"confirm mock url"}
         
         appointment.zoom_start_url = zoom_info.get('start_url')
         appointment.zoom_join_url = zoom_info.get('join_url')

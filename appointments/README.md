@@ -193,20 +193,34 @@ curl -X GET "http://localhost:8000/api/v1/appointments/1/" \
 ```
 PUT /api/v1/appointments/<id>/
 ```
-# todo: kontrollerde burada kaldık
 
 **Yetki**: Randevuya dahil olan kullanıcılar
-**Açıklama**: Randevu bilgilerini günceller
+**Açıklama**: 2 tip güncelleme vardır, put (tam) ve patch (kısmi) güncelleme yapar.
 
-**Örnek İstek:**
+**Örnek Tam (Put) İstek:**
 ```bash
-curl -X PUT "http://localhost:8000/api/v1/appointments/1/" \
+curl -X PUT "http://localhost:8000/api/v1/appointments/5/" \
   -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..." \
   -H "Content-Type: application/json" \
   -d '{
-    "notes": "Güncellenmiş notlar",
-    "duration": 90
+    "expert": 5,
+    "client": 12,
+    "date": "2025-08-20",
+    "time": "14:30:00",
+    "duration": 90,
+    "notes": "5 id li randevu TAM Güncellenmiş notlar"
   }'
+```
+
+**Örnek Kısmi (Patch) İstek:**
+```bash
+curl -X PUT "http://localhost:8000/api/v1/appointments/19/" \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+      "notes": "19 id li randevu KISMİ Güncellenmiş notlar",
+      "duration": 45
+    }'
 ```
 
 ### 6. Randevu Sil
@@ -219,7 +233,7 @@ DELETE /api/v1/appointments/<id>/
 
 **Örnek İstek:**
 ```bash
-curl -X DELETE "http://localhost:8000/api/v1/appointments/1/" \
+curl -X DELETE "http://localhost:8000/api/v1/appointments/21/" \
   -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
 ```
 
@@ -356,6 +370,13 @@ curl -X POST "http://localhost:8000/api/v1/appointments/1/cancel-confirm/" \
 }
 ```
 
+**Örnek İptal Edilememe Yanıt:**
+```json
+{
+    "error": "Bu randevu iptal talebi bekleyen durumda değil"
+}
+```
+
 ### 12. Zoom Meeting Bilgileri
 ```
 GET /api/v1/appointments/<id>/meeting-info/
@@ -383,6 +404,12 @@ curl -X GET "http://localhost:8000/api/v1/appointments/1/meeting-info/" \
   "duration": 45,
   "is_confirmed": true,
   "status": "confirmed"
+}
+```
+**Örnek Hata:**
+```json
+{
+    "error": "Bu randevuyu görüntüleme yetkiniz yok"
 }
 ```
 
