@@ -1,9 +1,9 @@
 from rest_framework import permissions
 
 
-class IsExpertOrReadOnlyPermission(permissions.BasePermission):
+class IsExpertOrClientForCreatePermission(permissions.BasePermission):
     """
-    GET istekleri için herkes, POST/PUT/DELETE için sadece uzmanlar.
+    GET istekleri için herkes, POST için uzmanlar ve danışanlar, PUT/DELETE için sadece uzmanlar.
     """
     
     def has_permission(self, request, view):
@@ -11,7 +11,12 @@ class IsExpertOrReadOnlyPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return request.user.is_authenticated
         
-        # POST/PUT/DELETE için sadece uzmanlar
+        # POST için uzmanlar ve danışanlar
+        if request.method == 'POST':
+            return (hasattr(request.user, 'role') and
+                   request.user.role in ['expert', 'client'])
+        
+        # PUT/DELETE için sadece uzmanlar
         return hasattr(request.user, 'role') and request.user.role == 'expert'
 
 
@@ -19,6 +24,10 @@ class IsAppointmentParticipantPermission(permissions.BasePermission):
     """
     Randevuya dahil olan kullanıcıların erişimine izin verir.
     """
+    
+    def has_permission(self, request, view):
+        # Kimlik doğrulanmış kullanıcılar erişebilir
+        return request.user.is_authenticated
     
     def has_object_permission(self, request, view, obj):
         # Randevuya dahil olan kullanıcılar (expert veya client)
@@ -32,4 +41,14 @@ class IsAppointmentExpertPermission(permissions.BasePermission):
     
     def has_object_permission(self, request, view, obj):
         # Sadece randevunun uzmanı
-        return obj.expert == request.user 
+        return obj.expert == request.user
+
+
+class IsAppointmentClientPermission(permissions.BasePermission):
+    """
+    Sadece randevunun danışanının erişimine izin verir.
+    """
+    
+    def has_object_permission(self, request, view, obj):
+        # Sadece randevunun danışanı
+        return obj.client == request.user

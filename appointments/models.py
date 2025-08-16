@@ -16,15 +16,20 @@ class Appointment(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
-            ('pending', 'Beklemede'),
+            ('pending', 'Beklemede'),                   # uzman tarafından oluşturuldu, onay bekliyor
+            ('waiting_approval', 'Onay Bekliyor'),      # danışan tarafından oluşturuldu
             ('confirmed', 'Onaylandı'),
+            ('cancel_requested', 'İptal Talep Edildi'), # danışan iptal istedi
             ('cancelled', 'İptal Edildi'),
             ('completed', 'Tamamlandı'),
         ],
         default='pending'
     )
 
-    # Zoom entegrasyonu için alanlar (opsiyonel)
+    # Soft delete için alan
+    is_deleted = models.BooleanField(default=False)
+
+    # Zoom entegrasyonu için alanlar
     zoom_start_url = models.URLField(max_length=1000, null=True, blank=True)
     zoom_join_url = models.URLField(max_length=500, null=True, blank=True)
     zoom_meeting_id = models.CharField(max_length=128, null=True, blank=True)
