@@ -163,6 +163,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Custom header'lara izin ver
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-frontend-type',  # Custom header'ımız
+]
+
 USE_X_FORWARDED_HOST = True
 
 # CORS ve SESSION ayarları
@@ -175,7 +189,8 @@ if env('ENVIRONMENT', default='Development') == 'Production':
     SESSION_COOKIE_DOMAIN = ".lunova.tr"
 else:
     CORS_ALLOWED_ORIGINS = [
-        "http://localhost:5173",
+        "http://localhost:5173", # Expert frontend için
+        "http://localhost:5174",  # Client frontend için
     ]
     # Localde domain ayarı gerekmez
     SESSION_COOKIE_DOMAIN = None

@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.conf import settings
 
 User = get_user_model()
@@ -27,9 +27,65 @@ class LoginView(APIView):
     }
     """
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
+        # Önce frontend tipini belirle
+        frontend_type = request.META.get('HTTP_X_FRONTEND_TYPE', '')
+        
+        # Eğer header yoksa, referer header'ından kontrol et
+        if not frontend_type:
+            referer = request.META.get('HTTP_REFERER', '')
+            
+            # Expert frontend domain'lerini kontrol et
+            expert_domains = [
+                'expert.lunova.tr',
+                'localhost:5173',  # Expert frontend dev port (Vite default)
+                '127.0.0.1:5173',  # Localhost alternatif
+            ]
+            
+            # Client frontend domain'lerini kontrol et
+            client_domains = [
+                'client.lunova.tr',
+                'lunova.tr',  # Ana domain
+                'localhost:5174',  # Client frontend dev port (farklı port)
+                '127.0.0.1:5174',  # Localhost alternatif
+            ]
+            
+            if any(domain in referer for domain in expert_domains):
+                frontend_type = 'expert'
+            elif any(domain in referer for domain in client_domains):
+                frontend_type = 'client'
+        
+        is_expert_frontend = frontend_type == 'expert'
+        is_client_frontend = frontend_type == 'client'
+        
+        # Email'e göre kullanıcıyı bul
+        email = request.data.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({
+                "detail": "Geçersiz e-posta veya şifre."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Rol kontrolü yap (sadece frontend tipi belirlenmişse)
+        if is_expert_frontend and user.role == 'client':
+            return Response({
+                "detail": "Bu arayüz sadece uzmanlar için tasarlanmıştır. Lütfen danışan arayüzünü kullanın."
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        if is_client_frontend and user.role == 'expert':
+            return Response({
+                "detail": "Bu arayüz sadece danışanlar için tasarlanmıştır. Lütfen uzman arayüzünü kullanın."
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Şimdi şifre kontrolü yap
+        password = request.data.get('password')
+        user = authenticate(username=user.username, password=password)
+        if not user:
+            return Response({
+                "detail": "Geçersiz e-posta veya şifre."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Normal login işlemi devam eder
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
@@ -37,6 +93,7 @@ class LoginView(APIView):
             "refresh": refresh_token,
             "access": access_token,
             "email": user.email,
+            "role": user.role,  # Role bilgisini de döndür
         }, status=status.HTTP_200_OK)
         # JWT'yi httpOnly cookie olarak ekle
         cookie_params = {
