@@ -1,5 +1,5 @@
 from rest_framework import generics
-from .serializers import RegisterSerializer
+from .serializers import ExpertRegisterSerializer, ClientRegisterSerializer, AdminRegisterSerializer
 from .serializers import LoginSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -13,8 +13,16 @@ from django.conf import settings
 User = get_user_model()
 
 
-class RegisterView(generics.CreateAPIView):
-    serializer_class = RegisterSerializer
+class ExpertRegisterView(generics.CreateAPIView):
+    serializer_class = ExpertRegisterSerializer
+
+
+class ClientRegisterView(generics.CreateAPIView):
+    serializer_class = ClientRegisterSerializer
+
+
+class AdminRegisterView(generics.CreateAPIView):
+    serializer_class = AdminRegisterSerializer
 
 
 class LoginView(APIView):
@@ -79,7 +87,7 @@ class LoginView(APIView):
         
         # Şimdi şifre kontrolü yap
         password = request.data.get('password')
-        user = authenticate(username=user.username, password=password)
+        user = authenticate(email=user.email, password=password)
         if not user:
             return Response({
                 "detail": "Geçersiz e-posta veya şifre."
@@ -130,38 +138,77 @@ class LogoutView(APIView):
     def post(self, request):
         try:
             refresh_token = request.COOKIES.get("refresh_token") or request.data.get("refresh")
+            if not refresh_token:
+                return Response({"error": "Refresh token bulunamadı."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Token'ı blacklist'e ekle
             token = RefreshToken(refresh_token)
             token.blacklist()
+            
+            # Access token'ı da blacklist'e ekle (eğer varsa)
+            auth_header = request.META.get('HTTP_AUTHORIZATION')
+            if auth_header and auth_header.startswith('Bearer '):
+                access_token = auth_header.split(' ')[1]
+                try:
+                    access_token_obj = RefreshToken(access_token)
+                    access_token_obj.blacklist()
+                except:
+                    pass  # Access token blacklist edilemezse devam et
+            
             response = Response({"detail": "Başarıyla çıkış yapıldı."}, status=status.HTTP_205_RESET_CONTENT)
-            # Cookie'leri expire et
+            
+            # Cookie'leri tamamen kaldır (expire yerine delete kullan)
             cookie_params = {
-                'expires': 0,
                 'path': '/',
             }
+            
             # Ortam kontrolü: prod ise domain ekle
             if getattr(settings, 'ENVIRONMENT', '').lower() == 'production':
                 cookie_params['domain'] = 'lunova.tr'
+            
+            # Access token cookie'sini kaldır
+            response.delete_cookie(
+                key="access_token",
+                **cookie_params
+            )
+            
+            # Refresh token cookie'sini kaldır
+            response.delete_cookie(
+                key="refresh_token",
+                **cookie_params
+            )
+            
+            # Cookie'leri tamamen temizlemek için expire date ekle
             response.set_cookie(
                 key="access_token",
                 value="",
+                expires="Thu, 01 Jan 1970 00:00:00 GMT",
                 **cookie_params
             )
             response.set_cookie(
-                key="refresh_token",
+                key="refresh_token", 
                 value="",
+                expires="Thu, 01 Jan 1970 00:00:00 GMT",
                 **cookie_params
             )
+            
             return response
-        except KeyError:
-            return Response({"error": "Refresh token gönderilmedi."}, status=status.HTTP_400_BAD_REQUEST)
+            
         except TokenError:
             return Response({"error": "Geçersiz veya süresi dolmuş token."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": f"Çıkış işlemi sırasında hata oluştu: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        # Logout'taki gibi refresh token kontrolü yap
+        refresh_token = request.COOKIES.get("refresh_token")
+        if not refresh_token:
+            return Response({"error": "Kullanıcı bulunamadı."}, status=status.HTTP_401_UNAUTHORIZED)
+        
         user = request.user
         return Response({
             "id": user.id,

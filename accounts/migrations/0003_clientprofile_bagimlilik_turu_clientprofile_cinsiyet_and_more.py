@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='expertprofile',
             name='diploma_dosyasi',
-            field=models.FileField(blank=True, null=True, upload_to=accounts.models.expert_diploma_upload_path),
+            field=models.FileField(blank=True, null=True, upload_to=accounts.models.expert_degree_upload_path),
         ),
         migrations.AddField(
             model_name='expertprofile',

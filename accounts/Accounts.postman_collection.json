@@ -1,0 +1,266 @@
+{
+	"info": {
+		"_postman_id": "2653a4ea-893a-404a-aa8b-f1b9ec145cfc",
+		"name": "Accounts",
+		"description": "Lunova Backend servisimizin testlerini yaptığımız çalışma alanı.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37991120",
+		"_collection_link": "https://red-shuttle-701984.postman.co/workspace/Lunova~64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/37991120-2653a4ea-893a-404a-aa8b-f1b9ec145cfc?action=share&source=collection_link&creator=37991120"
+	},
+	"item": [
+		{
+			"name": "register-expert",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"first_name\": \"Yusuf\",\n  \"last_name\": \"Kahraman\",\n  \"email\": \"ozel_5@expert.com\",\n  \"password\": \"baris123\",\n  \"password2\": \"baris123\",\n  \"phone_number\": \"05318849781\",\n  \"id_number\": \"15111111331\",\n  \"country\": \"TR\",\n  \"national_id\": \"\",\n  \"university\": \"İstanbul Üniversitesi\",\n  \"about\": \"Uzman psikolog\",\n  \"gender_id\": 1,\n  \"birth_date\": \"1990-01-20\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/v1/accounts/register/expert/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"accounts",
+						"register",
+						"expert",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "register-client",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"first_name\": \"Ahmet\",\n  \"last_name\": \"Yılmaz\",\n  \"email\": \"ahmet@client.com\",\n  \"password\": \"sifre123\",\n  \"password2\": \"sifre123\",\n  \"phone_number\": \"05321234567\",\n  \"id_number\": \"12345678901\",\n  \"country\": \"TR\",\n  \"national_id\": \"\",\n  \"birth_date\": \"1995-04-12\",\n  \"gender_id\": 2,\n  \"support_goal\": \"Bağımlılık tedavisi\",\n  \"received_service_before\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/v1/accounts/register/client/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"accounts",
+						"register",
+						"client",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "register-admin",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"first_name\": \"Admin\",\n  \"last_name\": \"User\",\n  \"email\": \"admin@lunova.com\",\n  \"password\": \"admin123\",\n  \"password2\": \"admin123\",\n  \"phone_number\": \"05329998877\",\n  \"id_number\": \"98765432109\",\n  \"country\": \"TR\",\n  \"national_id\": \"\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/v1/accounts/register/admin/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"accounts",
+						"register",
+						"admin",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"email\": \"ozel_5@expert.com\", \"password\": \"baris123\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/v1/accounts/login/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"accounts",
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/v1/accounts/logout/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"accounts",
+						"logout",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "me",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/v1/accounts/me/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"accounts",
+						"me",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "access_token",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTM4NDUxLCJpYXQiOjE3NTY5Mzc1NTEsImp0aSI6ImIyNjRjNDllNzg0YjQ3OTU4YzBkN2QzYWE3MDA4NjY0IiwidXNlcl9pZCI6IjI3In0.Y_RWXUFlSGQYPEO3eBpjqylRYfd2dwFSiysxNvjzeoo"
+		}
+	]
+}
