@@ -1,0 +1,290 @@
+{
+	"info": {
+		"_postman_id": "7c23bb5c-d630-4447-82c1-b8c70414e8c5",
+		"name": "Availability",
+		"description": "Postman collection for Availability endpoints with httpOnly cookie-based JWT authentication.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37991120"
+	},
+	"item": [
+		{
+			"name": "Client (Danışan) İşlemleri",
+			"description": "Danışanların, uzmanların müsaitlik durumunu görüntülemek için kullandığı endpoint'ler.",
+			"item": [
+				{
+					"name": "Uzman Takvimini Görüntüle",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Cookie", "value": "access_token={{access_token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/availability/expert/{{expert_id}}/calendar/?start_date={{start_date}}&end_date={{end_date}}",
+							"host": [ "{{base_url}}" ],
+							"path": [ "api", "v1", "availability", "expert", "{{expert_id}}", "calendar", "" ],
+							"query": [
+								{ "key": "start_date", "value": "{{start_date}}" },
+								{ "key": "end_date", "value": "{{end_date}}" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Uzman Müsaitliğini Görüntüle (İsteğe Bağlı)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Cookie", "value": "access_token={{access_token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/availability/expert/{{expert_id}}/",
+							"host": [ "{{base_url}}" ],
+							"path": [ "api", "v1", "availability", "expert", "{{expert_id}}", "" ]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Expert (Uzman) İşlemleri",
+			"description": "Uzmanların kendi müsaitlik ve takvimlerini yönetmek için kullandığı endpoint'ler.",
+			"item": [
+				{
+					"name": "Haftalık Müsaitlik Yönetimi",
+					"item": [
+						{
+							"name": "Haftalık Müsaitlikleri Listele",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/weekly/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "weekly", "" ]
+								}
+							}
+						},
+						{
+							"name": "Yeni Haftalık Müsaitlik Ekle",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" },
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"day_of_week\": 0,\n  \"start_time\": \"09:00:00\",\n  \"end_time\": \"17:00:00\",\n  \"service\": 1,\n  \"is_active\": true,\n  \"slot_minutes\": 50,\n  \"capacity\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/weekly/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "weekly", "" ]
+								}
+							}
+						},
+						{
+							"name": "Çoklu Haftalık Müsaitlik Ekle",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" },
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"availabilities\": [\n    {\n      \"day_of_week\": 0,\n      \"start_time\": \"09:00:00\",\n      \"end_time\": \"17:00:00\",\n      \"service\": 1,\n      \"is_active\": true,\n      \"slot_minutes\": 50,\n      \"capacity\": 1\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/weekly/bulk/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "weekly", "bulk", "" ]
+								}
+							}
+						},
+						{
+							"name": "Haftalık Müsaitlik Detaylarını Görüntüle, Güncelle ve Sil",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/weekly/{{id}}/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "weekly", "{{id}}", "" ]
+								}
+							}
+						},
+						{
+							"name": "Haftalık Müsaitliği Güncelle",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" },
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"day_of_week\": 2,\n  \"start_time\": \"10:00:00\",\n  \"end_time\": \"16:00:00\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/weekly/{{id}}/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "weekly", "{{id}}", "" ]
+								}
+							}
+						},
+						{
+							"name": "Haftalık Müsaitliği Sil",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/weekly/{{id}}/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "weekly", "{{id}}", "" ]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "İstisna Müsaitlik Yönetimi",
+					"item": [
+						{
+							"name": "İstisnaları Listele",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/exceptions/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "exceptions", "" ]
+								}
+							}
+						},
+						{
+							"name": "Yeni İstisna Ekle",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" },
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"date\": \"2025-09-02\",\n  \"start_time\": \"13:00:00\",\n  \"end_time\": \"15:00:00\",\n  \"exception_type\": \"cancel\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/exceptions/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "exceptions", "" ]
+								}
+							}
+						},
+						{
+							"name": "İstisna Detaylarını Görüntüle, Güncelle ve Sil",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/exceptions/{{id}}/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "exceptions", "{{id}}", "" ]
+								}
+							}
+						},
+						{
+							"name": "İstisnayı Güncelle",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Content-Type", "value": "application/json" },
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"date\": \"2025-09-11\",\n  \"start_time\": \"14:00:00\",\n  \"end_time\": \"16:00:00\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/exceptions/{{id}}/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "exceptions", "{{id}}", "" ]
+								}
+							}
+						},
+						{
+							"name": "İstisnayı Sil",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/exceptions/{{id}}/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "exceptions", "{{id}}", "" ]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Takvim Görüntüleme",
+					"item": [
+						{
+							"name": "Kendi Takvimimi Görüntüle (Birleşmiş Takvim)",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/my-availability/",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "my-availability", "" ]
+								}
+							}
+						},
+						{
+							"name": "Belirli Tarih Aralığında Kendi Takvimimi Görüntüle",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Cookie", "value": "access_token={{access_token}}" }
+								],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/expert/{{my_id}}/calendar/?start_date={{start_date}}&end_date={{end_date}}",
+									"host": [ "{{base_url}}" ],
+									"path": [ "api", "v1", "availability", "expert", "{{my_id}}", "calendar", "" ],
+									"query": [
+										{ "key": "start_date", "value": "{{start_date}}" },
+										{ "key": "end_date", "value": "{{end_date}}" }
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{ "key": "base_url", "value": "http://127.0.0.1:8000" },
+		{ "key": "access_token", "value": "AccessTokenssss" },
+		{ "key": "expert_id", "value": "1" },
+		{ "key": "my_id", "value": "1" },
+		{ "key": "id", "value": "1" },
+		{ "key": "start_date", "value": "2025-09-01" },
+		{ "key": "end_date", "value": "2025-09-10" }
+	]
+}

@@ -3,7 +3,7 @@
 ## Geliştirme (Development) Ortamı
 
 > **Not:** Aşağıdaki işlemlere başlamadan önce sanal ortamı aktive etmelisin.
-> - Windows: `venv\Scripts\activate`
+> - Windows: `.venv/Scripts/activate`
 > - Mac/Linux: `source venv/bin/activate`
 
 1. Gerekli bağımlılıkları yükle:
@@ -39,6 +39,8 @@
    python manage.py runserver
    ```
 
+http://localhost:8000/admin/
+
 ---
 
 ## Production Ortamı
@@ -57,7 +59,7 @@
    ```
 
 > **Not:** Aşağıdaki işlemlere başlamadan önce sanal ortamı aktive etmelisin.
-> - Windows: `venv\Scripts\activate`
+> - Windows: `.venv/Scripts/activate`
 > - Mac/Linux: `source venv/bin/activate`
 
 2. Gerekli bağımlılıkları yükle:
@@ -110,6 +112,10 @@
 - Dinamik form sistemi
 - Farklı soru tipleri (text, test, çok seçimli)
 - Authentication korumalı API endpoints
+
+### Availability
+- Kullanıcıların haftalık ve istisnai müsaitlik durumları
+- İstisnai müsaitlik -> Ekstra / İptal
 
 ## Ekstra Notlar
 

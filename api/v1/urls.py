@@ -5,4 +5,5 @@ urlpatterns = [
     path('zoom/', include('zoom.urls')),
     path('appointments/', include('appointments.urls')),
     path('forms/', include('forms.urls')),
+    path('availability/', include('availability.urls')),
 ]

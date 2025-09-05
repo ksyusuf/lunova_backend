@@ -104,6 +104,7 @@ class BaseRegisterSerializer(serializers.Serializer):
 
         # Turkey: id_number (TC Kimlik) required
         if country == "TR":
+            attrs['timezone'] = "Europe/Istanbul"
             if not id_number:
                 raise serializers.ValidationError({"id_number": "Türkiye için TC Kimlik zorunludur."})
             if not id_number.isdigit() or len(id_number) != 11:
@@ -115,6 +116,7 @@ class BaseRegisterSerializer(serializers.Serializer):
 
         # International users: national_id required
         else:
+            attrs.setdefault('timezone', 'UTC')
             if not national_id:
                 raise serializers.ValidationError({"national_id": f"{country} için kimlik numarası zorunludur."})
 

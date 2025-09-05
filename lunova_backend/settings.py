@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'django_extensions',  # Bu satırı ekle
 
     # Senin app'lerin
     'accounts',  # kullanıcı yönetim uygulaman
@@ -66,6 +67,7 @@ INSTALLED_APPS = [
     'appointments',  # Randevu yönetimi
     'forms',  # Form yönetimi
     'rest_framework_simplejwt.token_blacklist',
+    'availability',  # Uzman uygunluk yönetimi
 ]
 
 MIDDLEWARE = [

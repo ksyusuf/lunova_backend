@@ -260,7 +260,7 @@
 	"variable": [
 		{
 			"key": "access_token",
-			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTM4NDUxLCJpYXQiOjE3NTY5Mzc1NTEsImp0aSI6ImIyNjRjNDllNzg0YjQ3OTU4YzBkN2QzYWE3MDA4NjY0IiwidXNlcl9pZCI6IjI3In0.Y_RWXUFlSGQYPEO3eBpjqylRYfd2dwFSiysxNvjzeoo"
+			"value": "AccessToken"
 		}
 	]
 }
