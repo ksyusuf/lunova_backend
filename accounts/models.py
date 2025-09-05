@@ -59,6 +59,12 @@ class User(AbstractUser):
     # Username'i opsiyonel yap
     username = models.CharField(max_length=150, unique=True, null=True, blank=True)
 
+    timezone = models.CharField(
+        max_length=64, 
+        default="Europe/Istanbul",
+        help_text="Kullanıcının varsayılan saat dilimi"
+    )
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'role']
     
