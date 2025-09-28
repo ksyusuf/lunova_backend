@@ -14,10 +14,12 @@ from pathlib import Path
 from datetime import timedelta
 import environ
 import dj_database_url
+import os
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Env setup
 env = environ.Env(
     DEBUG=(bool, False)
 )
@@ -26,14 +28,29 @@ env_file = BASE_DIR / '.env'
 if env_file.exists():
     env.read_env(env_file)
 
+# SECRET_KEY, DEBUG, ALLOWED_HOSTS
+SECRET_KEY = env('SECRET_KEY', default='dummy-secret-key')
+DEBUG = env.bool('DEBUG', default=False)
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost'])
 
-# SECRET_KEY, DATABASE, DEBUG, ALLOWED_HOSTS vs.
-ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='localhost').split(',')
-
-# DATABASE
-DATABASES = {
-    'default': dj_database_url.config(default=env('DATABASE_URL'))
-}
+# DATABASE - Production ve Local için
+if os.getenv('DATABASE_URL'):
+    # Production (Railway)
+    DATABASES = {
+        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    }
+else:
+    # Local geliştirme (parçalı env değişkenleri)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST'),
+            'PORT': env.int('DB_PORT', default=5432)
+        }
+    }
 
 # STATIC_ROOT (production)
 STATIC_ROOT = 'staticfiles'
