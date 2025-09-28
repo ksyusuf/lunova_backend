@@ -13,23 +13,30 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 import environ
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Öncelik sırası: .env.production > .env
-if (BASE_DIR / '.env.production').exists():
-    env_file = '.env.production'
-elif (BASE_DIR / '.env').exists():
-    env_file = '.env'
-else:
-    raise FileNotFoundError('Hiçbir .env dosyası bulunamadı!')
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
-env = environ.Env()
-env.read_env(BASE_DIR / env_file)
+env_file = BASE_DIR / '.env'
+if env_file.exists():
+    env.read_env(env_file)
 
 
-STATIC_ROOT = 'C:/production-versions/django-builds'
+# SECRET_KEY, DATABASE, DEBUG, ALLOWED_HOSTS vs.
+ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='localhost').split(',')
+
+# DATABASE
+DATABASES = {
+    'default': dj_database_url.config(default=env('DATABASE_URL'))
+}
+
+# STATIC_ROOT (production)
+STATIC_ROOT = 'staticfiles'
 
 # Quick-start Development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
