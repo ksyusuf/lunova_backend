@@ -28,11 +28,6 @@ env_file = BASE_DIR / '.env'
 if env_file.exists():
     env.read_env(env_file)
 
-# SECRET_KEY, DEBUG, ALLOWED_HOSTS
-SECRET_KEY = env('SECRET_KEY', default='dummy-secret-key')
-DEBUG = env.bool('DEBUG', default=False)
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost'])
-
 # DATABASE - Production ve Local için
 if os.getenv('DATABASE_URL'):
     # Production (Railway)
