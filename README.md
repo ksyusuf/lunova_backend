@@ -23,6 +23,12 @@
    DB_PORT=5432
    ENVIRONMENT=Development
    ```
+
+   migration işlemleri uygulanamdan önce lokalindeki kullanıcı için grant yetkisi ver.
+   ```bash
+   GRANT ALL ON SCHEMA public TO lunova;
+   GRANT ALL PRIVILEGES ON DATABASE "lunova-test" TO lunova;
+   ```
    
 3. Veritabanı migrasyonlarını oluştur:
    ```bash

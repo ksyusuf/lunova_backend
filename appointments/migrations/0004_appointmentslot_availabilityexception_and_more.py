@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
                 ('service', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='weekly_availabilities', to='accounts.service')),
             ],
             options={
-                'constraints': [models.CheckConstraint(condition=models.Q(('start_time__lt', models.F('end_time'))), name='weekly_availability_start_before_end'), models.UniqueConstraint(fields=('expert', 'day_of_week', 'service', 'start_time', 'end_time'), name='unique_expert_service_day_time')],
+                    'constraints': [models.CheckConstraint(condition=models.Q(('start_time__lt', models.F('end_time'))), name='weekly_availability_start_before_end')],
             },
         ),
     ]
