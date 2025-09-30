@@ -23,6 +23,12 @@
    DB_PORT=5432
    ENVIRONMENT=Development
    ```
+
+   migration işlemleri uygulanamdan önce lokalindeki kullanıcı için grant yetkisi ver.
+   ```bash
+   GRANT ALL ON SCHEMA public TO lunova;
+   GRANT ALL PRIVILEGES ON DATABASE "lunova-test" TO lunova;
+   ```
    
 3. Veritabanı migrasyonlarını oluştur:
    ```bash
@@ -44,6 +50,15 @@ http://localhost:8000/admin/
 ---
 
 ## Production Ortamı
+
+yeni kurulum durumunda veritabanının beslenmesi gerekecek, railway'e bu şekilde bağlanıp feed çalıştırılabilir.
+link işlemi yapılırken proje ana dizininde olmaya dikkat et.
+link yaparken ilgili servisi seçmen gerek.
+
+```bash
+railway link
+railway ssh python accounts/db_feed.py
+```
 
 1. Ana dizinde **sadece** `.env.production` dosyanı bulundur. Örnek bir `.env.production` dosyası:
    ```env
