@@ -215,6 +215,9 @@ if IS_PRODUCTION:
     SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN')
     if not SESSION_COOKIE_DOMAIN:
         raise ImproperlyConfigured("SESSION_COOKIE_DOMAIN environment variable is required!")
+    # şimdilik bu cookie ayarı None olacak, daha sonra domain bağlatığımız zaman o domain olacak
+    # SESSION_COOKIE_DOMAIN = ".lunova.tr"
+    SESSION_COOKIE_DOMAIN = None
 else:
     SESSION_COOKIE_DOMAIN = None
 
