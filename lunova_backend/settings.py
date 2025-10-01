@@ -40,10 +40,10 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': env('DB_NAME'),
-            'USER': env('DB_USER'),
-            'PASSWORD': env('DB_PASSWORD'),
-            'HOST': env('DB_HOST'),
+            'NAME': env.str('DB_NAME'),
+            'USER': env.str('DB_USER'),
+            'PASSWORD': env.str('DB_PASSWORD'),
+            'HOST': env.str('DB_HOST'),
             'PORT': env.int('DB_PORT', default=5432)
         }
     }
@@ -55,7 +55,7 @@ STATIC_ROOT = 'staticfiles'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = env.str('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
@@ -182,7 +182,7 @@ CORS_ALLOW_HEADERS = [
 USE_X_FORWARDED_HOST = True
 
 # Environment - required
-ENVIRONMENT = env('ENVIRONMENT')
+ENVIRONMENT = env.str('ENVIRONMENT')
 if not ENVIRONMENT:
     raise ImproperlyConfigured("ENVIRONMENT environment variable is required!")
 
@@ -190,7 +190,7 @@ ENVIRONMENT = ENVIRONMENT.lower()
 IS_PRODUCTION = ENVIRONMENT == 'production'
 
 # Frontend URLs - JSON format
-frontend_urls_json = env('FRONTEND_URLS')
+frontend_urls_json = env.str('FRONTEND_URLS')
 if not frontend_urls_json:
     raise ImproperlyConfigured("FRONTEND_URLS environment variable is required!")
 
@@ -212,7 +212,7 @@ except ValueError as e:
 
 # Session ve CSRF
 if IS_PRODUCTION:
-    SESSION_COOKIE_DOMAIN = env('SESSION_COOKIE_DOMAIN')
+    SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN')
     if not SESSION_COOKIE_DOMAIN:
         raise ImproperlyConfigured("SESSION_COOKIE_DOMAIN environment variable is required!")
 else:
@@ -238,18 +238,19 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
-MEDIA_ROOT = env('MEDIA_ROOT', default=BASE_DIR / 'media')
-MEDIA_URL = env('MEDIA_URL', default='/media/')
+MEDIA_ROOT = env.str('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
+MEDIA_URL = env.str('MEDIA_URL', default='/media/')
 
 # Email Settings
-EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_BACKEND = env.str('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = env.str('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
-EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+EMAIL_HOST_USER = env.str('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL', default='noreply@lunova.com')
 
 # Zoom API Settings
-ZOOM_CLIENT_ID = env('ZOOM_CLIENT_ID')
-ZOOM_CLIENT_SECRET = env('ZOOM_CLIENT_SECRET')
-ZOOM_ACCOUNT_ID = env('ZOOM_ACCOUNT_ID')
+ZOOM_CLIENT_ID = env.str('ZOOM_CLIENT_ID')
+ZOOM_CLIENT_SECRET = env.str('ZOOM_CLIENT_SECRET')
+ZOOM_ACCOUNT_ID = env.str('ZOOM_ACCOUNT_ID')
