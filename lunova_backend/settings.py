@@ -208,6 +208,7 @@ try:
             
     # CORS için tüm frontend URL'lerini al (value'ları)
     CORS_ALLOWED_ORIGINS = list(FRONTEND_URLS.values())
+    print("CORS_ALLOWED_ORIGINS:", CORS_ALLOWED_ORIGINS)
     if not CORS_ALLOWED_ORIGINS:
         raise ImproperlyConfigured("No frontend URLs found for CORS!")
         
