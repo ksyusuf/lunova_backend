@@ -1,13 +1,108 @@
 {
 	"info": {
-		"_postman_id": "2653a4ea-893a-404a-aa8b-f1b9ec145cfc",
+		"_postman_id": "38434e6a-010f-4117-aa04-e98140b9990e",
 		"name": "Accounts",
 		"description": "Lunova Backend servisimizin testlerini yaptığımız çalışma alanı.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://red-shuttle-701984.postman.co/workspace/Lunova~64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/37991120-2653a4ea-893a-404a-aa8b-f1b9ec145cfc?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-38434e6a-010f-4117-aa04-e98140b9990e?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
+		{
+			"name": "Reset Password",
+			"item": [
+				{
+					"name": "password-reset",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\" : \"deneme@gmail.tr\" }\r\n// kişisel mail ile test edebilirsiniz.",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/accounts/auth/password-reset/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"auth",
+								"password-reset",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "confirm-password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n        \"uid\": \"NQ\",\r\n        \"token\": \"cx02ds-18fe5ccddb1d05660b8a0c44d1dcd24e\",\r\n        \"new_password\": \"yenisifre123\",\r\n        \"new_password_confirm\": \"yenisifre123\"\r\n}\r\n// şifre sıfırlama isteğinde konsolda verilen çıktı ile bu isteği atabilirsiniz.",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/accounts/auth/password-reset/confirm/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"auth",
+								"password-reset",
+								"confirm",
+								""
+							],
+							"query": [
+								{
+									"key": "uid",
+									"value": "Mw",
+									"disabled": true
+								},
+								{
+									"key": "token",
+									"value": "cwzwpg-24d8d76476a510d3f46e5746bcdd5e9c",
+									"disabled": true
+								},
+								{
+									"key": "new_password",
+									"value": "yenisifre123!",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
 		{
 			"name": "register-expert",
 			"request": {
@@ -260,7 +355,7 @@
 	"variable": [
 		{
 			"key": "access_token",
-			"value": "AccessToken"
+			"value": "{{vault:json-web-token}}"
 		}
 	]
 }

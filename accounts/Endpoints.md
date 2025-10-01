@@ -188,6 +188,53 @@ Authorization: Bearer <access_token>
 }
 ```
 
+### 7. Password Reset Request
+**POST** `/auth/password-reset/`
+
+Şifre sıfırlama isteği için kullanılır. Kullanıcı email adresini gönderir ve sistem token üreterek ilgili frontend'e yönlendiren linki email olarak gönderir.
+
+**Request Body:**
+```json
+{
+  "email": "uzman@example.com"
+}
+```
+
+**Required Fields:**
+- `email`
+
+**Response:**
+```json
+{
+  "message": "If the email exists, a reset link has been sent."
+}
+```
+
+### 8. Password Reset Confirm
+**POST** `/auth/password-reset/confirm/`
+
+Şifre sıfırlama onayı için kullanılır. Frontend'den gelen uid, token ve yeni şifre ile şifreyi resetler.
+
+**Request Body:**
+```json
+{
+  "uid": "MQ",
+  "token": "abc123-def456-ghi789",
+  "new_password": "YeniSifre123!",
+  "new_password_confirm": "YeniSifre123!"
+}
+```
+
+**Required Fields:**
+- `uid`, `token`, `new_password`, `new_password_confirm`
+
+**Response:**
+```json
+{
+  "message": "Password reset successfully"
+}
+```
+
 ## Önemli Notlar
 
 1. **Role Field**: Artık register request'lerinde `role` field'ı gönderilmemelidir. Role otomatik olarak endpoint'e göre belirlenir.
