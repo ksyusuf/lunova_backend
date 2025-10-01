@@ -60,6 +60,11 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
 
+# ALLOWED_HOSTS
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+if not ALLOWED_HOSTS:
+    raise ImproperlyConfigured("No frontend URLs found for ALLOWED_HOSTS!")
+
 # Application definition
 INSTALLED_APPS = [
     # Django apps
@@ -200,11 +205,6 @@ try:
     # CORS için tüm frontend URL'lerini al (value'ları)
     CORS_ALLOWED_ORIGINS = list(FRONTEND_URLS.values())
     if not CORS_ALLOWED_ORIGINS:
-        raise ImproperlyConfigured("No frontend URLs found for CORS!")
-    
-    # ALLOWED_HOSTS için tüm frontend URL'lerini al (value'ları)
-    ALLOWED_HOSTS = list(FRONTEND_URLS.values())
-    if not ALLOWED_HOSTS:
         raise ImproperlyConfigured("No frontend URLs found for CORS!")
         
 except ValueError as e:
