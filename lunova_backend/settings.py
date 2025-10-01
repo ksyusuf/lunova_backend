@@ -164,6 +164,10 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
+SESSION_COOKIE_SECURE = True    # Prod’da HTTPS zorunlu
+SESSION_COOKIE_SAMESITE = 'None'  # Cross-site cookie için None
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'   # Eğer CSRF cookie de kullanacaksan
 
 # Custom header'lara izin ver
 CORS_ALLOW_HEADERS = [
@@ -206,6 +210,11 @@ try:
     CORS_ALLOWED_ORIGINS = list(FRONTEND_URLS.values())
     if not CORS_ALLOWED_ORIGINS:
         raise ImproperlyConfigured("No frontend URLs found for CORS!")
+    CORS_ALLOWED_ORIGINS = [
+        "https://lunova.up.railway.app",
+        "https://uzman-lunova.up.railway.app",
+        "https://danisan-lunova.up.railway.app"
+    ]
         
 except ValueError as e:
     raise ImproperlyConfigured(f"Invalid FRONTEND_URLS JSON format: {e}")
