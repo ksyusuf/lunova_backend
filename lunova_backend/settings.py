@@ -188,44 +188,42 @@ USE_X_FORWARDED_HOST = True
 # Environment - required
 ENVIRONMENT = env.str('ENVIRONMENT')
 if not ENVIRONMENT:
+    print("ENVIRONMENT variable is missing!")
     raise ImproperlyConfigured("ENVIRONMENT environment variable is required!")
-
-ENVIRONMENT = ENVIRONMENT.lower()
-IS_PRODUCTION = ENVIRONMENT == 'production'
 
 # Frontend URLs - JSON format
 frontend_urls_json = env.str('FRONTEND_URLS')
 if not frontend_urls_json:
+    print("FRONTEND_URLS variable is missing!")
     raise ImproperlyConfigured("FRONTEND_URLS environment variable is required!")
 
-try:
-    FRONTEND_URLS = env.json('FRONTEND_URLS')
-    # Required roles kontrolü
-    required_roles = ['expert', 'client', 'admin']
-    for role in required_roles:
-        if role not in FRONTEND_URLS:
-            raise ImproperlyConfigured(f"Frontend URL for role '{role}' is missing!")
+# CORS ve SESSION ayarları
+if env.str('ENVIRONMENT') == 'Production':
+    try:
+        FRONTEND_URLS = env.json('FRONTEND_URLS')
+        # Required roles kontrolü
+        required_roles = ['expert', 'client', 'admin']
+        for role in required_roles:
+            if role not in FRONTEND_URLS:
+                print(f"Frontend URL for role '{role}' is missing!")
+                raise ImproperlyConfigured(f"Frontend URL for role '{role}' is missing!")
+                
+        # CORS için tüm frontend URL'lerini al (value'ları)
+        CORS_ALLOWED_ORIGINS = list(FRONTEND_URLS.values())
+        if not CORS_ALLOWED_ORIGINS:
+            print("No frontend URLs found for CORS!")
+            raise ImproperlyConfigured("No frontend URLs found for CORS!")
             
-    # CORS için tüm frontend URL'lerini al (value'ları)
-    CORS_ALLOWED_ORIGINS = list(FRONTEND_URLS.values())
-    if not CORS_ALLOWED_ORIGINS:
-        raise ImproperlyConfigured("No frontend URLs found for CORS!")
-        
-except ValueError as e:
-    raise ImproperlyConfigured(f"Invalid FRONTEND_URLS JSON format: {e}")
-
-# Session ve CSRF
-if IS_PRODUCTION:
-    SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN')
-    if not SESSION_COOKIE_DOMAIN:
-        raise ImproperlyConfigured("SESSION_COOKIE_DOMAIN environment variable is required!")
-    # şimdilik bu cookie ayarı None olacak, daha sonra domain bağlatığımız zaman o domain olacak
-    # SESSION_COOKIE_DOMAIN = ".lunova.tr"
-    SESSION_COOKIE_DOMAIN = None
+    except ValueError as e:
+        raise ImproperlyConfigured(f"Invalid FRONTEND_URLS JSON format: {e}")
+    SESSION_COOKIE_DOMAIN = ".lunova.tr"
 else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+    ]
+    # Localde domain ayarı gerekmez
     SESSION_COOKIE_DOMAIN = None
-
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # HTTPS reverse proxy arkasında çalışırken güvenli protokolü algılaması için:
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
