@@ -15,6 +15,7 @@ from datetime import timedelta
 import environ
 import dj_database_url
 import os
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -59,11 +60,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
-
-
 # Application definition
-
 INSTALLED_APPS = [
     # Django apps
     'django.contrib.admin',
@@ -179,21 +176,49 @@ CORS_ALLOW_HEADERS = [
 
 USE_X_FORWARDED_HOST = True
 
-# CORS ve SESSION ayarları
-if env('ENVIRONMENT', default='Development') == 'Production':
-    CORS_ALLOWED_ORIGINS = [
-        "https://lunova.up.railway.app",
-        "https://uzman-lunova.up.railway.app",
-        "https://danisan-lunova.up.railway.app"
-    ]
-    SESSION_COOKIE_DOMAIN = ".lunova.tr"
+# Environment - required
+ENVIRONMENT = env('ENVIRONMENT')
+if not ENVIRONMENT:
+    raise ImproperlyConfigured("ENVIRONMENT environment variable is required!")
+
+ENVIRONMENT = ENVIRONMENT.lower()
+IS_PRODUCTION = ENVIRONMENT == 'production'
+
+# Frontend URLs - JSON format
+frontend_urls_json = env('FRONTEND_URLS')
+if not frontend_urls_json:
+    raise ImproperlyConfigured("FRONTEND_URLS environment variable is required!")
+
+try:
+    FRONTEND_URLS = env.json('FRONTEND_URLS')
+    # Required roles kontrolü
+    required_roles = ['expert', 'client', 'admin']
+    for role in required_roles:
+        if role not in FRONTEND_URLS:
+            raise ImproperlyConfigured(f"Frontend URL for role '{role}' is missing!")
+            
+    # CORS için tüm frontend URL'lerini al (value'ları)
+    CORS_ALLOWED_ORIGINS = list(FRONTEND_URLS.values())
+    if not CORS_ALLOWED_ORIGINS:
+        raise ImproperlyConfigured("No frontend URLs found for CORS!")
+    
+    # ALLOWED_HOSTS için tüm frontend URL'lerini al (value'ları)
+    ALLOWED_HOSTS = list(FRONTEND_URLS.values())
+    if not ALLOWED_HOSTS:
+        raise ImproperlyConfigured("No frontend URLs found for CORS!")
+        
+except ValueError as e:
+    raise ImproperlyConfigured(f"Invalid FRONTEND_URLS JSON format: {e}")
+
+# Session ve CSRF
+if IS_PRODUCTION:
+    SESSION_COOKIE_DOMAIN = env('SESSION_COOKIE_DOMAIN')
+    if not SESSION_COOKIE_DOMAIN:
+        raise ImproperlyConfigured("SESSION_COOKIE_DOMAIN environment variable is required!")
 else:
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:5173", # Expert frontend için
-        "http://localhost:5174",  # Client frontend için
-    ]
-    # Localde domain ayarı gerekmez
     SESSION_COOKIE_DOMAIN = None
+
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # HTTPS reverse proxy arkasında çalışırken güvenli protokolü algılaması için:
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -215,6 +240,14 @@ SIMPLE_JWT = {
 
 MEDIA_ROOT = env('MEDIA_ROOT', default=BASE_DIR / 'media')
 MEDIA_URL = env('MEDIA_URL', default='/media/')
+
+# Email Settings
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 
 # Zoom API Settings
 ZOOM_CLIENT_ID = env('ZOOM_CLIENT_ID')
