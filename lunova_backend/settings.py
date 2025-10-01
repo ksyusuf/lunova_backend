@@ -190,6 +190,11 @@ ENVIRONMENT = env.str('ENVIRONMENT')
 if not ENVIRONMENT:
     raise ImproperlyConfigured("ENVIRONMENT environment variable is required!")
 
+if env('ENVIRONMENT', default='Development') == 'Production':
+    SESSION_COOKIE_DOMAIN = ".lunova.tr"
+else:
+    SESSION_COOKIE_DOMAIN = None
+
 # Frontend URLs - JSON format
 frontend_urls_json = env.str('FRONTEND_URLS')
 if not frontend_urls_json:
@@ -210,11 +215,6 @@ try:
         
 except ValueError as e:
     raise ImproperlyConfigured(f"Invalid FRONTEND_URLS JSON format: {e}")
-
-SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN')
-print(f"SESSION_COOKIE_DOMAIN: {SESSION_COOKIE_DOMAIN}")
-if not SESSION_COOKIE_DOMAIN:
-    raise ImproperlyConfigured("SESSION_COOKIE_DOMAIN environment variable is required!")
 
 # HTTPS reverse proxy arkasında çalışırken güvenli protokolü algılaması için:
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
