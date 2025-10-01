@@ -208,7 +208,6 @@ try:
             
     # CORS için tüm frontend URL'lerini al (value'ları)
     CORS_ALLOWED_ORIGINS = list(FRONTEND_URLS.values())
-    print("CORS_ALLOWED_ORIGINS:", CORS_ALLOWED_ORIGINS)
     if not CORS_ALLOWED_ORIGINS:
         raise ImproperlyConfigured("No frontend URLs found for CORS!")
         
@@ -220,9 +219,6 @@ if IS_PRODUCTION:
     SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN')
     if not SESSION_COOKIE_DOMAIN:
         raise ImproperlyConfigured("SESSION_COOKIE_DOMAIN environment variable is required!")
-    # şimdilik bu cookie ayarı None olacak, daha sonra domain bağlatığımız zaman o domain olacak
-    # SESSION_COOKIE_DOMAIN = ".lunova.tr"
-    SESSION_COOKIE_DOMAIN = None
 else:
     SESSION_COOKIE_DOMAIN = None
 
