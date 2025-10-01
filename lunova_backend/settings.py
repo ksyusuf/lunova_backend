@@ -185,44 +185,21 @@ CORS_ALLOW_HEADERS = [
 
 USE_X_FORWARDED_HOST = True
 
-# Environment - required
-ENVIRONMENT = env.str('ENVIRONMENT')
-if not ENVIRONMENT:
-    raise ImproperlyConfigured("ENVIRONMENT environment variable is required!")
-
-ENVIRONMENT = ENVIRONMENT.lower()
-IS_PRODUCTION = ENVIRONMENT == 'production'
-
-# Frontend URLs - JSON format
-frontend_urls_json = env.str('FRONTEND_URLS')
-if not frontend_urls_json:
-    raise ImproperlyConfigured("FRONTEND_URLS environment variable is required!")
-
-try:
-    FRONTEND_URLS = env.json('FRONTEND_URLS')
-    # Required roles kontrolü
-    required_roles = ['expert', 'client', 'admin']
-    for role in required_roles:
-        if role not in FRONTEND_URLS:
-            raise ImproperlyConfigured(f"Frontend URL for role '{role}' is missing!")
-            
-    # CORS için tüm frontend URL'lerini al (value'ları)
-    CORS_ALLOWED_ORIGINS = list(FRONTEND_URLS.values())
-    if not CORS_ALLOWED_ORIGINS:
-        raise ImproperlyConfigured("No frontend URLs found for CORS!")
-        
-except ValueError as e:
-    raise ImproperlyConfigured(f"Invalid FRONTEND_URLS JSON format: {e}")
-
-# Session ve CSRF
-if IS_PRODUCTION:
-    SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN')
-    if not SESSION_COOKIE_DOMAIN:
-        raise ImproperlyConfigured("SESSION_COOKIE_DOMAIN environment variable is required!")
+# CORS ve SESSION ayarları
+if env('ENVIRONMENT', default='Development') == 'Production':
+    CORS_ALLOWED_ORIGINS = [
+        "https://lunova.up.railway.app",
+        "https://uzman-lunova.up.railway.app",
+        "https://danisan-lunova.up.railway.app"
+    ]
+    SESSION_COOKIE_DOMAIN = ".lunova.tr"
 else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173", # Expert frontend için
+        "http://localhost:5174",  # Client frontend için
+    ]
+    # Localde domain ayarı gerekmez
     SESSION_COOKIE_DOMAIN = None
-
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # HTTPS reverse proxy arkasında çalışırken güvenli protokolü algılaması için:
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
