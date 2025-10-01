@@ -211,6 +211,10 @@ try:
 except ValueError as e:
     raise ImproperlyConfigured(f"Invalid FRONTEND_URLS JSON format: {e}")
 
+SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN')
+if not SESSION_COOKIE_DOMAIN:
+    raise ImproperlyConfigured("SESSION_COOKIE_DOMAIN environment variable is required!")
+
 # HTTPS reverse proxy arkasında çalışırken güvenli protokolü algılaması için:
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
