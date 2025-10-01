@@ -165,9 +165,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SECURE = True    # Prod’da HTTPS zorunlu
-SESSION_COOKIE_SAMESITE = 'None'  # Cross-site cookie için None
+SESSION_COOKIE_SAMESITE = None  # Cross-site cookie için None
 CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = 'None'   # Eğer CSRF cookie de kullanacaksan
+CSRF_COOKIE_SAMESITE = None   # Eğer CSRF cookie de kullanacaksan
 
 # Custom header'lara izin ver
 CORS_ALLOW_HEADERS = [
