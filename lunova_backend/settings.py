@@ -188,9 +188,9 @@ USE_X_FORWARDED_HOST = True
 # CORS ve SESSION ayarları
 if env('ENVIRONMENT', default='Development') == 'Production':
     CORS_ALLOWED_ORIGINS = [
-        "https://lunova.tr",
-        "https://uzman.lunova.tr",
-        "https://danisan.lunova.tr"
+        "https://lunova.up.railway.app",
+        "https://uzman-lunova.up.railway.app",
+        "https://danisan-lunova.up.railway.app"
     ]
     SESSION_COOKIE_DOMAIN = ".lunova.tr"
 else:
