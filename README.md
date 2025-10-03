@@ -44,7 +44,7 @@
    Eğer ilk kez  veritabanı kuruyorsanız, lokal çalışma için veritabanını beslemelisiniz.
    ```bash
    python accounts/db_feed.py
-   python manage.py runscript feed_availability
+   python availability/scripts/feed_availability.py
    python forms/management/commands/create_sample_forms.py
    ```
 
@@ -66,6 +66,8 @@ link yaparken ilgili servisi seçmen gerek.
 ```bash
 railway link
 railway ssh python accounts/db_feed.py
+railway ssh python availability/scripts/feed_availability.py
+railway ssh python forms/management/commands/create_sample_forms.py
 ```
 
 1. Ana dizinde **sadece** `.env.production` dosyanı bulundur. Örnek bir `.env.production` dosyası:

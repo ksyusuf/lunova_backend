@@ -1,12 +1,25 @@
-# availability/scripts/seed_availability.py
+# availability/scripts/feed_availability.py
 """
 Bu script, veritabanındaki tüm uzmanlar (Expert) için çeşitli haftalık müsaitlik (WeeklyAvailability) ve istisnai durum (AvailabilityException) kayıtları oluşturur.
 Test ortamında kullanılmak üzere tasarlanmıştır.
 """
 
+import os
+import sys
+import django
 import random
 from datetime import datetime, timedelta, time
 from django.db import IntegrityError
+
+# Add the project root to Python path
+# availability/scripts/feed_availability.py -> availability/scripts/
+# Go up 3 levels to reach project root: availability/scripts -> availability -> project_root
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+# Django setup
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')
+django.setup()
+
 from availability.models import WeeklyAvailability, AvailabilityException
 from accounts.models import ExpertProfile, Service
 
@@ -14,7 +27,7 @@ from accounts.models import ExpertProfile, Service
 def create_availability_and_exceptions():
     """
     Veritabanına test verisi ekler.
-    Bu fonksiyonu 'python manage.py runscript availability.scripts.feed_availability' ile çalıştırın.
+    Bu script doğrudan çalıştırılabilir: python availability/scripts/feed_availability.py
     """
     # Tüm uzmanları al
     experts = ExpertProfile.objects.all()
@@ -91,5 +104,5 @@ def create_availability_and_exceptions():
     print(f"Uzmanlar için takvim ve istisnai durumlar başarıyla oluşturuldu. Oluşturulan: {created_count}, Atlanan: {skipped_count}")
 
 
-def run():
+if __name__ == "__main__":
     create_availability_and_exceptions()
