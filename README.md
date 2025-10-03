@@ -40,6 +40,14 @@
    python manage.py migrate
    ```
 
+4,5. Veritabanı Besleme
+   Eğer ilk kez  veritabanı kuruyorsanız, lokal çalışma için veritabanını beslemelisiniz.
+   ```bash
+   python accounts/db_feed.py
+   python manage.py runscript feed_availability
+   python forms/management/commands/create_sample_forms.py
+   ```
+
 5. Geliştirme sunucusunu başlat:
    ```bash
    python manage.py runserver

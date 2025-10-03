@@ -1,6 +1,6 @@
 from rest_framework import generics
 from .serializers import ExpertRegisterSerializer, ClientRegisterSerializer, AdminRegisterSerializer
-from .serializers import LoginSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
+from .serializers import LoginSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, ExpertListSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,7 +15,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from .models import UserRole
+from django.db.models import Q
+from .models import UserRole, ExpertProfile, Service
 
 User = get_user_model()
 
@@ -225,6 +226,29 @@ class MeView(APIView):
             "first_name": user.first_name,
             "last_name": user.last_name,
         }, status=status.HTTP_200_OK)
+
+
+class ExpertListView(generics.ListAPIView):
+    """
+    GET /accounts/experts/ endpointi uzmanları listeler.
+    Sadece kimliği doğrulanmış kullanıcılar erişebilir.
+    Query parameter ile kategoriye göre filtreleme yapabilir: ?category=bilissel-terapi
+    """
+    serializer_class = ExpertListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = ExpertProfile.objects.filter(approval_status=True).select_related('user', 'user__gender')
+
+        # Kategori filtresi
+        category_slug = self.request.query_params.get('category', None)
+        if category_slug:
+            # Servis slug'una göre filtrele
+            queryset = queryset.filter(
+                Q(services__slug=category_slug)
+            ).distinct()
+
+        return queryset
 
 
 class PasswordResetRequestView(APIView):

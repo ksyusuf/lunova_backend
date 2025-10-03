@@ -245,7 +245,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"email\": \"ozel_5@expert.com\", \"password\": \"baris123\"}",
+					"raw": "{\"email\": \"client12@example.com\", \"password\": \"password123\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -350,12 +350,55 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "experts-list",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/v1/accounts/experts/?category=bilissel-terapi",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"accounts",
+						"experts",
+						""
+					],
+					"query": [
+						{
+							"key": "category",
+							"value": "bilissel-terapi",
+							"description": "Kategoriye göre filtreleme (örn: bilissel-terapi, aile-terapisi) kategori yoksa hepsi gelir."
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"variable": [
 		{
 			"key": "access_token",
-			"value": "{{vault:json-web-token}}"
+			"value": "AccessToken Giriniz"
 		}
 	]
 }

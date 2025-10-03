@@ -45,6 +45,37 @@ class ExpertProfileSerializer(BaseProfileSerializer):
         ]
 
 
+class ExpertListSerializer(serializers.ModelSerializer):
+    """Simplified serializer for expert listing with basic profile info"""
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    phone_number = serializers.CharField(source='user.phone_number', read_only=True)
+    profile_photo = serializers.ImageField(source='user.profile_photo', read_only=True)
+    gender = serializers.CharField(source='user.gender.name', read_only=True)
+    services = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ExpertProfile
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+            'profile_photo',
+            'university',
+            'about',
+            'approval_status',
+            'gender',
+            'services',
+        ]
+
+    def get_services(self, obj):
+        """Return list of service names"""
+        return [service.name for service in obj.services.all()]
+
+
 class AddictionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AddictionType
