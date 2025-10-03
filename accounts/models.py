@@ -89,6 +89,7 @@ def client_profile_photo_upload_path(instance, filename):
 # Service model
 class Service(models.Model):
     name = models.CharField(max_length=128, unique=True)
+    slug = models.SlugField(max_length=128, unique=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
@@ -138,6 +139,7 @@ class ExpertProfile(BaseProfile):
 # -----------------------------
 class AddictionType(models.Model):
     name = models.CharField(max_length=64, unique=True)
+    slug = models.SlugField(max_length=64, unique=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
