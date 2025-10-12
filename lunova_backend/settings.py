@@ -192,8 +192,8 @@ if not ENVIRONMENT:
     raise ImproperlyConfigured("ENVIRONMENT environment variable is required!")
 
 # Frontend URLs - JSON format
-frontend_urls_json = env.str('FRONTEND_URLS')
-if not frontend_urls_json:
+FRONTEND_URLS = env.json('FRONTEND_URLS')
+if not FRONTEND_URLS:
     print("FRONTEND_URLS variable is missing!")
     raise ImproperlyConfigured("FRONTEND_URLS environment variable is required!")
 
