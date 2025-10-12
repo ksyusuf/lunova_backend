@@ -21,19 +21,33 @@ from datetime import datetime
 
 class AppointmentListView(generics.ListAPIView):
     """
-    List all appointments for authenticated user
+    List all appointments for authenticated user with optional status filtering
+    Query parameter: status - filter by appointment status
+    Valid status values: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed
+    If no status parameter provided, returns all appointments
     """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AppointmentSerializer
-    
+
     def get_queryset(self):
         user = self.request.user
-        # Return appointments where user is either expert or client
-        return Appointment.objects.filter(
+        queryset = Appointment.objects.filter(
             expert=user
         ) | Appointment.objects.filter(
             client=user
-        ).order_by('-created_at')
+        )
+
+        # Filter by status if provided
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+            # Validate status parameter
+            valid_statuses = ['pending', 'waiting_approval', 'confirmed', 'cancel_requested', 'cancelled', 'completed']
+            if status_filter not in valid_statuses:
+                # Return empty queryset for invalid status
+                return Appointment.objects.none()
+            queryset = queryset.filter(status=status_filter)
+
+        return queryset.order_by('-created_at')
 
 
 class ExpertAppointmentCreateView(generics.CreateAPIView):

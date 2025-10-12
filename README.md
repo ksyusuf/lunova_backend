@@ -45,6 +45,7 @@
    ```bash
    python accounts/db_feed.py
    python availability/scripts/feed_availability.py
+   python appointments/tests/db_feed.py
    python forms/management/commands/create_sample_forms.py
    ```
 

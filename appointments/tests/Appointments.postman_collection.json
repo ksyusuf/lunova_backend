@@ -1,14 +1,14 @@
 {
 	"info": {
-		"_postman_id": "51ce46df-70ef-4564-8777-8fb89c50ae63",
+		"_postman_id": "92e61177-9e46-4948-9296-10abd3e8849c",
 		"name": "Appointments",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://red-shuttle-701984.postman.co/workspace/Lunova~64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/37991120-51ce46df-70ef-4564-8777-8fb89c50ae63?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-92e61177-9e46-4948-9296-10abd3e8849c?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
-			"name": "appointments ilst",
+			"name": "Appointments List",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -18,7 +18,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1NDM4MzAwLCJpYXQiOjE3NTU0Mzc0MDAsImp0aSI6ImMyZGY5NzQ4NmFjMDRlY2RhNjUxODdjNTUwZDAxMjI4IiwidXNlcl9pZCI6IjIxIn0.MfJ4dELTx5FioRDVlCFxEi0zc0zeHQui8y4E36bmWmk",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -33,7 +33,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "",
+					"raw": "/*\nAppointments List Endpoint - Status Filtering\n\nAvailable Query Parameter:\n\nstatus: Filter by appointment status\nValid values: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed\n\nExamples:\n- All appointments: (no parameter)\n- Only confirmed: ?status=confirmed\n- Only pending: ?status=pending\n- Only completed: ?status=completed\n\nNote: Parameter is optional. If not provided, returns all appointments for authenticated user.\n*/",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -50,6 +50,44 @@
 						"v1",
 						"appointments",
 						""
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "pending",
+							"description": "Filter by status: pending",
+							"disabled": true
+						},
+						{
+							"key": "status",
+							"value": "waiting_approval",
+							"description": "Filter by status: waiting_approval",
+							"disabled": true
+						},
+						{
+							"key": "status",
+							"value": "confirmed",
+							"description": "Filter by status: confirmed",
+							"disabled": true
+						},
+						{
+							"key": "status",
+							"value": "cancel_requested",
+							"description": "Filter by status: cancel_requested",
+							"disabled": true
+						},
+						{
+							"key": "status",
+							"value": "cancelled",
+							"description": "Filter by status: cancelled",
+							"disabled": true
+						},
+						{
+							"key": "status",
+							"value": "completed",
+							"description": "Filter by status: completed",
+							"disabled": true
+						}
 					]
 				}
 			},
@@ -63,7 +101,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Mzc2MDQyLCJpYXQiOjE3NTUzNzUxNDIsImp0aSI6IjEyMThjODU3ZGYwNTQ2Zjg4YzUzMDU0MDg0M2VkOTllIiwidXNlcl9pZCI6IjIxIn0.juhW9UjUpk66jtv8FmjvuHKvkHbTgvjgMpvrt8xjIzo",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -110,7 +148,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1NDM4MzU2LCJpYXQiOjE3NTU0Mzc0NTYsImp0aSI6ImFiNTZiNzBlNjFiNTQ0ZmRiYjk2MGFlZjI4NzE4NTk1IiwidXNlcl9pZCI6IjIyIn0.yVOtrTMrp7MVVEmiGFqScWkh2MQrxasPD80idv7IoOU",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -160,7 +198,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MTU1NzU0LCJpYXQiOjE3NTQxNTQ4NTQsImp0aSI6Ijk3NmI3NzRhZWM5NDQzOTI5MDk4YmYzYzAyOTg3OWFhIiwidXNlcl9pZCI6IjIxIn0.FDQpAdbOn2tufslel7JmGrefdJIcxcggEzsKUyuU97I",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -218,7 +256,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Mzc1Mjk1LCJpYXQiOjE3NTUzNzQzOTUsImp0aSI6IjcwNDNiNzBmZGNiMjQzOWU4ZGVhZWU1MWEzYTg2MWEyIiwidXNlcl9pZCI6IjIxIn0.11O8N9P4JIW7OtC7nhl36M4B6vnr-sES4U3ZpM_QSpg",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -257,13 +295,6 @@
 						"appointments",
 						"18",
 						""
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
 					]
 				}
 			},
@@ -277,7 +308,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MTU1NjE0LCJpYXQiOjE3NTQxNTQ3MTQsImp0aSI6IjRiM2I1MmE2NDIxNzQ0MmJhNTY4NzAwMjMyZmMxNGFiIiwidXNlcl9pZCI6IjIxIn0.iOHB27KQY0H0NQRNhLJy7XOzUUuxWi1dvkz5qfGURfw",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -316,13 +347,6 @@
 						"appointments",
 						"18",
 						""
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
 					]
 				}
 			},
@@ -336,7 +360,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Mzc2MDQyLCJpYXQiOjE3NTUzNzUxNDIsImp0aSI6IjEyMThjODU3ZGYwNTQ2Zjg4YzUzMDU0MDg0M2VkOTllIiwidXNlcl9pZCI6IjIxIn0.juhW9UjUpk66jtv8FmjvuHKvkHbTgvjgMpvrt8xjIzo",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -355,15 +379,7 @@
 						"disabled": true
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
+				
 				"url": {
 					"raw": "{{base_url}}/api/v1/appointments/21/",
 					"host": [
@@ -375,13 +391,6 @@
 						"appointments",
 						"21",
 						""
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
 					]
 				}
 			},
@@ -398,7 +407,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Mzc3MDcwLCJpYXQiOjE3NTUzNzYxNzAsImp0aSI6IjA0NGJiYmM3NTQyZjRjZjU4MmNmMDBiMzFmZDc1MDZkIiwidXNlcl9pZCI6IjIxIn0.nhPUyWpbeEtMHgwgHp53-ylCK6CRbrQLYznX-q_gJcI",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -417,15 +426,7 @@
 						"disabled": true
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
+				
 				"url": {
 					"raw": "{{base_url}}/api/v1/appointments/user/",
 					"host": [
@@ -437,13 +438,6 @@
 						"appointments",
 						"user",
 						""
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
 					]
 				}
 			},
@@ -457,7 +451,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Mzc3MjY5LCJpYXQiOjE3NTUzNzYzNjksImp0aSI6IjU4YTQ3YTA4YjVlZjQ3MWM4ZWQ1Njc4ZDQ1MWEzYjNjIiwidXNlcl9pZCI6IjIxIn0.Hdru-4P1jmosRWygU8eZthr9TjZQxGBfu1tCQyJkpqg",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -478,7 +472,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\r\n",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -486,7 +480,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/21/confirm/",
+					"raw": "{{base_url}}/api/v1/appointments/21/confirm",
 					"host": [
 						"{{base_url}}"
 					],
@@ -495,15 +489,7 @@
 						"v1",
 						"appointments",
 						"21",
-						"confirm",
-						""
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
+						"confirm"
 					]
 				}
 			},
@@ -517,7 +503,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Mzc3MjY5LCJpYXQiOjE3NTUzNzYzNjksImp0aSI6IjU4YTQ3YTA4YjVlZjQ3MWM4ZWQ1Njc4ZDQ1MWEzYjNjIiwidXNlcl9pZCI6IjIxIn0.Hdru-4P1jmosRWygU8eZthr9TjZQxGBfu1tCQyJkpqg",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -536,15 +522,7 @@
 						"disabled": true
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
+				
 				"url": {
 					"raw": "{{base_url}}/api/v1/appointments/22/approve/",
 					"host": [
@@ -557,13 +535,6 @@
 						"22",
 						"approve",
 						""
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
 					]
 				}
 			},
@@ -577,7 +548,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Mzc3MjY5LCJpYXQiOjE3NTUzNzYzNjksImp0aSI6IjU4YTQ3YTA4YjVlZjQ3MWM4ZWQ1Njc4ZDQ1MWEzYjNjIiwidXNlcl9pZCI6IjIxIn0.Hdru-4P1jmosRWygU8eZthr9TjZQxGBfu1tCQyJkpqg",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -596,15 +567,7 @@
 						"disabled": true
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
+				
 				"url": {
 					"raw": "{{base_url}}/api/v1/appointments/22/cancel-request/",
 					"host": [
@@ -617,13 +580,6 @@
 						"22",
 						"cancel-request",
 						""
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
 					]
 				}
 			},
@@ -637,7 +593,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Mzc3NzAyLCJpYXQiOjE3NTUzNzY4MDIsImp0aSI6IjA4NTYxMDk1MzUzYzQ1ZGE5YzYxOGM3ZTVlZjU4Y2U0IiwidXNlcl9pZCI6IjIxIn0.Jo9oqzstR7n0md6TbCZ4EDt6k9IObq0SlRi7z9fSqKw",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
@@ -677,13 +633,6 @@
 						"22",
 						"cancel-confirm",
 						""
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
 					]
 				}
 			},
@@ -700,7 +649,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1Mzc3NzAyLCJpYXQiOjE3NTUzNzY4MDIsImp0aSI6IjA4NTYxMDk1MzUzYzQ1ZGE5YzYxOGM3ZTVlZjU4Y2U0IiwidXNlcl9pZCI6IjIxIn0.Jo9oqzstR7n0md6TbCZ4EDt6k9IObq0SlRi7z9fSqKw",
+							"value": "{{authorization-secret}}",
 							"type": "string"
 						}
 					]
