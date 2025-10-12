@@ -1,12 +1,341 @@
 {
 	"info": {
-		"_postman_id": "92e61177-9e46-4948-9296-10abd3e8849c",
+		"_postman_id": "add9ca17-c2c4-4fa6-86ec-da3b6ac67f7e",
 		"name": "Appointments",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-92e61177-9e46-4948-9296-10abd3e8849c?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-add9ca17-c2c4-4fa6-86ec-da3b6ac67f7e?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
+		{
+			"name": "Randevu Oluşturma",
+			"item": [
+				{
+					"name": "Uzman Tarafından Randevu Oluşturma",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authorization-secret}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"expert\": 21,\n  \"client\": 20,\n  \"date\": \"2025-02-27\",\n  \"time\": \"15:00:00\",\n  \"duration\": 60,\n  \"notes\": \"Uzman tarafından oluşturulan randevu\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/expert/create/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"expert",
+								"create",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Danışan Tarafından Randevu Talebi",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authorization-secret}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"expert\": 21,\n  \"date\": \"2025-02-27\",\n  \"time\": \"10:00:00\",\n  \"duration\": 45,\n  \"notes\": \"Danışan tarafından randevu talebi\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/client/request/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"client",
+								"request",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rezervasyon Detay ve İşlemleri",
+			"item": [
+				{
+					"name": "Rezervasyon Detayını Getir",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authorization-secret}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "/*\r\nRezervasyon Detayları Getirme\r\n\r\nGönderilen rezervasyon id değerine göre rezervasyon detayı döndürülür.\r\n\r\nYalnızca giriş yapmış ve rezervasyon ile ilişkili kullanıcılara dönüş sağlar.\r\n\r\nBaşkasının rezervasyonlarını göremezsin.\r\n*/",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/22/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"22",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rezervasyon Kısmi Güncelleme (PATCH)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authorization-secret}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notes\": \"Notlar güncellendi - hasta 15 dakika geç gelecek\",\n  \"duration\": 75\n}\n/*\nRezervasyon Kısmi Güncelleme\n\nBu endpoint ile rezervasyonun belirli alanlarını güncelleyebilirsiniz.\nSadece gönderdiğiniz alanlar güncellenir, diğer alanlar değişmez.\n\nGüncellenebilir Alanlar:\n- notes: Notlar\n- duration: Süre (dakika)\n- date: Tarih\n- time: Saat\n\nÖrnek: Sadece notları güncellemek için:\n{\"notes\": \"Yeni not\"}\n\nÖrnek: Saat ve süreyi güncellemek için:\n{\"time\": \"14:30:00\", \"duration\": 60}\n*/",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/22/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"22",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rezervasyon Tam Güncelleme (PUT)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authorization-secret}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"expert\": 21,\n  \"client\": 20,\n  \"date\": \"2025-02-27\",\n  \"time\": \"15:00:00\",\n  \"duration\": 60,\n  \"notes\": \"Tam güncellenmiş rezervasyon\"\n}\n/*\nRezervasyon Tam Güncelleme\n\nBu endpoint ile rezervasyonun TÜM alanlarını güncelleyebilirsiniz.\nTüm zorunlu alanların gönderilmesi gerekir.\n\nZorunlu Alanlar:\n- expert: Uzman ID\n- client: Danışan ID\n- date: Tarih (YYYY-MM-DD)\n- time: Saat (HH:MM:SS)\n- duration: Süre (dakika)\n\nİsteğe Bağlı Alanlar:\n- notes: Notlar\n\nNot: Bu işlem tüm mevcut veriyi değiştirir!\n*/",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/22/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"22",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rezervasyon Durum Güncelleme",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authorization-secret}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"cancel_requested\"\n}\n/*\nRezervasyon Durum Güncelleme\n\nBu endpoint sadece rezervasyon durumunu günceller.\nDurum geçiş kuralları ve kullanıcı yetkilendirmesi otomatik kontrol edilir.\n\nKullanılabilir Durum Değerleri:\n- \"pending\": Beklemede (uzman tarafından oluşturuldu)\n- \"waiting_approval\": Onay Bekliyor (danışan tarafından oluşturuldu)\n- \"confirmed\": Onaylandı\n- \"cancel_requested\": İptal Talep Edildi (sadece danışan)\n- \"cancelled\": İptal Edildi (sadece uzman)\n- \"completed\": Tamamlandı (sadece uzman)\n\nDurum Geçiş Kuralları:\n- pending → confirmed, cancelled\n- waiting_approval → confirmed, cancelled\n- confirmed → cancel_requested, completed\n- cancel_requested → cancelled, confirmed\n- cancelled, completed: çıkış yok\n\nYetki Kuralları:\n- confirmed, cancelled, completed: Sadece uzman\n- cancel_requested: Sadece danışan\n\nÖrnek kullanımlar:\n- Danışan iptal talebi: {\"status\": \"cancel_requested\"}\n- Uzman onaylama: {\"status\": \"confirmed\"}\n- Uzman tamamlama: {\"status\": \"completed\"}\n*/",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/22/status/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"22",
+								"status",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rezervasyon Silme (Soft Delete)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authorization-secret}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/appointments/22/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"appointments",
+								"22",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
 		{
 			"name": "Appointments List",
 			"protocolProfileBehavior": {
@@ -33,7 +362,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "/*\nAppointments List Endpoint - Status Filtering\n\nAvailable Query Parameter:\n\nstatus: Filter by appointment status\nValid values: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed\n\nExamples:\n- All appointments: (no parameter)\n- Only confirmed: ?status=confirmed\n- Only pending: ?status=pending\n- Only completed: ?status=completed\n\nNote: Parameter is optional. If not provided, returns all appointments for authenticated user.\n*/",
+					"raw": "/*\nRandevu Listesi Endpoint'i - Durum ve Mine Filtreleme\n\nKullanılabilir Sorgu Parametreleri:\n\nmine: boolean - Kullanıcının kendi randevularına göre filtrele\n- true: Sadece giriş yapmış kullanıcının randevularını döndürür (uzman veya danışan olarak)\n- false veya verilmediği durumda: Kullanıcı admin ise tüm randevuları, değilse kendi randevularını döndürür\n\nstatus: Randevu durumuna göre filtrele\nGeçerli değerler: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed\n\nÖrnekler:\n- Tüm randevular (admin) veya kullanıcının randevuları: (parametre yok)\n- Kullanıcının kendi randevuları: ?mine=true\n- Tüm randevular (sadece admin): ?mine=false\n- Kullanıcının onaylanmış randevuları: ?mine=true&status=confirmed\n- Tüm bekleyen randevular (sadece admin): ?mine=false&status=pending\n\nRol Tabanlı Erişim:\n- Admin kullanıcılar: mine=false veya verilmediği durumda tüm randevuları görebilir\n- Uzman/Danışan kullanıcılar: Her zaman sadece kendi randevularını görür\n\nNot: Her iki parametre de isteğe bağlıdır.\n*/",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -52,6 +381,18 @@
 						""
 					],
 					"query": [
+						{
+							"key": "mine",
+							"value": "true",
+							"description": "Filter by user's own appointments",
+							"disabled": true
+						},
+						{
+							"key": "mine",
+							"value": "false",
+							"description": "Show all appointments (admin only)",
+							"disabled": true
+						},
 						{
 							"key": "status",
 							"value": "pending",
@@ -94,104 +435,7 @@
 			"response": []
 		},
 		{
-			"name": "appointments create by expert",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"expert\": 21,\r\n  \"client\": 20,\r\n  \"date\": \"2025-02-27\",\r\n  \"time\": \"15:00:00\",\r\n  \"duration\": 60,\r\n  \"notes\": \"19 id li expert için randevu\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/expert/create/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"expert",
-						"create",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments create by client",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"expert\": 21,\r\n  \"date\": \"2022-01-27\",\r\n  \"time\": \"10:00:00\",\r\n  \"duration\": 45,\r\n  \"notes\": \"İlk danışmanlık talebi\"\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/client/request/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"client",
-						"request",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments detail get",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
+			"name": "Zoom Toplantı Bilgileri",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -209,322 +453,10 @@
 						"key": "Content-Type",
 						"value": "application/json",
 						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/18",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"18"
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments update put (tam)",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"expert\": 5,\r\n    \"client\": 12,\r\n    \"date\": \"2025-08-20\",\r\n    \"time\": \"14:30:00\",\r\n    \"duration\": 90,\r\n    \"notes\": \"19 id li randevu TAM Güncellenmiş notlar\"\r\n  }",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/18/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"18",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments update patch (kısmi)",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "PATCH",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"notes\": \"19 id li randevu Güncellenmiş notlar\",\r\n  \"duration\": 45\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/18/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"18",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments delete",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/21/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"21",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments get current user",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/user/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"user",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments confirming",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/21/confirm",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"21",
-						"confirm"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments confirming approve",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/22/approve/",
+					"raw": "{{base_url}}/api/v1/appointments/22/meeting-info/",
 					"host": [
 						"{{base_url}}"
 					],
@@ -533,169 +465,8 @@
 						"v1",
 						"appointments",
 						"22",
-						"approve",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments cancel request",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/22/cancel-request/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"22",
-						"cancel-request",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments cancel request confirming",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"confirm\": false\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/22/cancel-confirm/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"22",
-						"cancel-confirm",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "appointments get zoom info",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/2/meeting-info/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"appointments",
-						"2",
 						"meeting-info",
 						""
-					],
-					"query": [
-						{
-							"key": "",
-							"value": "",
-							"disabled": true
-						}
 					]
 				}
 			},

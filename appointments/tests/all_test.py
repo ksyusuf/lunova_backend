@@ -8,6 +8,8 @@ expert: 22
 client: 21
 randevularını silebilirsin.
 
+# todo: bu testler yeniden yapılacak. çünkü endpoint yapısı değişti.
+
 ---
 istek özeti
 
