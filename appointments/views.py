@@ -7,7 +7,7 @@ from .serializers import (
     AppointmentSerializer,
     CreateAppointmentWithZoomSerializer,
     ClientCreateAppointmentSerializer,
-    AppointmentStatusUpdateSerializer
+    AppointmentStatusSerializer
 )
 from .permissions import (
     IsExpertOrClientForCreatePermission,
@@ -15,27 +15,48 @@ from .permissions import (
     IsAppointmentExpertPermission,
     IsAppointmentClientPermission
 )
+from accounts.models import UserRole
 from zoom.services import create_zoom_meeting
 from datetime import datetime
 
 
 class AppointmentListView(generics.ListAPIView):
     """
-    List all appointments for authenticated user with optional status filtering
-    Query parameter: status - filter by appointment status
-    Valid status values: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed
-    If no status parameter provided, returns all appointments
+    Kullanıcı rolüne ve mine parametresine göre randevuları listele
+    Sorgu parametreleri:
+    - mine: boolean - true ise kullanıcının kendi randevularını döndürür; false veya verilmediği durumda adminler tüm randevuları, diğerleri kendi randevularını görür
+    - status: randevu durumuna göre filtrele
+    Geçerli durum değerleri: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed
     """
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AppointmentSerializer
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Appointment.objects.filter(
-            expert=user
-        ) | Appointment.objects.filter(
-            client=user
-        )
+
+        # Check mine parameter
+        mine_param = self.request.query_params.get('mine', '').lower()
+        mine = mine_param in ['true', '1', 'yes']
+
+        if mine:
+            # Return user's own appointments
+            queryset = Appointment.objects.filter(
+                expert=user
+            ) | Appointment.objects.filter(
+                client=user
+            )
+        else:
+            # If mine is false or not provided
+            if hasattr(user, 'role') and user.role == UserRole.ADMIN:
+                # Admins get all appointments
+                queryset = Appointment.objects.all()
+            else:
+                # Non-admins get their own appointments
+                queryset = Appointment.objects.filter(
+                    expert=user
+                ) | Appointment.objects.filter(
+                    client=user
+                )
 
         # Filter by status if provided
         status_filter = self.request.query_params.get('status')
@@ -160,6 +181,104 @@ class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
         """
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
+
+    def status_update(self, request, *args, **kwargs):
+        """
+        Randevu durumu güncelleme endpoint'i
+        PATCH /appointments/{id}/status
+        """
+        if request.method != 'PATCH':
+            return Response(
+                {'error': 'Bu endpoint sadece PATCH isteklerini kabul eder'},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED
+            )
+        instance = self.get_object()
+        user = request.user
+
+        # Serializer ile gelen veriyi doğrula
+        serializer = AppointmentStatusSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        new_status = serializer.validated_data['status']
+        current_status = instance.status
+
+        # Durum geçişi validasyonları
+        if new_status == current_status:
+            return Response(
+                {'error': f'Randevu zaten "{current_status}" durumunda'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Geçiş kuralları
+        valid_transitions = {
+            'pending': ['confirmed', 'cancelled'],  # uzman pending'den confirmed veya cancelled yapabilir
+            'waiting_approval': ['confirmed', 'cancelled'],  # uzman waiting_approval'dan confirmed veya cancelled yapabilir
+            'confirmed': ['cancel_requested', 'completed'],  # danışan confirmed'dan cancel_requested, uzman completed yapabilir
+            'cancel_requested': ['cancelled', 'confirmed'],  # uzman cancel_requested'den cancelled veya confirmed yapabilir
+            'cancelled': [],  # cancelled durumundan çıkış yok
+            'completed': []  # completed durumundan çıkış yok
+        }
+
+        if new_status not in valid_transitions.get(current_status, []):
+            return Response(
+                {'error': f'"{current_status}" durumundan "{new_status}" durumuna geçiş yapılamaz'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Kullanıcı yetki kontrolü
+        if new_status in ['confirmed', 'cancelled', 'completed']:
+            # Sadece uzman bu durumları değiştirebilir
+            if instance.expert != user:
+                return Response(
+                    {'error': 'Bu durumu değiştirmek için uzman olmanız gerekir'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        elif new_status == 'cancel_requested':
+            # Sadece danışan cancel_requested yapabilir
+            if instance.client != user:
+                return Response(
+                    {'error': 'İptal talebi sadece danışan tarafından yapılabilir'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+        # Durumu güncelle
+        instance.status = new_status
+
+        # Özel durum işlemleri
+        if new_status == 'confirmed':
+            instance.is_confirmed = True
+            # Zoom meeting oluştur (eğer yoksa)
+            if not instance.zoom_meeting_id:
+                try:
+                    meeting_datetime = datetime.combine(instance.date, instance.time)
+                    topic = f"Danışmanlık: {instance.client.get_full_name()} - Uzman {instance.expert.get_full_name()}"
+
+                    # zoom_info = create_zoom_meeting(
+                    #     topic=topic,
+                    #     start_time=meeting_datetime,
+                    #     duration=instance.duration
+                    # )
+                    # Mocked for example purposes
+                    zoom_info = {"start_url":"status update mock url",
+                                "join_url":"status update mock url",
+                                "id":"status update mock url"}
+
+                    instance.zoom_start_url = zoom_info.get('start_url')
+                    instance.zoom_join_url = zoom_info.get('join_url')
+                    instance.zoom_meeting_id = str(zoom_info.get('id'))
+
+                except Exception as e:
+                    print(f"Zoom meeting creation failed for appointment {instance.id}: {str(e)}")
+
+        elif new_status == 'cancelled':
+            instance.is_confirmed = False
+
+        instance.save()
+
+        # Response serializer ile döndür
+        response_serializer = AppointmentSerializer(instance)
+        return Response(response_serializer.data)
     
     def destroy(self, request, *args, **kwargs):
         """
@@ -169,46 +288,6 @@ class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance.is_deleted = True
         instance.save(update_fields=["is_deleted", "updated_at"])
         return Response({"detail": "Appointment marked as deleted."}, status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
-def get_user_appointments(request):
-    """
-    Get all appointments for the authenticated user
-    """
-    user = request.user
-    appointments = Appointment.objects.filter(
-        expert=user
-    ) | Appointment.objects.filter(
-        client=user
-    ).order_by('-created_at')
-    
-    serializer = AppointmentSerializer(appointments, many=True)
-    return Response(serializer.data)
-
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def confirm_appointment(request, appointment_id):
-    """
-    Confirm an appointment (only expert can confirm)
-    """
-    appointment = get_object_or_404(Appointment, id=appointment_id)
-    
-    # Check if user is the expert of this appointment
-    if appointment.expert != request.user:
-        return Response(
-            {'error': 'Bu randevuyu onaylama yetkiniz yok'},
-            status=status.HTTP_403_FORBIDDEN
-        )
-    
-    appointment.is_confirmed = True
-    appointment.status = 'confirmed'
-    appointment.save()
-    
-    serializer = AppointmentSerializer(appointment)
-    return Response(serializer.data)
 
 
 @api_view(['GET'])
@@ -240,141 +319,3 @@ def get_zoom_meeting_info(request, appointment_id):
     }
     
     return Response(zoom_info)
-
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def approve_appointment(request, appointment_id):
-    """
-    Danışan tarafından oluşturulan randevuyu onaylar (sadece uzman)
-    """
-    appointment = get_object_or_404(Appointment, id=appointment_id)
-    
-    # Check if user is the expert of this appointment
-    if appointment.expert != request.user:
-        return Response(
-            {'error': 'Bu randevuyu onaylama yetkiniz yok'},
-            status=status.HTTP_403_FORBIDDEN
-        )
-    
-    # Sadece waiting_approval durumundaki randevular onaylanabilir
-    if appointment.status != 'waiting_approval':
-        return Response(
-            {'error': 'Bu randevu onay bekleyen durumda değil'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # Randevuyu onayla
-    appointment.status = 'confirmed'
-    appointment.is_confirmed = True
-    
-    # Zoom meeting oluştur
-    try:
-        meeting_datetime = datetime.combine(appointment.date, appointment.time)
-        topic = f"Danışmanlık: {appointment.client.get_full_name()} - Uzman {appointment.expert.get_full_name()}"
-        
-        # zoom_info = create_zoom_meeting(
-        #     topic=topic,
-        #     start_time=meeting_datetime,
-        #     duration=validated_data.get('duration', 45)
-        # )
-        # Mocked for example purposes
-        zoom_info = {"start_url":"confirm mock url",
-                    "join_url":"confirm mock url",
-                    "id":"confirm mock url"}
-        
-        appointment.zoom_start_url = zoom_info.get('start_url')
-        appointment.zoom_join_url = zoom_info.get('join_url')
-        appointment.zoom_meeting_id = str(zoom_info.get('id'))
-        
-    except Exception as e:
-        print(f"Zoom meeting creation failed for appointment {appointment.id}: {str(e)}")
-    
-    appointment.save()
-    
-    serializer = AppointmentSerializer(appointment)
-    return Response(serializer.data)
-
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def cancel_request_appointment(request, appointment_id):
-    """
-    Danışan randevu iptal talebi gönderir
-    """
-    appointment = get_object_or_404(Appointment, id=appointment_id)
-    
-    # Check if user is the client of this appointment
-    if appointment.client != request.user:
-        return Response(
-            {'error': 'Bu randevu için iptal talebi gönderme yetkiniz yok'},
-            status=status.HTTP_403_FORBIDDEN
-        )
-    
-    # Sadece confirmed durumundaki randevular için iptal talebi gönderilebilir
-    if appointment.status != 'confirmed':
-        return Response(
-            {'error': 'Sadece onaylanmış randevular için iptal talebi gönderilebilir'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # İptal talebi durumuna güncelle
-    appointment.status = 'cancel_requested'
-    appointment.save()
-    
-    return Response({
-        'id': appointment.id,
-        'status': appointment.status,
-        'message': 'İptal talebi gönderildi, uzman onayı bekleniyor.'
-    })
-
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def cancel_confirm_appointment(request, appointment_id):
-    """
-    Uzman iptal talebini onaylar veya reddeder
-    """
-    appointment = get_object_or_404(Appointment, id=appointment_id)
-    
-    # Check if user is the expert of this appointment
-    if appointment.expert != request.user:
-        return Response(
-            {'error': 'Bu randevunun iptal talebini değerlendirme yetkiniz yok'},
-            status=status.HTTP_403_FORBIDDEN
-        )
-    
-    # Sadece cancel_requested durumundaki randevular işlenebilir
-    if appointment.status != 'cancel_requested':
-        return Response(
-            {'error': 'Bu randevu iptal talebi bekleyen durumda değil'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    serializer = AppointmentStatusUpdateSerializer(data=request.data)
-    if serializer.is_valid():
-        confirm = serializer.validated_data['confirm']
-        
-        if confirm:
-            # İptal talebi onaylandı
-            appointment.status = 'cancelled'
-            appointment.is_confirmed = False
-        else:
-            # İptal talebi reddedildi, confirmed durumuna geri dön
-            appointment.status = 'confirmed'
-        
-        appointment.save()
-        
-        response_data = {
-            'id': appointment.id,
-            'status': appointment.status
-        }
-        
-        if confirm:
-            response_data['message'] = 'Randevu iptal edildi'
-        else:
-            response_data['message'] = 'İptal talebi reddedildi'
-        
-        return Response(response_data)
-    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

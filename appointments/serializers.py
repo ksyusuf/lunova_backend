@@ -168,8 +168,18 @@ class ClientCreateAppointmentSerializer(serializers.ModelSerializer):
         return appointment
 
 
-class AppointmentStatusUpdateSerializer(serializers.Serializer):
+class AppointmentStatusSerializer(serializers.Serializer):
     """
-    Randevu durumu güncelleme için serializer
+    Randevu durumu güncelleme için yeni serializer
     """
-    confirm = serializers.BooleanField(required=True)
+    status = serializers.ChoiceField(
+        choices=[
+            ('pending', 'Beklemede'),
+            ('waiting_approval', 'Onay Bekliyor'),
+            ('confirmed', 'Onaylandı'),
+            ('cancel_requested', 'İptal Talep Edildi'),
+            ('cancelled', 'İptal Edildi'),
+            ('completed', 'Tamamlandı'),
+        ],
+        required=True
+    )
