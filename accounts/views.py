@@ -268,11 +268,11 @@ class PasswordResetRequestView(APIView):
         subject = "Lunova Şifre Sıfırlama İsteği"
         message = f"Şifrenizi sıfırlamak için aşağıdaki bağlantıyı kullanabilirsiniz:\n\n{frontend_url}\n\nLunova Ekibi"
 
-        if settings.IS_PRODUCTION:
+        if settings.ENVIRONMENT == 'Production':
             send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
         else:
-            print(f"Password reset link for {email}:")
-            print(f"\tDevelopment: {frontend_url}")
+            print(f"\nPassword reset link for {email}:")
+            print(f"\n\tDevelopment: {frontend_url}")
             print("\nDev. bağlantısını postman ile password göndererek  test edebilirsiniz.")
             print("Postman body örneği:")
             
@@ -288,8 +288,8 @@ class PasswordResetRequestView(APIView):
                 prod_base = "https://lunova.up.railway.app"
             
             production_url = f"{prod_base}/reset-password?uid={uid}&token={token}"
-            print("Prod linki sadece bağlantı domain kontrolü içindir. Çalışması beklenemez.")
-            print(f"\tProduction:  {production_url}")
+            print("\nProd linki sadece bağlantı domain kontrolü içindir. Çalışması beklenemez.")
+            print(f"\n\tProduction:  {production_url}\n")
 
         return Response({"message": "If the email exists, a reset link has been sent."}, status=status.HTTP_200_OK)
 
