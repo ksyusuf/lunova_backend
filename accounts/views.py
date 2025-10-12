@@ -305,11 +305,11 @@ class PasswordResetRequestView(APIView):
             
             # Aynı linkin production'da nasıl görüneceğini göster
             if user.role == UserRole.EXPERT:
-                prod_base = "https://uzman-lunova.up.railway.app"
+                prod_base = "https://uzman.lunova.tr"
             elif user.role == UserRole.CLIENT:
-                prod_base = "https://danisan-lunova.up.railway.app"
+                prod_base = "https://danisan.lunova.tr"
             elif user.role == UserRole.ADMIN:
-                prod_base = "https://lunova.up.railway.app"
+                prod_base = "https://lunova.tr"
             
             production_url = f"{prod_base}/reset-password?uid={uid}&token={token}"
             print("\nProd linki sadece bağlantı domain kontrolü içindir. Çalışması beklenemez.")
