@@ -471,6 +471,66 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Uzman Randevuları (Danışan İçin)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authorization-secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "/*\nUzman Randevuları Endpoint'i - Danışanlar İçin\n\nBu endpoint danışan rolüne sahip kullanıcıların belirli bir uzmanın randevularını\nbelirtilen tarih aralığında görmesini sağlar.\n\nURL Yapısı: /api/v1/appointments/experts/{expert_id}/appointments/\n\nZorunlu Query Parametreleri:\n- start_date: Başlangıç tarihi (YYYY-MM-DD formatında)\n- end_date: Bitiş tarihi (YYYY-MM-DD formatında)\n\nDönen Veri:\n- expert_id: Uzman ID\n- start_date: Başlangıç tarihi\n- end_date: Bitiş tarihi\n- appointments: Randevu listesi (sadece id, date, time, status bilgileri)\n\nErişim Kısıtlaması:\n- Sadece 'client' rolüne sahip kullanıcılar erişebilir\n- Diğer roller (expert, admin) erişemez\n\nÖrnek Kullanım:\nGET /api/v1/appointments/experts/21/appointments/?start_date=2025-01-01&end_date=2025-01-30\n\nDönen Örnek Veri:\n{\n  \"expert_id\": 21,\n  \"start_date\": \"2025-01-01\",\n  \"end_date\": \"2025-01-30\",\n  \"appointments\": [\n    {\n      \"id\": 123,\n      \"date\": \"2025-01-15\",\n      \"time\": \"10:00:00\",\n      \"status\": \"confirmed\"\n    },\n    {\n      \"id\": 124,\n      \"date\": \"2025-01-20\",\n      \"time\": \"14:00:00\",\n      \"status\": \"pending\"\n    }\n  ]\n}\n\nHata Durumları:\n- 403 Forbidden: Kullanıcı client rolünde değil\n- 400 Bad Request: start_date veya end_date eksik ya da geçersiz format\n- 400 Bad Request: start_date > end_date\n*/",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/appointments/experts/{{expert_id}}/appointments/?start_date=2025-10-01&end_date=2025-10-30",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"appointments",
+						"experts",
+						"{{expert_id}}",
+						"appointments",
+						""
+					],
+					"query": [
+						{
+							"key": "start_date",
+							"value": "2025-10-01",
+							"description": "Başlangıç tarihi (YYYY-MM-DD)"
+						},
+						{
+							"key": "end_date",
+							"value": "2025-10-30",
+							"description": "Bitiş tarihi (YYYY-MM-DD)"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

@@ -7,7 +7,8 @@ from .serializers import (
     AppointmentSerializer,
     CreateAppointmentWithZoomSerializer,
     ClientCreateAppointmentSerializer,
-    AppointmentStatusSerializer
+    AppointmentStatusSerializer,
+    ExpertAppointmentSummarySerializer
 )
 from .permissions import (
     IsExpertOrClientForCreatePermission,
@@ -18,6 +19,7 @@ from .permissions import (
 from accounts.models import UserRole
 from zoom.services import create_zoom_meeting
 from datetime import datetime
+from django.utils import timezone
 
 
 class AppointmentListView(generics.ListAPIView):
@@ -319,3 +321,69 @@ def get_zoom_meeting_info(request, appointment_id):
     }
     
     return Response(zoom_info)
+
+
+class ExpertAppointmentsForClientView(generics.ListAPIView):
+    """
+    Get expert's appointments within a date range for clients
+    Only accessible by users with 'client' role
+    Returns only essential appointment info: id, date, time, status
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ExpertAppointmentSummarySerializer
+
+    def list(self, request, *args, **kwargs):
+        user = self.request.user
+
+        # Rol kontrolü
+        if not hasattr(user, 'role'):
+            return Response(
+                {'error': 'Kullanıcı rol bilgisi bulunamadı', 'debug': f'User: {user}'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if user.role != UserRole.CLIENT:
+            return Response(
+                {'error': f'Sadece danışanlar bu endpoint\'i kullanabilir. Mevcut rol: {user.role}'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        expert_id = self.kwargs.get('expert_id')
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+
+        # Parametre kontrolü
+        if not start_date or not end_date:
+            return Response(
+                {'error': 'start_date ve end_date parametreleri zorunludur'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            return Response(
+                {'error': 'Tarih formatı YYYY-MM-DD olmalıdır'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if start_date > end_date:
+            return Response(
+                {'error': 'start_date, end_date\'den büyük olamaz'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        queryset = Appointment.objects.filter(
+            expert_id=expert_id,
+            date__range=[start_date, end_date],
+            is_deleted=False
+        ).order_by('date', 'time')
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'expert_id': self.kwargs.get('expert_id'),
+            'start_date': request.query_params.get('start_date'),
+            'end_date': request.query_params.get('end_date'),
+            'appointments': serializer.data
+        })

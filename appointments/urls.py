@@ -5,6 +5,7 @@ from .views import (
     ClientAppointmentRequestView,
     AppointmentDetailView,
     get_zoom_meeting_info,
+    ExpertAppointmentsForClientView,
 )
 
 app_name = 'appointments'
@@ -21,4 +22,7 @@ urlpatterns = [
     path('<int:pk>/', AppointmentDetailView.as_view(), name='appointment_detail'),
     path('<int:pk>/status/', AppointmentDetailView.as_view(), name='appointment_status_update'),
     path('<int:appointment_id>/meeting-info/', get_zoom_meeting_info, name='meeting_info'),
+
+    # Expert appointments for clients
+    path('experts/<int:expert_id>/appointments/', ExpertAppointmentsForClientView.as_view(), name='expert_appointments'),
 ]
