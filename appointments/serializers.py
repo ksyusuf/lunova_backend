@@ -183,3 +183,37 @@ class AppointmentStatusSerializer(serializers.Serializer):
         ],
         required=True
     )
+
+
+class ExpertAppointmentSummarySerializer(serializers.ModelSerializer):
+    """
+    Expert appointments summary for clients - shows only essential info
+    danışan, randevu oluştururken bu uzmanın o tarih saatte müsaitliğini
+    görüp ona göre randevu isteği göndermesi için tasarlandı.
+    """
+    start_time = serializers.TimeField(source='time', read_only=True)
+    end_time = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Appointment
+        fields = ['id', 'date', 'start_time', 'end_time', 'status']
+
+    def get_end_time(self, obj):
+        from datetime import datetime, timedelta
+        # Buffer süreleri: 30->15, 45->20, 60->30 dakika
+        """
+            30 -> 20
+            50 -> 30
+            randevu süresi ve mola süresi önerilen olarakk böyle.
+            iki tip seansımızın olması uygun gözüküyor. daha sonra rezervasyon oluşturma
+            ksımında bir kısıt oluştururuz.
+        """
+        buffer_minutes = {30:20, 45: 20, 60: 30}.get(obj.duration, 0)
+        total_minutes = obj.duration + buffer_minutes
+
+        # Randevu başlangıç datetime
+        start_datetime = datetime.combine(obj.date, obj.time)
+        # Bitiş datetime
+        end_datetime = start_datetime + timedelta(minutes=total_minutes)
+
+        return end_datetime.time()
