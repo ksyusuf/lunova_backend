@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "add9ca17-c2c4-4fa6-86ec-da3b6ac67f7e",
+		"_postman_id": "313104df-c957-48fb-b0a6-576d470fcb07",
 		"name": "Appointments",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-add9ca17-c2c4-4fa6-86ec-da3b6ac67f7e?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-313104df-c957-48fb-b0a6-576d470fcb07?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
@@ -205,52 +205,6 @@
 					"response": []
 				},
 				{
-					"name": "Rezervasyon Tam Güncelleme (PUT)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authorization-secret}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"expert\": 21,\n  \"client\": 20,\n  \"date\": \"2025-02-27\",\n  \"time\": \"15:00:00\",\n  \"duration\": 60,\n  \"notes\": \"Tam güncellenmiş rezervasyon\"\n}\n/*\nRezervasyon Tam Güncelleme\n\nBu endpoint ile rezervasyonun TÜM alanlarını güncelleyebilirsiniz.\nTüm zorunlu alanların gönderilmesi gerekir.\n\nZorunlu Alanlar:\n- expert: Uzman ID\n- client: Danışan ID\n- date: Tarih (YYYY-MM-DD)\n- time: Saat (HH:MM:SS)\n- duration: Süre (dakika)\n\nİsteğe Bağlı Alanlar:\n- notes: Notlar\n\nNot: Bu işlem tüm mevcut veriyi değiştirir!\n*/",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/appointments/22/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"appointments",
-								"22",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Rezervasyon Durum Güncelleme",
 					"request": {
 						"auth": {
@@ -362,7 +316,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "/*\nRandevu Listesi Endpoint'i - Durum ve Mine Filtreleme\n\nKullanılabilir Sorgu Parametreleri:\n\nmine: boolean - Kullanıcının kendi randevularına göre filtrele\n- true: Sadece giriş yapmış kullanıcının randevularını döndürür (uzman veya danışan olarak)\n- false veya verilmediği durumda: Kullanıcı admin ise tüm randevuları, değilse kendi randevularını döndürür\n\nstatus: Randevu durumuna göre filtrele\nGeçerli değerler: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed\n\nÖrnekler:\n- Tüm randevular (admin) veya kullanıcının randevuları: (parametre yok)\n- Kullanıcının kendi randevuları: ?mine=true\n- Tüm randevular (sadece admin): ?mine=false\n- Kullanıcının onaylanmış randevuları: ?mine=true&status=confirmed\n- Tüm bekleyen randevular (sadece admin): ?mine=false&status=pending\n\nRol Tabanlı Erişim:\n- Admin kullanıcılar: mine=false veya verilmediği durumda tüm randevuları görebilir\n- Uzman/Danışan kullanıcılar: Her zaman sadece kendi randevularını görür\n\nNot: Her iki parametre de isteğe bağlıdır.\n*/",
+					"raw": "/*\nRandevu Listesi Endpoint'i - Tarih Aralığı ve Durum Filtreleme\n\nZorunlu Sorgu Parametreleri:\n\nstart_date: Başlangıç tarihi (YYYY-MM-DD formatında)\nend_date: Bitiş tarihi (YYYY-MM-DD formatında)\n\nİsteğe Bağlı Sorgu Parametreleri:\n\nstatus: Randevu durumuna göre filtrele\nGeçerli değerler: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed\n\nTarih Aralığı Kısıtlamaları:\n- Admin kullanıcılar için maksimum 6 ay\n- Diğer kullanıcılar için maksimum 4 ay\n- start_date, end_date'den büyük olamaz\n\nÖrnekler:\n- Kullanıcının Ekim ayı randevuları: ?start_date=2025-10-01&end_date=2025-10-31\n- Kullanıcının onaylanmış randevuları (Kasım): ?start_date=2025-11-01&end_date=2025-11-30&status=confirmed\n- Kullanıcının bekleyen randevuları (Aralık): ?start_date=2025-12-01&end_date=2025-12-31&status=pending\n\nRol Tabanlı Erişim:\n- Tüm kullanıcılar sadece kendi randevularını görebilir (uzman veya danışan olarak)\n- Admin kullanıcılar daha geniş tarih aralığı kullanabilir\n\nNot: start_date ve end_date parametreleri zorunludur.\n*/",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -382,15 +336,19 @@
 					],
 					"query": [
 						{
-							"key": "mine",
-							"value": "true",
-							"description": "Filter by user's own appointments",
-							"disabled": true
+							"key": "start_date",
+							"value": "2025-10-01",
+							"description": "Başlangıç tarihi (YYYY-MM-DD) - zorunlu"
 						},
 						{
-							"key": "mine",
-							"value": "false",
-							"description": "Show all appointments (admin only)",
+							"key": "end_date",
+							"value": "2025-10-31",
+							"description": "Bitiş tarihi (YYYY-MM-DD) - zorunlu"
+						},
+						{
+							"key": "status",
+							"value": "confirmed",
+							"description": "Filter by status: confirmed",
 							"disabled": true
 						},
 						{
@@ -403,12 +361,6 @@
 							"key": "status",
 							"value": "waiting_approval",
 							"description": "Filter by status: waiting_approval",
-							"disabled": true
-						},
-						{
-							"key": "status",
-							"value": "confirmed",
-							"description": "Filter by status: confirmed",
 							"disabled": true
 						},
 						{
@@ -503,7 +455,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/experts/{{expert_id}}/appointments/?start_date=2025-10-01&end_date=2025-10-30",
+					"raw": "{{base_url}}/api/v1/appointments/experts/{{expert_id}}/appointments/?start_date=2025-10-01&end_date=2025-12-30",
 					"host": [
 						"{{base_url}}"
 					],
@@ -524,7 +476,7 @@
 						},
 						{
 							"key": "end_date",
-							"value": "2025-10-30",
+							"value": "2025-12-30",
 							"description": "Bitiş tarihi (YYYY-MM-DD)"
 						}
 					]
