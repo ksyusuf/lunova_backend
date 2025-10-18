@@ -3,36 +3,44 @@ import json
 from datetime import datetime
 
 """
-yapılan test sonrası tekrar çalıştırmak için lokalde oluşturulmuş
-expert: 22
-client: 21
-randevularını silebilirsin.
+Appointment API Test Suite
 
-# todo: bu testler yeniden yapılacak. çünkü endpoint yapısı değişti.
+Bu test dosyası yeni appointment sistemini test eder:
+- Tarih aralığı ile randevu listeleme (start_date/end_date zorunlu)
+- Status güncellemeleri için PATCH /status/ endpoint'i
+- Token tabanlı yetkilendirme
+- Environment'a göre Zoom meeting oluşturma
+
+Test sonrası oluşturulan randevuları temizlemek için:
+- expert ID: değişkende tanımlı
+- client ID: değişkende tanımlı
 
 ---
-istek özeti
+Test Senaryoları Özeti
 
-1.  **Login expert**: Uzman kullanıcının sisteme giriş yaparak bir erişim tokenı almasını sağlar.
-2.  **Login client**: Danışan kullanıcının sisteme giriş yaparak bir erişim tokenı almasını sağlar.
-3.  **expert POST create**: Uzmanın, danışan için bir randevu oluşturmasını test eder.
-4.  **expert POST create**: Aynı randevuyu tekrar oluşturarak çakışma hatası (`400`) almayı test eder.
-5.  **expert POST create**: Yeni ve geçerli bir randevu oluşturur.
-6.  **expert POST approve**: Zaten onay beklemeyen bir randevuyu onaylama yetkisini test eder ve hata alır.
-7.  **expert POST confirm**: Bir randevuyu uzman tarafından onaylar.
-8.  **expert POST cancel-request**: Uzmanın randevu için iptal talebi oluşturma yetkisinin olmadığını (`403`) test eder.
-9.  **expert POST cancel-confirm**: İptal talebi olmayan bir randevuyu iptal etmeye çalışır.
-10. **expert DELETE**: Belirtilen randevuyu başarıyla siler.
-11. **client POST request**: Danışanın, uzman için bir randevu talebi oluşturmasını test eder.
-12. **client POST request**: Aynı randevu talebini tekrar oluşturarak çakışma hatası (`400`) almayı test eder.
-13. **expert POST request**: Uzmanın, sadece danışanlara açık olan randevu talep endpoint'ini kullanma yetkisinin olmadığını (`403`) test eder.
-14. **client POST request**: Yeni ve geçerli bir randevu talebi oluşturur.
-15. **expert POST approve**: Danışandan gelen randevu talebini uzman tarafından onaylar.
-16. **expert POST confirm**: Onaylanmış randevuyu tekrar onaylayarak endpoint'in idempotent (tekrar çalıştırılabilir) olup olmadığını kontrol eder.
-17. **client GET meeting-info**: Danışanın, onaylanmış randevunun toplantı bilgilerini görüntüleyebildiğini test eder.
-18. **client POST cancel-request**: Danışanın, randevu için iptal talebi oluşturmasını test eder.
-19. **client POST cancel-confirm**: Danışanın, kendi gönderdiği iptal talebini onaylama yetkisinin olmadığını (`403`) test eder.
-20. **client DELETE**: Belirtilen randevuyu başarıyla siler.
+1.  **Login expert**: Uzman kullanıcının sisteme giriş yaparak token alması
+2.  **Login client**: Danışan kullanıcının sisteme giriş yaparak token alması
+3.  **expert POST create**: Uzmanın danışan için randevu oluşturması
+4.  **expert POST create**: Aynı randevuyu tekrar oluşturma (çakışma hatası)
+5.  **expert POST create**: Geçerli yeni randevu oluşturma
+6.  **expert PATCH status**: Beklemede olan randevuyu onaylama (confirmed)
+7.  **expert PATCH status**: Onaylanmış randevuyu tamamlama (completed)
+8.  **client PATCH status**: Randevu için iptal talebi oluşturma (cancel_requested)
+9.  **expert PATCH status**: İptal talebini onaylama (cancelled)
+10. **expert DELETE**: Randevuyu silme
+11. **client POST request**: Danışanın uzman için randevu talebi oluşturması
+12. **client POST request**: Aynı talebi tekrar oluşturma (çakışma hatası)
+13. **expert POST request**: Uzmanın danışan endpoint'ini kullanma girişimi (403)
+14. **client POST request**: Geçerli yeni randevu talebi oluşturma
+15. **expert PATCH status**: Randevu talebini onaylama (confirmed)
+16. **client GET meeting-info**: Toplantı bilgilerini görüntüleme
+17. **client PATCH status**: İptal talebi oluşturma
+18. **expert PATCH status**: İptal talebini reddetme (confirmed)
+19. **client DELETE**: Randevuyu silme
+20. **GET appointments list**: Tarih aralığı ile randevu listeleme
+21. **GET expert appointments**: Uzmanın randevularını danışan olarak görüntüleme
+22. **PATCH appointment**: Randevu notlarını güncelleme
+23. **Error cases**: Geçersiz tarih aralığı, eksik parametreler, yetkisiz erişim
 """
 
 BASE_URL = "http://127.0.0.1:8000/api/v1/"
@@ -40,8 +48,8 @@ APPOINTMENTS_URL = BASE_URL + "appointments/"
 LOGIN_URL = BASE_URL + "accounts/login/"
 
 USERS = {
-    "expert": {"email": "ozel_@expert.com", "password": "yusuf123"},
-    "client": {"email": "ozel_@client.com", "password": "yusuf123"}
+    "expert": {"email": "expert2@example.com", "password": "password123"},
+    "client": {"email": "client5@example.com", "password": "password123"}
 }
 
 tokens = {}
@@ -100,6 +108,16 @@ def delete_test(url, role, expected_status=204, step_description="DELETE isteği
     resp = requests.delete(url, headers=get_headers(role))
     return log_result(f"{role} DELETE {step_description}", resp, method="DELETE", url=url, payload=None, expected_status=expected_status)
 
+def patch_test(url, role, json_data=None, expected_status=200, step_description="PATCH isteği"):
+    """Belirtilen URL'e PATCH isteği gönderir ve sonucu kaydeder."""
+    resp = requests.patch(url, headers=get_headers(role), json=json_data)
+    return log_result(f"{role} PATCH {step_description}", resp, method="PATCH", url=url, payload=json_data, expected_status=expected_status)
+
+def patch_status_test(url, role, status_value, expected_status=200, step_description="Status güncelleme"):
+    """Randevu durumunu günceller."""
+    payload = {"status": status_value}
+    return patch_test(url, role, payload, expected_status, step_description)
+
 def run_appointment_tests():
     """Randevu API'si için tüm test senaryolarını çalıştırır."""
     expert_id = 21
@@ -107,36 +125,33 @@ def run_appointment_tests():
 
     # --- EXPERT AKIŞI ---
     # Uzman randevu oluşturur (başarılı senaryo)
-    expert_payload_1 = {"expert": expert_id, "client": client_id, "date": "2025-08-20", "time": "14:00:00", "duration": 60}
+    expert_payload_1 = {"expert": expert_id, "client": client_id, "date": "2025-10-20", "time": "14:00:00", "duration": 60}
     post_test(APPOINTMENTS_URL + "expert/create/", "expert", expert_payload_1, expected_status=201, step_description="Randevu Oluşturma (başarılı)")
 
     # Aynı randevuyu tekrar oluşturma girişimi (hata senaryosu)
     post_test(APPOINTMENTS_URL + "expert/create/", "expert", expert_payload_1, expected_status=400, step_description="Aynı Randevuyu Tekrar Oluşturma")
 
     # Yeni bir randevu oluşturur
-    expert_payload_2 = {"expert": expert_id, "client": client_id, "date": "2025-08-21", "time": "10:00:00", "duration": 45}
+    expert_payload_2 = {"expert": expert_id, "client": client_id, "date": "2025-10-21", "time": "10:00:00", "duration": 45}
     appt = post_test(APPOINTMENTS_URL + "expert/create/", "expert", expert_payload_2, expected_status=201, step_description="Farklı Randevu Oluşturma")
     expert_appt_id = appt.get("id")
 
     if expert_appt_id:
-        # Zaten onay beklemeyen bir randevuyu onaylamaya çalışma girişimi (hata senaryosu)
-        post_test(APPOINTMENTS_URL + f"{expert_appt_id}/approve/", "expert", expected_status=400, step_description="Onaylanmamış Randevuyu Onaylama Girişimi")
+        # Beklemede olan randevuyu onaylar (status: pending -> confirmed)
+        patch_status_test(APPOINTMENTS_URL + f"{expert_appt_id}/status/", "expert", "confirmed", expected_status=200, step_description="Beklemede Olan Randevuyu Onaylama")
 
-        # Randevuyu onaylar
-        post_test(APPOINTMENTS_URL + f"{expert_appt_id}/confirm/", "expert", expected_status=200, step_description="Randevuyu Onaylama")
+        # Onaylanmış randevuyu tamamlar (status: confirmed -> completed)
+        patch_status_test(APPOINTMENTS_URL + f"{expert_appt_id}/status/", "expert", "completed", expected_status=200, step_description="Onaylanmış Randevuyu Tamamlama")
 
-        # Uzmanın iptal talebi oluşturma yetkisini kontrol eder (hata senaryosu)
-        post_test(APPOINTMENTS_URL + f"{expert_appt_id}/cancel-request/", "expert", expected_status=403, step_description="Uzmanın İptal Talebi Oluşturma Girişimi")
-
-        # İptal talebi olmayan bir randevuyu iptal etme girişimi (hata senaryosu)
-        post_test(APPOINTMENTS_URL + f"{expert_appt_id}/cancel-confirm/", "expert", json_data={"confirm": True}, expected_status=400, step_description="İptal Talebi Olmayan Randevuyu İptal Etme")
+        # Tamamlanmış randevuyu tekrar güncelleme girişimi (hata senaryosu)
+        patch_status_test(APPOINTMENTS_URL + f"{expert_appt_id}/status/", "expert", "confirmed", expected_status=400, step_description="Tamamlanmış Randevuyu Güncelleme Girişimi")
 
         # Randevuyu siler
         delete_test(APPOINTMENTS_URL + f"{expert_appt_id}/", "expert", expected_status=204, step_description="Randevuyu Silme")
 
     # --- CLIENT AKIŞI ---
     # Danışan randevu talebi oluşturur (başarılı senaryo)
-    client_payload_1 = {"expert": expert_id, "date": "2025-08-22", "time": "11:00:00", "duration": 30}
+    client_payload_1 = {"expert": expert_id, "date": "2025-10-22", "time": "11:00:00", "duration": 30}
     post_test(APPOINTMENTS_URL + "client/request/", "client", client_payload_1, expected_status=201, step_description="Randevu Talebi Oluşturma (başarılı)")
 
     # Aynı randevu talebini tekrar oluşturma girişimi (hata senaryosu)
@@ -146,28 +161,47 @@ def run_appointment_tests():
     post_test(APPOINTMENTS_URL + "client/request/", "expert", client_payload_1, expected_status=403, step_description="Uzmanın Danışan Endpoint'ini Kullanma Girişimi")
 
     # Farklı bir randevu talebi oluşturur
-    client_payload_2 = {"expert": expert_id, "date": "2025-08-23", "time": "12:00:00", "duration": 60}
+    client_payload_2 = {"expert": expert_id, "date": "2025-10-23", "time": "12:00:00", "duration": 60}
     appt_client = post_test(APPOINTMENTS_URL + "client/request/", "client", client_payload_2, expected_status=201, step_description="Farklı Randevu Talebi Oluşturma")
     client_appt_id = appt_client.get("id")
 
     if client_appt_id:
-        # Randevu talebini uzman tarafından onaylar
-        post_test(APPOINTMENTS_URL + f"{client_appt_id}/approve/", "expert", expected_status=200, step_description="Randevu Talebini Onaylama")
-
-        # Onaylanmış randevuyu tekrar onaylar (idempotent kontrolü)
-        post_test(APPOINTMENTS_URL + f"{client_appt_id}/confirm/", "expert", expected_status=200, step_description="Onaylanmış Randevuyu Tekrar Onaylama")
+        # Randevu talebini uzman tarafından onaylar (status: waiting_approval -> confirmed)
+        patch_status_test(APPOINTMENTS_URL + f"{client_appt_id}/status/", "expert", "confirmed", expected_status=200, step_description="Randevu Talebini Onaylama")
 
         # Danışan toplantı bilgilerini görüntüler
         get_test(APPOINTMENTS_URL + f"{client_appt_id}/meeting-info/", "client", expected_status=200, step_description="Danışanın Toplantı Bilgilerini Görüntülemesi")
 
-        # Danışan randevuyu iptal etmek için talep gönderir
-        post_test(APPOINTMENTS_URL + f"{client_appt_id}/cancel-request/", "client", expected_status=200, step_description="Randevu İptal Talebi Gönderme")
+        # Danışan randevuyu iptal etmek için talep gönderir (status: confirmed -> cancel_requested)
+        patch_status_test(APPOINTMENTS_URL + f"{client_appt_id}/status/", "client", "cancel_requested", expected_status=200, step_description="Randevu İptal Talebi Gönderme")
 
-        # Danışanın iptal talebini onaylama yetkisini kontrol eder (hata senaryosu)
-        post_test(APPOINTMENTS_URL + f"{client_appt_id}/cancel-confirm/", "client", json_data={"confirm": True}, expected_status=403, step_description="Danışanın İptal Talebini Onaylama Girişimi")
+        # Uzman iptal talebini reddeder (status: cancel_requested -> confirmed)
+        patch_status_test(APPOINTMENTS_URL + f"{client_appt_id}/status/", "expert", "confirmed", expected_status=200, step_description="İptal Talebini Reddetme")
 
         # Randevuyu siler
         delete_test(APPOINTMENTS_URL + f"{client_appt_id}/", "client", expected_status=204, step_description="Randevuyu Silme")
+
+    # --- LİSTELEME VE DİĞER TESTLER ---
+    # Randevu listesini tarih aralığı ile getir (eksik parametre hatası)
+    get_test(APPOINTMENTS_URL, "expert", expected_status=400, step_description="Tarih Parametresi Olmadan Liste Getirme")
+
+    # Geçerli tarih aralığı ile randevu listesi
+    get_test(APPOINTMENTS_URL + "?start_date=2025-10-01&end_date=2025-10-31", "expert", expected_status=200, step_description="Tarih Aralığı ile Randevu Listesi")
+
+    # Status filtresi ile randevu listesi
+    get_test(APPOINTMENTS_URL + "?start_date=2025-10-01&end_date=2025-10-31&status=confirmed", "expert", expected_status=200, step_description="Status Filtresi ile Randevu Listesi")
+
+    # Uzmanın randevularını danışan olarak görüntüleme
+    get_test(APPOINTMENTS_URL + f"experts/{expert_id}/appointments/?start_date=2025-10-01&end_date=2025-10-31", "client", expected_status=200, step_description="Uzmanın Randevularını Danışan Olarak Görüntüleme")
+
+    # Geçersiz tarih aralığı testi
+    get_test(APPOINTMENTS_URL + "?start_date=2025-10-31&end_date=2025-10-01", "expert", expected_status=400, step_description="Geçersiz Tarih Aralığı")
+
+    # Maksimum tarih aralığı aşımı testi (client için 4 aydan fazla)
+    get_test(APPOINTMENTS_URL + "?start_date=2025-10-01&end_date=2026-03-01", "client", expected_status=400, step_description="Maksimum Tarih Aralığı Aşımı")
+
+    # Yetkisiz erişim testi - danışan uzmanın randevularını görüntülemeye çalışır
+    get_test(APPOINTMENTS_URL + "?start_date=2025-10-01&end_date=2025-10-31", "client", expected_status=200, step_description="Danışanın Kendi Randevularını Görüntüleme")
 
 def save_results_markdown(filename="appointment_tests_results.md"):
     """Test sonuçlarını Markdown formatında dosyaya kaydeder."""

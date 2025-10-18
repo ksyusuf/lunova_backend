@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Appointment
 from zoom.services import create_zoom_meeting
 from datetime import datetime
+from django.conf import settings
+from availability.models import WeeklyAvailability, AvailabilityException
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
@@ -51,7 +53,6 @@ class CreateAppointmentWithZoomSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Tarih ve saat bilgisi zorunludur.")
         
         # Aynı tarih+saat için uzmanın başka randevusu var mı kontrol et
-        # TODO: Daha sonra accounts içerisinden ilgili expert'in takvim müsaitliğine göre kontrol sağlanacak
         existing_appointment = Appointment.objects.filter(
             expert=data['expert'],
             date=data['date'],
@@ -81,15 +82,21 @@ class CreateAppointmentWithZoomSerializer(serializers.ModelSerializer):
             # Create topic with expert and client names
             topic = f"Danışmanlık: {validated_data['client'].get_full_name()} - Uzman {validated_data['expert'].get_full_name()}"
             
-            # zoom_info = create_zoom_meeting(
-            #     topic=topic,
-            #     start_time=meeting_datetime,
-            #     duration=validated_data.get('duration', 45)
-            # )
-            # Mocked for example purposes
-            zoom_info = {"start_url":"mock url",
-                         "join_url":"mock url",
-                         "id":"mock url"}
+            # Environment kontrolü
+            if settings.ENVIRONMENT == 'Production':
+                # Production'da gerçek Zoom meeting oluştur
+                zoom_info = create_zoom_meeting(
+                    topic=topic,
+                    start_time=meeting_datetime,
+                    duration=validated_data.get('duration', 45)
+                )
+            else:
+                # Development'ta mock veri kullan
+                zoom_info = {
+                    "start_url": "mock url",
+                    "join_url": "mock url",
+                    "id": f"mock_meeting_{appointment.id}"
+                }
             
             # Update appointment with Zoom details
             appointment.zoom_start_url = zoom_info.get('start_url')
@@ -129,29 +136,104 @@ class ClientCreateAppointmentSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if not hasattr(user, 'role') or user.role != 'client':
             raise serializers.ValidationError("Sadece danışanlar bu şekilde randevu talebi oluşturabilir.")
-        
+
         # Expert zorunlu
         if 'expert' not in data:
             raise serializers.ValidationError("Uzman seçimi zorunludur.")
-        
+
         # Tarih ve saat zorunlu
         if 'date' not in data or 'time' not in data:
             raise serializers.ValidationError("Tarih ve saat bilgisi zorunludur.")
-        
-        # Aynı tarih+saat için uzmanın başka randevusu var mı kontrol et
-        # TODO: Daha sonra accounts içerisinden ilgili expert'in takvim müsaitliğine göre kontrol sağlanacak
+
+        expert = data['expert']
+        appointment_date = data['date']
+        appointment_time = data['time']
+
+        # 1. Uzmanın başka randevusu var mı kontrol et (expert ve client bağımsız)
         existing_appointment = Appointment.objects.filter(
-            expert=data['expert'],
-            date=data['date'],
-            time=data['time'],
-            status__in=['pending', 'waiting_approval', 'confirmed']
+            expert=expert,
+            date=appointment_date,
+            time=appointment_time,
+            status__in=['pending', 'waiting_approval', 'confirmed'],
+            is_deleted=False
         ).exists()
-        
+
         if existing_appointment:
             raise serializers.ValidationError(
                 "Bu tarih ve saatte uzmanın başka bir randevusu bulunmaktadır."
             )
-        
+
+        # 2. Client'ın aynı saatte başka randevusu var mı kontrol et
+        client_existing_appointment = Appointment.objects.filter(
+            client=user,
+            date=appointment_date,
+            time=appointment_time,
+            status__in=['pending', 'waiting_approval', 'confirmed'],
+            is_deleted=False
+        ).exists()
+
+        if client_existing_appointment:
+            raise serializers.ValidationError(
+                "Bu tarih ve saatte sizin başka bir randevunuz bulunmaktadır."
+            )
+
+        # 3. Uzmanın weekly availability kontrolü
+        day_of_week = appointment_date.weekday()  # 0=Monday, 6=Sunday
+
+        weekly_available = WeeklyAvailability.objects.filter(
+            expert__user=expert,
+            day_of_week=day_of_week,
+            start_time__lte=appointment_time,
+            end_time__gt=appointment_time,  # end_time > appointment_time (çakışmayı önlemek için)
+            is_active=True
+        ).exists()
+
+        if not weekly_available:
+            raise serializers.ValidationError(
+                "Uzman bu tarih ve saatte müsait değildir (haftalık program)."
+            )
+
+        # 4. Availability exceptions kontrolü
+        # Önce normal tarih için kontrol et
+        exception = AvailabilityException.objects.filter(
+            expert__user=expert,
+            date=appointment_date,
+            exception_type='cancel'
+        ).first()
+
+        if exception:
+            # İptal exception'ı varsa, saat kontrolü yap
+            if (exception.start_time and exception.end_time and
+                exception.start_time <= appointment_time < exception.end_time):
+                raise serializers.ValidationError(
+                    "Uzman bu tarih ve saatte müsait değildir (özel istisna)."
+                )
+            elif not exception.start_time and not exception.end_time:
+                # Tüm gün iptal
+                raise serializers.ValidationError(
+                    "Uzman bu tarihte müsait değildir (özel istisna)."
+                )
+
+        # Tekrarlayan istisnalar için kontrol (her yıl aynı tarih)
+        recurring_exceptions = AvailabilityException.objects.filter(
+            expert__user=expert,
+            date__month=appointment_date.month,
+            date__day=appointment_date.day,
+            is_recurring=True,
+            exception_type='cancel'
+        )
+
+        for rec_exception in recurring_exceptions:
+            if (rec_exception.start_time and rec_exception.end_time and
+                rec_exception.start_time <= appointment_time < rec_exception.end_time):
+                raise serializers.ValidationError(
+                    "Uzman bu tarih ve saatte müsait değildir (tekrarlayan istisna)."
+                )
+            elif not rec_exception.start_time and not rec_exception.end_time:
+                raise serializers.ValidationError(
+                    "Uzman bu tarihte müsait değildir (tekrarlayan istisna)."
+                )
+
         return data
     
     def create(self, validated_data):

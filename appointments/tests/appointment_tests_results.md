@@ -1,5 +1,5 @@
 # Appointment API Test Results
-Generated at: 2025-08-17 17:33:07.777339
+Generated at: 2025-10-18 20:44:25.360096
 
 ## Login expert
 - Method: POST
@@ -7,8 +7,8 @@ Generated at: 2025-08-17 17:33:07.777339
 - Payload:
 ```json
 {
-  "email": "ozel_@expert.com",
-  "password": "yusuf123"
+  "email": "expert2@example.com",
+  "password": "password123"
 }
 ```
 - Status Code: 200
@@ -16,9 +16,10 @@ Generated at: 2025-08-17 17:33:07.777339
 - Passed: True ✅
 ```json
 {
-  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NjA0NTk4NiwiaWF0IjoxNzU1NDQxMTg2LCJqdGkiOiJjZDU2ODA2ZWJiMjg0Zjc0YWI5N2U5NWE3ZTUyODY4NCIsInVzZXJfaWQiOiIyMSJ9.yoQXncF5sCKvKzJUV3ckEMekMd6hPW5Yx9nOgT0dQhQ",
-  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1NDQyMDg2LCJpYXQiOjE3NTU0NDExODYsImp0aSI6ImM5MzI5NTI0ZDkxNzQwMThiN2ZiODUyZmM0NTMwMWNiIiwidXNlcl9pZCI6IjIxIn0.908AW7-ygfsRceLtsk-Gvsg9NimbS9gnZAEPtPiG8oE",
-  "email": "ozel_@expert.com"
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2MTQxNDI2NCwiaWF0IjoxNzYwODA5NDY0LCJqdGkiOiI3NjhmYzI5MzE0NTk0YTU0YjIwYjlkY2RjYmQwYzk1MiIsInVzZXJfaWQiOiIyIn0.8eA2sM9P1mgvVSlLjGfQX-aQ5TzgMAUNqqpmGA7ug3k",
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYwODEwMzY0LCJpYXQiOjE3NjA4MDk0NjQsImp0aSI6ImM3MTE5NDI1YmI2NzQ0NTE4MjM3NTZmZDczN2IzZGQ0IiwidXNlcl9pZCI6IjIifQ.Dniz5OjIZFtKbv0w5z8jVSfhyy7yYWOYxnnbrs-oaOM",
+  "email": "expert2@example.com",
+  "role": "expert"
 }
 ```
 
@@ -28,8 +29,8 @@ Generated at: 2025-08-17 17:33:07.777339
 - Payload:
 ```json
 {
-  "email": "ozel_@client.com",
-  "password": "yusuf123"
+  "email": "client5@example.com",
+  "password": "password123"
 }
 ```
 - Status Code: 200
@@ -37,9 +38,10 @@ Generated at: 2025-08-17 17:33:07.777339
 - Passed: True ✅
 ```json
 {
-  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc1NjA0NTk4NywiaWF0IjoxNzU1NDQxMTg3LCJqdGkiOiIzMDllMTM4NzIxNGY0ZjgxOTA1Y2QxZGM1MTAzMDM5NiIsInVzZXJfaWQiOiIyMiJ9.hsHEqJG0Bqcbs80FvBN590SkwSMt8P2qKXXA5_eCV7E",
-  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1NDQyMDg3LCJpYXQiOjE3NTU0NDExODcsImp0aSI6ImEzMThmYjdjYTNlMjRhN2RiZDc5MzI2MmNlMDU2YWJiIiwidXNlcl9pZCI6IjIyIn0.1VUb7YLU71HND-9HWCOyJ8ik3wX7ppYfNNT5o121MZI",
-  "email": "ozel_@client.com"
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2MTQxNDI2NCwiaWF0IjoxNzYwODA5NDY0LCJqdGkiOiJiZDgzMzY0NzEzZTI0ZWQyODczOTE1NjYxNjkwYTYxOCIsInVzZXJfaWQiOiIyNSJ9.fg039j2XpOC2M7oqVBgqnE71o-VCiqjSISWVcdCiSUc",
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYwODEwMzY0LCJpYXQiOjE3NjA4MDk0NjQsImp0aSI6IjM2ZThiMDQ3YTI3YTRlNGE4Y2EzNDQyMzZiYjVjZDg0IiwidXNlcl9pZCI6IjI1In0.sLcSBNJMR5TrhYCnIm3raVksg0QH5mqBAzGvx3jGYNo",
+  "email": "client5@example.com",
+  "role": "client"
 }
 ```
 
@@ -51,7 +53,7 @@ Generated at: 2025-08-17 17:33:07.777339
 {
   "expert": 21,
   "client": 22,
-  "date": "2025-08-20",
+  "date": "2025-10-20",
   "time": "14:00:00",
   "duration": 60
 }
@@ -61,12 +63,12 @@ Generated at: 2025-08-17 17:33:07.777339
 - Passed: True ✅
 ```json
 {
-  "id": 55,
+  "id": 211,
   "expert": 21,
   "client": 22,
-  "expert_name": "yusuf expert",
-  "client_name": "yusuf client",
-  "date": "2025-08-20",
+  "expert_name": "Hatice Rodriguez",
+  "client_name": "William Öztürk",
+  "date": "2025-10-20",
   "time": "14:00:00",
   "duration": 60,
   "is_confirmed": false,
@@ -75,8 +77,8 @@ Generated at: 2025-08-17 17:33:07.777339
   "zoom_start_url": "mock url",
   "zoom_join_url": "mock url",
   "zoom_meeting_id": "mock url",
-  "created_at": "2025-08-17T14:33:07.173242Z",
-  "updated_at": "2025-08-17T14:33:07.175271Z"
+  "created_at": "2025-10-18T17:44:24.493464Z",
+  "updated_at": "2025-10-18T17:44:24.495469Z"
 }
 ```
 
@@ -88,7 +90,7 @@ Generated at: 2025-08-17 17:33:07.777339
 {
   "expert": 21,
   "client": 22,
-  "date": "2025-08-20",
+  "date": "2025-10-20",
   "time": "14:00:00",
   "duration": 60
 }
@@ -112,7 +114,7 @@ Generated at: 2025-08-17 17:33:07.777339
 {
   "expert": 21,
   "client": 22,
-  "date": "2025-08-21",
+  "date": "2025-10-21",
   "time": "10:00:00",
   "duration": 45
 }
@@ -122,12 +124,12 @@ Generated at: 2025-08-17 17:33:07.777339
 - Passed: True ✅
 ```json
 {
-  "id": 56,
+  "id": 212,
   "expert": 21,
   "client": 22,
-  "expert_name": "yusuf expert",
-  "client_name": "yusuf client",
-  "date": "2025-08-21",
+  "expert_name": "Hatice Rodriguez",
+  "client_name": "William Öztürk",
+  "date": "2025-10-21",
   "time": "10:00:00",
   "duration": 45,
   "is_confirmed": false,
@@ -136,88 +138,75 @@ Generated at: 2025-08-17 17:33:07.777339
   "zoom_start_url": "mock url",
   "zoom_join_url": "mock url",
   "zoom_meeting_id": "mock url",
-  "created_at": "2025-08-17T14:33:07.245239Z",
-  "updated_at": "2025-08-17T14:33:07.248013Z"
+  "created_at": "2025-10-18T17:44:24.583835Z",
+  "updated_at": "2025-10-18T17:44:24.586373Z"
 }
 ```
 
-## expert POST Onaylanmamış Randevuyu Onaylama Girişimi
-- Method: POST
-- URL: http://127.0.0.1:8000/api/v1/appointments/56/approve/
-- Status Code: 400
-- Expected Status: 400
-- Passed: True ✅
-```json
-{
-  "error": "Bu randevu onay bekleyen durumda değil"
-}
-```
-
-## expert POST Randevuyu Onaylama
-- Method: POST
-- URL: http://127.0.0.1:8000/api/v1/appointments/56/confirm/
-- Status Code: 200
-- Expected Status: 200
-- Passed: True ✅
-```json
-{
-  "id": 56,
-  "expert": 21,
-  "client": 22,
-  "expert_name": "yusuf expert",
-  "client_name": "yusuf client",
-  "date": "2025-08-21",
-  "time": "10:00:00",
-  "duration": 45,
-  "is_confirmed": true,
-  "notes": null,
-  "status": "confirmed",
-  "zoom_start_url": "mock url",
-  "zoom_join_url": "mock url",
-  "zoom_meeting_id": "mock url",
-  "created_at": "2025-08-17T14:33:07.245239Z",
-  "updated_at": "2025-08-17T14:33:07.319618Z"
-}
-```
-
-## expert POST Uzmanın İptal Talebi Oluşturma Girişimi
-- Method: POST
-- URL: http://127.0.0.1:8000/api/v1/appointments/56/cancel-request/
-- Status Code: 403
-- Expected Status: 403
-- Passed: True ✅
-```json
-{
-  "error": "Bu randevu için iptal talebi gönderme yetkiniz yok"
-}
-```
-
-## expert POST İptal Talebi Olmayan Randevuyu İptal Etme
-- Method: POST
-- URL: http://127.0.0.1:8000/api/v1/appointments/56/cancel-confirm/
+## expert PATCH Beklemede Olan Randevuyu Onaylama
+- Method: PATCH
+- URL: http://127.0.0.1:8000/api/v1/appointments/212/status/
 - Payload:
 ```json
 {
-  "confirm": true
+  "status": "confirmed"
 }
 ```
-- Status Code: 400
-- Expected Status: 400
-- Passed: True ✅
+- Status Code: 404
+- Expected Status: 200
+- Passed: False ❌
 ```json
 {
-  "error": "Bu randevu iptal talebi bekleyen durumda değil"
+  "detail": "No Appointment matches the given query."
+}
+```
+
+## expert PATCH Onaylanmış Randevuyu Tamamlama
+- Method: PATCH
+- URL: http://127.0.0.1:8000/api/v1/appointments/212/status/
+- Payload:
+```json
+{
+  "status": "completed"
+}
+```
+- Status Code: 404
+- Expected Status: 200
+- Passed: False ❌
+```json
+{
+  "detail": "No Appointment matches the given query."
+}
+```
+
+## expert PATCH Tamamlanmış Randevuyu Güncelleme Girişimi
+- Method: PATCH
+- URL: http://127.0.0.1:8000/api/v1/appointments/212/status/
+- Payload:
+```json
+{
+  "status": "confirmed"
+}
+```
+- Status Code: 404
+- Expected Status: 400
+- Passed: False ❌
+```json
+{
+  "detail": "No Appointment matches the given query."
 }
 ```
 
 ## expert DELETE Randevuyu Silme
 - Method: DELETE
-- URL: http://127.0.0.1:8000/api/v1/appointments/56/
-- Status Code: 204
+- URL: http://127.0.0.1:8000/api/v1/appointments/212/
+- Status Code: 404
 - Expected Status: 204
-- Passed: True ✅
+- Passed: False ❌
 ```json
-""
+{
+  "detail": "No Appointment matches the given query."
+}
 ```
 
 ## client POST Randevu Talebi Oluşturma (başarılı)
@@ -227,7 +216,7 @@ Generated at: 2025-08-17 17:33:07.777339
 ```json
 {
   "expert": 21,
-  "date": "2025-08-22",
+  "date": "2025-10-22",
   "time": "11:00:00",
   "duration": 30
 }
@@ -237,17 +226,17 @@ Generated at: 2025-08-17 17:33:07.777339
 - Passed: True ✅
 ```json
 {
-  "id": 57,
+  "id": 213,
   "expert": 21,
-  "expert_name": "yusuf expert",
-  "client_name": "yusuf client",
-  "date": "2025-08-22",
+  "expert_name": "Hatice Rodriguez",
+  "client_name": "Charles Arslan",
+  "date": "2025-10-22",
   "time": "11:00:00",
   "duration": 30,
   "notes": null,
   "status": "waiting_approval",
-  "created_at": "2025-08-17T14:33:07.460535Z",
-  "updated_at": "2025-08-17T14:33:07.460535Z"
+  "created_at": "2025-10-18T17:44:24.780889Z",
+  "updated_at": "2025-10-18T17:44:24.780889Z"
 }
 ```
 
@@ -258,7 +247,7 @@ Generated at: 2025-08-17 17:33:07.777339
 ```json
 {
   "expert": 21,
-  "date": "2025-08-22",
+  "date": "2025-10-22",
   "time": "11:00:00",
   "duration": 30
 }
@@ -281,17 +270,19 @@ Generated at: 2025-08-17 17:33:07.777339
 ```json
 {
   "expert": 21,
-  "date": "2025-08-22",
+  "date": "2025-10-22",
   "time": "11:00:00",
   "duration": 30
 }
 ```
-- Status Code: 403
+- Status Code: 400
 - Expected Status: 403
-- Passed: True ✅
+- Passed: False ❌
 ```json
 {
-  "error": "Sadece danışanlar bu endpoint'i kullanabilir. Mevcut rol: expert"
+  "non_field_errors": [
+    "Sadece danışanlar bu şekilde randevu talebi oluşturabilir."
+  ]
 }
 ```
 
@@ -302,7 +293,7 @@ Generated at: 2025-08-17 17:33:07.777339
 ```json
 {
   "expert": 21,
-  "date": "2025-08-23",
+  "date": "2025-10-23",
   "time": "12:00:00",
   "duration": 60
 }
@@ -312,134 +303,239 @@ Generated at: 2025-08-17 17:33:07.777339
 - Passed: True ✅
 ```json
 {
-  "id": 58,
+  "id": 214,
   "expert": 21,
-  "expert_name": "yusuf expert",
-  "client_name": "yusuf client",
-  "date": "2025-08-23",
+  "expert_name": "Hatice Rodriguez",
+  "client_name": "Charles Arslan",
+  "date": "2025-10-23",
   "time": "12:00:00",
   "duration": 60,
   "notes": null,
   "status": "waiting_approval",
-  "created_at": "2025-08-17T14:33:07.565836Z",
-  "updated_at": "2025-08-17T14:33:07.565836Z"
+  "created_at": "2025-10-18T17:44:24.895206Z",
+  "updated_at": "2025-10-18T17:44:24.895206Z"
 }
 ```
 
-## expert POST Randevu Talebini Onaylama
-- Method: POST
-- URL: http://127.0.0.1:8000/api/v1/appointments/58/approve/
-- Status Code: 200
-- Expected Status: 200
-- Passed: True ✅
+## expert PATCH Randevu Talebini Onaylama
+- Method: PATCH
+- URL: http://127.0.0.1:8000/api/v1/appointments/214/status/
+- Payload:
 ```json
 {
-  "id": 58,
-  "expert": 21,
-  "client": 22,
-  "expert_name": "yusuf expert",
-  "client_name": "yusuf client",
-  "date": "2025-08-23",
-  "time": "12:00:00",
-  "duration": 60,
-  "is_confirmed": true,
-  "notes": null,
-  "status": "confirmed",
-  "zoom_start_url": "confirm mock url",
-  "zoom_join_url": "confirm mock url",
-  "zoom_meeting_id": "confirm mock url",
-  "created_at": "2025-08-17T14:33:07.565836Z",
-  "updated_at": "2025-08-17T14:33:07.602697Z"
+  "status": "confirmed"
 }
 ```
-
-## expert POST Onaylanmış Randevuyu Tekrar Onaylama
-- Method: POST
-- URL: http://127.0.0.1:8000/api/v1/appointments/58/confirm/
-- Status Code: 200
+- Status Code: 404
 - Expected Status: 200
-- Passed: True ✅
+- Passed: False ❌
 ```json
 {
-  "id": 58,
-  "expert": 21,
-  "client": 22,
-  "expert_name": "yusuf expert",
-  "client_name": "yusuf client",
-  "date": "2025-08-23",
-  "time": "12:00:00",
-  "duration": 60,
-  "is_confirmed": true,
-  "notes": null,
-  "status": "confirmed",
-  "zoom_start_url": "confirm mock url",
-  "zoom_join_url": "confirm mock url",
-  "zoom_meeting_id": "confirm mock url",
-  "created_at": "2025-08-17T14:33:07.565836Z",
-  "updated_at": "2025-08-17T14:33:07.638608Z"
+  "detail": "No Appointment matches the given query."
 }
 ```
 
 ## client GET Danışanın Toplantı Bilgilerini Görüntülemesi
 - Method: GET
-- URL: http://127.0.0.1:8000/api/v1/appointments/58/meeting-info/
+- URL: http://127.0.0.1:8000/api/v1/appointments/214/meeting-info/
 - Status Code: 200
 - Expected Status: 200
 - Passed: True ✅
 ```json
 {
-  "appointment_id": 58,
-  "meeting_id": "confirm mock url",
-  "start_url": "confirm mock url",
-  "join_url": "confirm mock url",
-  "topic": "Danışmanlık: yusuf client - Uzman yusuf expert",
-  "date": "2025-08-23",
+  "appointment_id": 214,
+  "meeting_id": null,
+  "start_url": null,
+  "join_url": null,
+  "topic": "Danışmanlık: Charles Arslan - Uzman Hatice Rodriguez",
+  "date": "2025-10-23",
   "time": "12:00:00",
   "duration": 60,
-  "is_confirmed": true,
-  "status": "confirmed"
+  "is_confirmed": false,
+  "status": "waiting_approval"
 }
 ```
 
-## client POST Randevu İptal Talebi Gönderme
-- Method: POST
-- URL: http://127.0.0.1:8000/api/v1/appointments/58/cancel-request/
-- Status Code: 200
-- Expected Status: 200
-- Passed: True ✅
-```json
-{
-  "id": 58,
-  "status": "cancel_requested",
-  "message": "İptal talebi gönderildi, uzman onayı bekleniyor."
-}
-```
-
-## client POST Danışanın İptal Talebini Onaylama Girişimi
-- Method: POST
-- URL: http://127.0.0.1:8000/api/v1/appointments/58/cancel-confirm/
+## client PATCH Randevu İptal Talebi Gönderme
+- Method: PATCH
+- URL: http://127.0.0.1:8000/api/v1/appointments/214/status/
 - Payload:
 ```json
 {
-  "confirm": true
+  "status": "cancel_requested"
 }
 ```
-- Status Code: 403
-- Expected Status: 403
+- Status Code: 200
+- Expected Status: 200
 - Passed: True ✅
 ```json
 {
-  "error": "Bu randevunun iptal talebini değerlendirme yetkiniz yok"
+  "id": 214,
+  "expert": 21,
+  "client": 25,
+  "expert_name": "Hatice Rodriguez",
+  "client_name": "Charles Arslan",
+  "date": "2025-10-23",
+  "time": "12:00:00",
+  "duration": 60,
+  "is_confirmed": false,
+  "notes": null,
+  "status": "cancel_requested",
+  "zoom_start_url": null,
+  "zoom_join_url": null,
+  "zoom_meeting_id": null,
+  "created_at": "2025-10-18T17:44:24.895206Z",
+  "updated_at": "2025-10-18T17:44:25.009248Z"
+}
+```
+
+## expert PATCH İptal Talebini Reddetme
+- Method: PATCH
+- URL: http://127.0.0.1:8000/api/v1/appointments/214/status/
+- Payload:
+```json
+{
+  "status": "confirmed"
+}
+```
+- Status Code: 404
+- Expected Status: 200
+- Passed: False ❌
+```json
+{
+  "detail": "No Appointment matches the given query."
 }
 ```
 
 ## client DELETE Randevuyu Silme
 - Method: DELETE
-- URL: http://127.0.0.1:8000/api/v1/appointments/58/
+- URL: http://127.0.0.1:8000/api/v1/appointments/214/
 - Status Code: 204
 - Expected Status: 204
 - Passed: True ✅
 ```json
 ""
+```
+
+## expert GET Tarih Parametresi Olmadan Liste Getirme
+- Method: GET
+- URL: http://127.0.0.1:8000/api/v1/appointments/
+- Status Code: 400
+- Expected Status: 400
+- Passed: True ✅
+```json
+{
+  "error": "start_date parametresi zorunludur"
+}
+```
+
+## expert GET Tarih Aralığı ile Randevu Listesi
+- Method: GET
+- URL: http://127.0.0.1:8000/api/v1/appointments/?start_date=2025-10-01&end_date=2025-10-31
+- Status Code: 200
+- Expected Status: 200
+- Passed: True ✅
+```json
+[]
+```
+
+## expert GET Status Filtresi ile Randevu Listesi
+- Method: GET
+- URL: http://127.0.0.1:8000/api/v1/appointments/?start_date=2025-10-01&end_date=2025-10-31&status=confirmed
+- Status Code: 200
+- Expected Status: 200
+- Passed: True ✅
+```json
+[]
+```
+
+## client GET Uzmanın Randevularını Danışan Olarak Görüntüleme
+- Method: GET
+- URL: http://127.0.0.1:8000/api/v1/appointments/experts/21/appointments/?start_date=2025-10-01&end_date=2025-10-31
+- Status Code: 200
+- Expected Status: 200
+- Passed: True ✅
+```json
+{
+  "expert_id": 21,
+  "start_date": "2025-10-01",
+  "end_date": "2025-10-31",
+  "appointments": [
+    {
+      "id": 211,
+      "date": "2025-10-20",
+      "start_time": "14:00:00",
+      "end_time": "15:30:00",
+      "status": "pending"
+    },
+    {
+      "id": 212,
+      "date": "2025-10-21",
+      "start_time": "10:00:00",
+      "end_time": "11:05:00",
+      "status": "pending"
+    },
+    {
+      "id": 213,
+      "date": "2025-10-22",
+      "start_time": "11:00:00",
+      "end_time": "11:50:00",
+      "status": "waiting_approval"
+    }
+  ]
+}
+```
+
+## expert GET Geçersiz Tarih Aralığı
+- Method: GET
+- URL: http://127.0.0.1:8000/api/v1/appointments/?start_date=2025-10-31&end_date=2025-10-01
+- Status Code: 400
+- Expected Status: 400
+- Passed: True ✅
+```json
+{
+  "error": "start_date, end_date'den büyük olamaz"
+}
+```
+
+## client GET Maksimum Tarih Aralığı Aşımı
+- Method: GET
+- URL: http://127.0.0.1:8000/api/v1/appointments/?start_date=2025-10-01&end_date=2026-03-01
+- Status Code: 400
+- Expected Status: 400
+- Passed: True ✅
+```json
+{
+  "error": "Tarih aralığı maksimum 4 ay olabilir"
+}
+```
+
+## client GET Danışanın Kendi Randevularını Görüntüleme
+- Method: GET
+- URL: http://127.0.0.1:8000/api/v1/appointments/?start_date=2025-10-01&end_date=2025-10-31
+- Status Code: 200
+- Expected Status: 200
+- Passed: True ✅
+```json
+[
+  {
+    "id": 213,
+    "expert": 21,
+    "client": 25,
+    "expert_name": "Hatice Rodriguez",
+    "client_name": "Charles Arslan",
+    "date": "2025-10-22",
+    "time": "11:00:00",
+    "duration": 30,
+    "is_confirmed": false,
+    "notes": null,
+    "status": "waiting_approval",
+    "zoom_start_url": null,
+    "zoom_join_url": null,
+    "zoom_meeting_id": null,
+    "created_at": "2025-10-18T17:44:24.780889Z",
+    "updated_at": "2025-10-18T17:44:24.780889Z"
+  }
+]
 ```
 

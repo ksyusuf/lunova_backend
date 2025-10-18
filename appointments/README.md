@@ -78,23 +78,22 @@ Detaylı endpoint dokümantasyonu için: [ENDPOINTS.md](ENDPOINTS.md)
 
 ### Senaryo 1: Uzman Randevu Oluşturma
 1. Uzman giriş yapar ve JWT token alır
-2. POST /api/v1/appointments/ ile randevu oluşturur
+2. POST /api/v1/appointments/expert/create/ ile randevu oluşturur
 3. Sistem otomatik Zoom meeting oluşturur
 4. Randevu 'pending' durumunda oluşturulur
-5. Uzman POST /appointments/{id}/confirm/ ile onaylar
+5. Uzman PATCH /api/v1/appointments/{id}/status/ ile durumu 'confirmed' yapar
 
 ### Senaryo 2: Danışan Randevu Talebi
 1. Danışan giriş yapar ve JWT token alır
-2. POST /api/v1/appointments/ ile randevu talebi gönderir
+2. POST /api/v1/appointments/client/request/ ile randevu talebi gönderir
 3. Sistem randevuyu 'waiting_approval' durumunda oluşturur
-4. Uzman POST /appointments/{id}/approve/ ile onaylar
+4. Uzman PATCH /api/v1/appointments/{id}/status/ ile durumu 'confirmed' yapar
 5. Sistem Zoom meeting oluşturur ve durum 'confirmed' olur
 
 ### Senaryo 3: Randevu İptal Süreci
-1. Danışan onaylanmış randevu için POST /appointments/{id}/cancel-request/ ile iptal talebi gönderir
+1. Danışan onaylanmış randevu için PATCH /api/v1/appointments/{id}/status/ ile 'cancel_requested' durumuna getirir
 2. Randevu durumu 'cancel_requested' olur
-3. Uzman POST /appointments/{id}/cancel-confirm/ ile talebi değerlendirir
-4. Onaylanırsa 'cancelled', reddedilirse 'confirmed' durumuna döner
+3. Uzman PATCH /api/v1/appointments/{id}/status/ ile 'cancelled' (onay) veya 'confirmed' (red) yapar
 
 ### Senaryo 4: Meeting'e Katılma
 1. Kullanıcı GET /api/v1/appointments/{id}/meeting-info/ ile Zoom bilgilerini alır

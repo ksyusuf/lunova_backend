@@ -14,17 +14,22 @@ Bu dokümanda Appointments API'sinin tüm endpoint'leri kısaca açıklanmışt�
 ```
 GET /api/v1/appointments/
 ```
-**Açıklama**: Kullanıcının randevularını listeler
-**Query Params**:
-- `mine` (boolean): Sadece kendi randevularımı (true/false)
-- `status` (string): Duruma göre filtrele
+**Açıklama**: Kullanıcının randevularını tarih aralığına göre listeler
+**Query Params** (zorunlu):
+- `start_date` (string): Başlangıç tarihi (YYYY-MM-DD formatında)
+- `end_date` (string): Bitiş tarihi (YYYY-MM-DD formatında)
+**Query Params** (opsiyonel):
+- `status` (string): Duruma göre filtrele (pending, waiting_approval, confirmed, cancel_requested, cancelled, completed)
+**Tarih Aralığı Limiti**:
+- Admin kullanıcılar: Maksimum 6 ay
+- Diğer kullanıcılar: Maksimum 4 ay
 **Yetki**: Authenticated users
 
 ### 2. Uzman Randevu Oluşturma
 ```
 POST /api/v1/appointments/expert/create/
 ```
-**Açıklama**: Uzman yeni randevu oluşturur (Zoom otomatik)
+**Açıklama**: Uzman yeni randevu oluşturur (Zoom meeting otomatik oluşturulur)
 **Yetki**: Experts only
 
 ### 3. Danışan Randevu Talebi
@@ -39,7 +44,7 @@ POST /api/v1/appointments/client/request/
 GET /api/v1/appointments/{id}/
 ```
 **Açıklama**: Randevu detaylarını getirir
-**Yetki**: Appointment participants
+**Yetki**: Appointment participants (expert veya client)
 
 ### 5. Randevu Tam Güncelleme
 ```
@@ -55,7 +60,7 @@ PATCH /api/v1/appointments/{id}/
 **Açıklama**: Randevunun belirli alanlarını günceller
 **Yetki**: Appointment participants
 
-### 7. Randevu Durum Güncelleme (RESTful)
+### 7. Randevu Durum Güncelleme
 ```
 PATCH /api/v1/appointments/{id}/status/
 ```
@@ -68,7 +73,7 @@ PATCH /api/v1/appointments/{id}/status/
 ```
 DELETE /api/v1/appointments/{id}/
 ```
-**Açıklama**: Randevuyu soft delete yapar
+**Açıklama**: Randevuyu soft delete yapar (is_deleted=True)
 **Yetki**: Appointment participants
 
 ### 9. Zoom Meeting Bilgileri
@@ -77,6 +82,17 @@ GET /api/v1/appointments/{id}/meeting-info/
 ```
 **Açıklama**: Zoom meeting bilgilerini getirir
 **Yetki**: Appointment participants
+
+### 10. Uzmanın Randevuları (Danışanlar İçin)
+```
+GET /api/v1/appointments/experts/{expert_id}/appointments/
+```
+**Açıklama**: Belirli bir uzman'ın randevularını tarih aralığına göre listeler (sadece temel bilgiler)
+**Query Params** (zorunlu):
+- `start_date` (string): Başlangıç tarihi (YYYY-MM-DD formatında)
+- `end_date` (string): Bitiş tarihi (YYYY-MM-DD formatında)
+**Dönen Bilgiler**: id, date, time, status
+**Yetki**: Clients only
 
 ## Durum Geçiş Kuralları
 
