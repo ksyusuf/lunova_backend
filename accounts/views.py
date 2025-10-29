@@ -293,7 +293,12 @@ class PasswordResetRequestView(APIView):
         message = f"Şifrenizi sıfırlamak için aşağıdaki bağlantıyı kullanabilirsiniz:\n\n{frontend_url}\n\nLunova Ekibi"
 
         if settings.ENVIRONMENT == 'Production':
-            send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+            try:
+                send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+            except Exception as e:
+                import logging
+                logging.exception("Password reset mail gönderilemedi")
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             print(f"\nPassword reset link for {email}:")
             print(f"\n\tDevelopment: {frontend_url}")
