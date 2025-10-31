@@ -5,7 +5,7 @@
 		"description": "Postman collection for Availability endpoints with httpOnly cookie-based JWT authentication.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/37991120-2b11c3a7-1df4-4b04-a4f5-dc675fd028fb?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-2b11c3a7-1df4-4b04-a4f5-dc675fd028fb?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
@@ -108,7 +108,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/availability/available-experts/?category=bilissel-terapi&start_date=2025-11-01&end_date=2025-11-07",
+							"raw": "{{base_url}}/api/v1/availability/available-experts/?category=bilissel-terapi&start_date=2025-10-01&end_date=2025-10-30",
 							"host": [
 								"{{base_url}}"
 							],
@@ -126,11 +126,11 @@
 								},
 								{
 									"key": "start_date",
-									"value": "2025-11-01"
+									"value": "2025-10-01"
 								},
 								{
 									"key": "end_date",
-									"value": "2025-11-07"
+									"value": "2025-10-30"
 								}
 							]
 						}

@@ -233,23 +233,22 @@ class MyAvailabilityView(generics.GenericAPIView):
 
 class AvailableExpertsByCategoryView(generics.ListAPIView):
     """
-    Belirli bir kategori ve tarih aralığına göre uygun uzmanları listele.
-    GET parametreleri: category, start_date, end_date
+    Belirli bir kategori (slug) ve tarih aralığına göre uygun uzmanları listeler.
+    GET parametreleri: category (slug), start_date, end_date
     """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        category_name = request.query_params.get('category')
+        category_slug = request.query_params.get('category')
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
 
-        if not category_name or not start_date or not end_date:
+        if not category_slug or not start_date or not end_date:
             return Response(
                 {'error': 'category, start_date ve end_date parametreleri zorunludur.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Tarih formatı kontrolü
         try:
             start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
             end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
@@ -259,55 +258,48 @@ class AvailableExpertsByCategoryView(generics.ListAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Uygun uzmanları bul
+        # Tarihler ters girildiyse düzelt
+        if start_date > end_date:
+            start_date, end_date = end_date, start_date
+
         experts = ExpertProfile.objects.filter(
-            services__name__iexact=category_name,
+            services__slug__iexact=category_slug,
             user__is_active=True
         ).distinct()
 
-        available_experts = []
+        results = []
 
         for expert in experts:
             weekly_availabilities = WeeklyAvailability.objects.filter(
                 expert=expert, is_active=True
             )
-
             if not weekly_availabilities.exists():
-                continue  # hiç haftalık uygunluğu yok
+                continue
 
             exceptions = AvailabilityException.objects.filter(
                 expert=expert,
                 date__range=[start_date, end_date]
             )
 
-            # Tüm tarihleri sırayla kontrol et
+            has_any_available_day = False
             current_date = start_date
-            is_fully_unavailable = True
-            available_days = []
 
             while current_date <= end_date:
                 day_of_week = current_date.weekday()
-                day_avail = weekly_availabilities.filter(day_of_week=day_of_week).first()
-
-                cancel_exception = exceptions.filter(
+                if weekly_availabilities.filter(day_of_week=day_of_week).exists() and not exceptions.filter(
                     date=current_date, exception_type='cancel'
-                ).first()
-
-                if day_avail and not cancel_exception:
-                    is_fully_unavailable = False
-                    available_days.append(str(current_date))
-
+                ).exists():
+                    has_any_available_day = True
+                    break
                 current_date += timedelta(days=1)
 
-            if not is_fully_unavailable:
-                available_experts.append({
-                    'id': expert.id,
-                    'name': expert.user.get_full_name(),
-                    'category': expert.category.name if expert.category else None,
-                    'about': expert.about or "",
-                    'photo': expert.photo.url if getattr(expert, 'photo', None) else None,
-                    'available_days': available_days,
-                    'total_available_days': len(available_days)
+            if has_any_available_day:
+                results.append({
+                    "expert_id": expert.id,
+                    "name": expert.user.get_full_name(),
+                    "photo": expert.photo.url if getattr(expert, 'photo', None) else None,
+                    "about": expert.about or "",
+                    "category": category_slug,  # basit referans, frontend için yeterli
                 })
 
-        return Response(available_experts, status=status.HTTP_200_OK)
+        return Response(results, status=status.HTTP_200_OK)
