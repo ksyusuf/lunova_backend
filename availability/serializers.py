@@ -65,14 +65,32 @@ class BulkWeeklyAvailabilitySerializer(serializers.Serializer):
     
     def create(self, validated_data):
         availabilities_data = validated_data['availabilities']
-        created_availabilities = []
-        
+        added = []
+        skipped = []
+
+        expert = self.context['request'].user.expertprofile
+
         for availability_data in availabilities_data:
-            availability_data['expert'] = self.context['request'].user.expertprofile
-            availability = WeeklyAvailability.objects.create(**availability_data)
-            created_availabilities.append(availability)
-        
-        return {'availabilities': created_availabilities}
+            availability_data['expert'] = expert
+            
+            # Tekil kısıt kontrolü
+            exists = WeeklyAvailability.objects.filter(
+                expert=expert,
+                service=availability_data['service'],
+                day_of_week=availability_data['day_of_week'],
+                start_time=availability_data['start_time'],
+                end_time=availability_data['end_time']
+            ).exists()
+
+            if exists:
+                skipped.append(availability_data)
+                continue
+
+            # Kayıt oluştur
+            wa = WeeklyAvailability.objects.create(**availability_data)
+            added.append(wa)
+
+        return {'added': added, 'skipped': skipped}
 
 
 class BulkAvailabilityExceptionSerializer(serializers.Serializer):

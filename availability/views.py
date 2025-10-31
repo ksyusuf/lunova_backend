@@ -9,6 +9,8 @@ from .serializers import (
 )
 from .permissions import IsExpertPermission, IsAvailabilityOwnerPermission, IsExpertOrAuthenticatedReadOnly
 from rest_framework.exceptions import ValidationError
+from datetime import datetime, timedelta
+from .models import ExpertProfile
 
 
 class WeeklyAvailabilityViewSet(viewsets.GenericViewSet):
@@ -110,10 +112,32 @@ class BulkWeeklyAvailabilityView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            result = serializer.save()
-            return Response(result, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save()
+
+        # Response hazırlanıyor
+        response_data = {
+            'added': [
+                {
+                    'id': wa.id,
+                    'service': wa.service.id,
+                    'day_of_week': wa.day_of_week,
+                    'start_time': str(wa.start_time),
+                    'end_time': str(wa.end_time)
+                } for wa in result['added']
+            ],
+            'skipped': [
+                {
+                    'service': wa['service'].id,
+                    'day_of_week': wa['day_of_week'],
+                    'start_time': str(wa['start_time']),
+                    'end_time': str(wa['end_time'])
+                } for wa in result['skipped']
+            ]
+        }
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
 
 
 class BulkAvailabilityExceptionView(generics.CreateAPIView):
@@ -139,94 +163,151 @@ class ExpertAvailabilityView(generics.ListAPIView):
         )
 
 
-class MyAvailabilityView(generics.ListAPIView):
+class MyAvailabilityView(generics.GenericAPIView):
     """
-    Get current expert's availability
+    Current expert's availability calendar (weekly + exceptions)
     """
-    permission_classes = [IsExpertPermission]
-    serializer_class = WeeklyAvailabilitySerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return WeeklyAvailability.objects.filter(
-            expert=self.request.user.expertprofile,
+    def get(self, request, *args, **kwargs):
+        user = request.user
+
+        if not hasattr(user, 'expertprofile'):
+            return Response({'error': 'User is not an expert.'}, status=status.HTTP_403_FORBIDDEN)
+
+        expert = user.expertprofile
+
+        # Tarih aralığı
+        today = datetime.today().date()
+        start_date_str = request.query_params.get('start_date')
+        end_date_str = request.query_params.get('end_date')
+
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else today
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else today + timedelta(days=6)
+        except ValueError:
+            return Response({'error': 'Tarih formatı YYYY-MM-DD olmalıdır.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Weekly availability
+        weekly_availabilities = WeeklyAvailability.objects.filter(
+            expert=expert,
             is_active=True
         )
 
-
-@api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
-def expert_availability_calendar(request, expert_id):
-    """
-    Get expert's availability for a specific date range
-    """
-    from datetime import datetime, timedelta
-    from django.utils import timezone
-
-    # Query parameters
-    start_date = request.query_params.get('start_date')
-    end_date = request.query_params.get('end_date')
-
-    if not start_date or not end_date:
-        return Response(
-            {'error': 'start_date ve end_date parametreleri zorunludur'},
-            status=status.HTTP_400_BAD_REQUEST
+        # Exceptions (son 7 gün)
+        exception_start = today - timedelta(days=6)
+        exceptions = AvailabilityException.objects.filter(
+            expert=expert,
+            date__range=[exception_start, today + timedelta(days=6)]
         )
 
-    try:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-    except ValueError:
-        return Response(
-            {'error': 'Tarih formatı YYYY-MM-DD olmalıdır'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        # Build calendar data
+        calendar_data = []
+        current_date = start_date
+        while current_date <= end_date:
+            day_of_week = current_date.weekday()
+            day_avail = weekly_availabilities.filter(day_of_week=day_of_week).first()
+            day_exceptions = exceptions.filter(date=current_date)
 
-    # Get weekly availabilities
-    weekly_availabilities = WeeklyAvailability.objects.filter(
-        expert_id=expert_id,
-        is_active=True
-    )
+            day_data = {
+                'date': current_date,
+                'weekly_availability': WeeklyAvailabilitySerializer(day_avail).data if day_avail else None,
+                'exceptions': AvailabilityExceptionSerializer(day_exceptions, many=True).data,
+                'is_available': True
+            }
 
-    # Get exceptions for the date range
-    exceptions = AvailabilityException.objects.filter(
-        expert_id=expert_id,
-        date__range=[start_date, end_date]
-    )
+            # cancel exception varsa
+            if day_exceptions.filter(exception_type='cancel').exists():
+                day_data['is_available'] = False
 
-    # Build calendar data
-    calendar_data = []
-    current_date = start_date
+            calendar_data.append(day_data)
+            current_date += timedelta(days=1)
 
-    while current_date <= end_date:
-        day_of_week = current_date.weekday()
+        return Response({
+            'expert_id': expert.id,
+            'start_date': start_date,
+            'end_date': end_date,
+            'calendar': calendar_data
+        }, status=status.HTTP_200_OK)
 
-        # Check if there's an exception for this date
-        date_exceptions = exceptions.filter(date=current_date)
 
-        # Get weekly availability for this day
-        day_availability = weekly_availabilities.filter(day_of_week=day_of_week).first()
+class AvailableExpertsByCategoryView(generics.ListAPIView):
+    """
+    Belirli bir kategori ve tarih aralığına göre uygun uzmanları listele.
+    GET parametreleri: category, start_date, end_date
+    """
+    permission_classes = [permissions.IsAuthenticated]
 
-        day_data = {
-            'date': current_date,
-            'day_of_week': day_of_week,
-            'day_name': WeeklyAvailability.Weekday(day_of_week).label,
-            'weekly_availability': WeeklyAvailabilitySerializer(day_availability).data if day_availability else None,
-            'exceptions': AvailabilityExceptionSerializer(date_exceptions, many=True).data,
-            'is_available': True
-        }
+    def get(self, request, *args, **kwargs):
+        category_name = request.query_params.get('category')
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
 
-        # Check if day is cancelled
-        cancel_exception = date_exceptions.filter(exception_type='cancel').first()
-        if cancel_exception:
-            day_data['is_available'] = False
-            day_data['cancel_note'] = cancel_exception.note
+        if not category_name or not start_date or not end_date:
+            return Response(
+                {'error': 'category, start_date ve end_date parametreleri zorunludur.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        calendar_data.append(day_data)
-        current_date += timedelta(days=1)
+        # Tarih formatı kontrolü
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            return Response(
+                {'error': 'Tarih formatı YYYY-MM-DD olmalıdır.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    return Response({
-        'expert_id': expert_id,
-        'start_date': start_date,
-        'end_date': end_date,
-        'calendar': calendar_data
-    })
+        # Uygun uzmanları bul
+        experts = ExpertProfile.objects.filter(
+            services__name__iexact=category_name,
+            user__is_active=True
+        ).distinct()
+
+        available_experts = []
+
+        for expert in experts:
+            weekly_availabilities = WeeklyAvailability.objects.filter(
+                expert=expert, is_active=True
+            )
+
+            if not weekly_availabilities.exists():
+                continue  # hiç haftalık uygunluğu yok
+
+            exceptions = AvailabilityException.objects.filter(
+                expert=expert,
+                date__range=[start_date, end_date]
+            )
+
+            # Tüm tarihleri sırayla kontrol et
+            current_date = start_date
+            is_fully_unavailable = True
+            available_days = []
+
+            while current_date <= end_date:
+                day_of_week = current_date.weekday()
+                day_avail = weekly_availabilities.filter(day_of_week=day_of_week).first()
+
+                cancel_exception = exceptions.filter(
+                    date=current_date, exception_type='cancel'
+                ).first()
+
+                if day_avail and not cancel_exception:
+                    is_fully_unavailable = False
+                    available_days.append(str(current_date))
+
+                current_date += timedelta(days=1)
+
+            if not is_fully_unavailable:
+                available_experts.append({
+                    'id': expert.id,
+                    'name': expert.user.get_full_name(),
+                    'category': expert.category.name if expert.category else None,
+                    'about': expert.about or "",
+                    'photo': expert.photo.url if getattr(expert, 'photo', None) else None,
+                    'available_days': available_days,
+                    'total_available_days': len(available_days)
+                })
+
+        return Response(available_experts, status=status.HTTP_200_OK)

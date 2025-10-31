@@ -11,8 +11,8 @@ import random
 from datetime import date, timedelta
 from django.utils.text import slugify
 
-# Add the project root to Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add the project root to Python path 3. levels up from current file
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Django setup
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')

@@ -4,6 +4,9 @@ from . import views
 app_name = 'availability'
 
 urlpatterns = [
+    # My availability view
+    path('', views.MyAvailabilityView.as_view(), name='my_availability'),
+    
     # Weekly availability endpoints
     path('weekly/', views.WeeklyAvailabilityViewSet.as_view({
         'get': 'list',
@@ -34,6 +37,5 @@ urlpatterns = [
     
     # Expert availability views
     path('expert/<int:expert_id>/', views.ExpertAvailabilityView.as_view(), name='expert_availability'),
-    path('expert/<int:expert_id>/calendar/', views.expert_availability_calendar, name='expert_availability_calendar'),
-    path('my-availability/', views.MyAvailabilityView.as_view(), name='my_availability'),
+    path('available-experts/', views.AvailableExpertsByCategoryView.as_view(), name='available-experts'),
 ]
