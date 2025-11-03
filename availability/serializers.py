@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import WeeklyAvailability, AvailabilityException
+from .models import WeeklyAvailability, AvailabilityException, Service
 
 
 class WeeklyAvailabilitySerializer(serializers.ModelSerializer):
@@ -29,7 +29,25 @@ class WeeklyAvailabilitySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Başlangıç saati bitiş saatinden önce olmalıdır.")
         
         return data
+    
+class WeeklyAvailabilityDeleteSerializer(serializers.Serializer):
+    day_of_week = serializers.IntegerField(
+        min_value=0, 
+        max_value=6, 
+        help_text="0=Pazartesi, 6=Pazar"
+    )
+    start_time = serializers.TimeField(help_text="Başlangıç saati (HH:MM:SS)")
+    end_time = serializers.TimeField(help_text="Bitiş saati (HH:MM:SS)")
+    service = serializers.PrimaryKeyRelatedField(
+        queryset=Service.objects.all(), 
+        required=False,
+        help_text="Opsiyonel: sadece bu servis için sil"
+    )
 
+    def validate(self, data):
+        if data['start_time'] >= data['end_time']:
+            raise serializers.ValidationError("Başlangıç saati bitiş saatinden önce olmalıdır.")
+        return data
 
 class AvailabilityExceptionSerializer(serializers.ModelSerializer):
     expert_name = serializers.CharField(source='expert.user.get_full_name', read_only=True)

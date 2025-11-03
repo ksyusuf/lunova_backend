@@ -4,38 +4,17 @@ from . import views
 app_name = 'availability'
 
 urlpatterns = [
-    # My availability view
+    # My availability (weekly + exceptions combined)
     path('', views.MyAvailabilityView.as_view(), name='my_availability'),
-    
-    # Weekly availability endpoints
-    path('weekly/', views.WeeklyAvailabilityViewSet.as_view({
-        'get': 'list',
-        'post': 'create'
-    }), name='weekly_availability'),
-    
-    path('weekly/<int:pk>/', views.WeeklyAvailabilityDetailView.as_view({
-        'get': 'retrieve',
-        'put': 'update',
-        'delete': 'destroy'
-    }), name='weekly_availability_detail'),
-    
-    # Availability exceptions endpoints
-    path('exceptions/', views.AvailabilityExceptionViewSet.as_view({
-        'get': 'list',
-        'post': 'create'
-    }), name='availability_exceptions'),
-    
-    path('exceptions/<int:pk>/', views.AvailabilityExceptionDetailView.as_view({
-        'get': 'retrieve',
-        'put': 'update',
-        'delete': 'destroy'
-    }), name='availability_exception_detail'),
-    
-    # Bulk operations
-    path('weekly/bulk/', views.BulkWeeklyAvailabilityView.as_view(), name='bulk_weekly_availability'),
-    path('exceptions/bulk/', views.BulkAvailabilityExceptionView.as_view(), name='bulk_availability_exceptions'),
-    
-    # Expert availability views
+
+    # Weekly availability (list + bulk update/delete)
+    path('weekly/', views.WeeklyAvailabilityView.as_view(), name='weekly_availability'),
+
+    # Availability exceptions (list + bulk update/delete)
+    path('exceptions/', views.AvailabilityExceptionView.as_view(), name='availability_exceptions'),
+
+    # Expert and public views
     path('expert/<int:expert_id>/', views.ExpertAvailabilityView.as_view(), name='expert_availability'),
-    path('available-experts/', views.AvailableExpertsByCategoryView.as_view(), name='available-experts'),
+    path('available-experts/', views.AvailableExpertsByCategoryView.as_view(), name='available_experts'),
 ]
+

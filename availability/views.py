@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import WeeklyAvailability, AvailabilityException
 from .serializers import (
-    WeeklyAvailabilitySerializer, AvailabilityExceptionSerializer,
-    BulkWeeklyAvailabilitySerializer, BulkAvailabilityExceptionSerializer
+    WeeklyAvailabilitySerializer, AvailabilityExceptionSerializer
 )
 from .permissions import IsExpertPermission, IsAvailabilityOwnerPermission, IsExpertOrAuthenticatedReadOnly
 from rest_framework.exceptions import ValidationError
 from datetime import datetime, timedelta
 from .models import ExpertProfile
+from django.db import transaction
 
 
 class WeeklyAvailabilityViewSet(viewsets.GenericViewSet):
@@ -103,49 +103,352 @@ class AvailabilityExceptionDetailView(
         return AvailabilityException.objects.filter(expert=self.request.user.expertprofile)
 
 
-class BulkWeeklyAvailabilityView(generics.CreateAPIView):
+class WeeklyAvailabilityView(generics.GenericAPIView):
     """
-    Bulk create weekly availabilities
+    Uzmanın haftalık uygunluklarını getirir veya topluca günceller.
     """
     permission_classes = [IsExpertPermission]
-    serializer_class = BulkWeeklyAvailabilitySerializer
+    serializer_class = WeeklyAvailabilitySerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save()
+    def get_queryset(self):
+        user = self.request.user
+        if not hasattr(user, 'expertprofile'):
+            raise ValidationError("Kullanıcının bir uzman profili yok.")
+        return WeeklyAvailability.objects.filter(expert=user.expertprofile)
 
-        # Response hazırlanıyor
-        response_data = {
-            'added': [
-                {
-                    'id': wa.id,
-                    'service': wa.service.id,
-                    'day_of_week': wa.day_of_week,
-                    'start_time': str(wa.start_time),
-                    'end_time': str(wa.end_time)
-                } for wa in result['added']
-            ],
-            'skipped': [
-                {
-                    'service': wa['service'].id,
-                    'day_of_week': wa['day_of_week'],
-                    'start_time': str(wa['start_time']),
-                    'end_time': str(wa['end_time'])
-                } for wa in result['skipped']
-            ]
+    def get(self, request):
+        """Tüm mevcut weekly availabilities döner"""
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    
+    def put(self, request):
+            user = request.user
+            expert = user.expertprofile
+            incoming_data = request.data.get('availabilities', [])
+            
+            if not isinstance(incoming_data, list):
+                return Response({'error': 'availabilities bir liste olmalıdır.'}, status=400)
+
+            # Mevcut slotlar
+            # İlişkilendirilmiş service nesnesini de çekiyoruz.
+            existing_slots = list(WeeklyAvailability.objects.filter(expert=expert).select_related('service'))
+            
+            # Güncellenecek veya silinecek mevcut slotların kimliklerini (ID) tutmak için
+            slots_to_delete = set()
+            new_objects = []
+            updated_objects = []
+
+            def merge_slot(existing_slot, new_start, new_end):
+                """
+                Mevcut slot ile gelen slot saatlerini birleştirir.
+                Ardışık veya çakışan saatleri tek slot hâline getirir.
+                """
+                if new_start < existing_slot.start_time:
+                    existing_slot.start_time = new_start
+                if new_end > existing_slot.end_time:
+                    existing_slot.end_time = new_end
+                return existing_slot
+
+            # 1. Gelen Veriyi İşle ve Çakışan Mevcut Slotları Topla/Birleştir
+            for item in incoming_data:
+                try:
+                    serializer = self.get_serializer(data=item)
+                    serializer.is_valid(raise_exception=True)
+                    data = serializer.validated_data
+                except Exception as e:
+                    # Serializer hatası durumunda döngüden çıkıp hata döndürelim
+                    return Response({'error': f'Geçersiz veri: {e}'}, status=400)
+
+                new_start = data['start_time']
+                new_end = data['end_time']
+                service_id = data.get('service').id if data.get('service') else None
+                day = data['day_of_week']
+                
+                # Tüm diğer özellikler (is_active, slot_minutes, capacity) de aynı olmalı
+                slot_attrs = {
+                    'day_of_week': day,
+                    'service_id': service_id,
+                    'is_active': data.get('is_active'),
+                    'slot_minutes': data.get('slot_minutes'),
+                    'capacity': data.get('capacity'),
+                }
+                
+                # Aynı gün ve AYNI TİP (service, is_active, slot_minutes, capacity) için mevcut slotlar
+                same_type_slots = [
+                    slot for slot in existing_slots
+                    if slot.day_of_week == day 
+                    and slot.service_id == slot_attrs.get('service_id')
+                    and slot.is_active == slot_attrs.get('is_active')
+                    and slot.slot_minutes == slot_attrs.get('slot_minutes')
+                    and slot.capacity == slot_attrs.get('capacity')
+                ]
+
+                # Birleştirme adaylarını tutacak set
+                merge_candidates = []
+                
+                # Gelen slotun başlangıcı ve bitişi için potansiyel birleştirilmiş aralık
+                current_merged_start = new_start
+                current_merged_end = new_end
+                
+                # NOT: Bu döngüde 'existing_slots' listesi manipüle edildiği için 
+                # birleştirilen slotları çıkarmak önemlidir.
+                
+                for slot in same_type_slots:
+                    # Çakışan veya ardışık slotları bul
+                    is_overlapping_or_adjacent = (
+                        not (slot.end_time < current_merged_start or slot.start_time > current_merged_end)
+                        or slot.end_time == current_merged_start
+                        or slot.start_time == current_merged_end
+                    )
+                    
+                    if is_overlapping_or_adjacent and slot.id not in slots_to_delete:
+                        # Sadece henüz silinmek üzere işaretlenmemiş slotları birleştirme adayı olarak al
+                        merge_candidates.append(slot)
+                        # Yeni birleştirilmiş aralığı güncelle
+                        current_merged_start = min(current_merged_start, slot.start_time)
+                        current_merged_end = max(current_merged_end, slot.end_time)
+                
+                
+                if merge_candidates:
+                    # Bütün adayları birleştirecek, yeni/güncellenmiş tek bir slot oluştur
+                    # En eski adayı güncelleyecek slot olarak seçelim (listede ilk bulduğumuz)
+                    base_slot = merge_candidates[0]
+                    
+                    # Başlangıç ve bitişi en geniş aralığa ayarla
+                    base_slot.start_time = current_merged_start
+                    base_slot.end_time = current_merged_end
+                    
+                    # Diğer alanları güncelle
+                    for field in ['is_active', 'slot_minutes', 'capacity']:
+                        setattr(base_slot, field, data.get(field))
+
+                    # Veritabanına kaydet
+                    base_slot.save()
+                    updated_objects.append(base_slot)
+                    
+                    # Birleşen diğer mevcut slotları silinmek üzere işaretle
+                    for slot_to_delete in merge_candidates[1:]:
+                        slots_to_delete.add(slot_to_delete.id)
+                        # existing_slots listesinden de çıkaralım ki sonraki incoming itemlar tarafından tekrar işlenmesin
+                        # NOT: list.remove(x) pahalı olabilir, ancak listenin boyutu çok büyük değilse kabul edilebilir.
+                        # existing_slots.remove(slot_to_delete) # Bu satır karmaşıklığı artırabilir, 'if slot.id not in slots_to_delete' kontrolü yeterli.
+
+                else:
+                    # Çakışma veya ardışıklık yok, yeni slot ekle
+                    new_wa = WeeklyAvailability.objects.create(expert=expert, **data)
+                    new_objects.append(new_wa)
+                    # existing_slots listesine de ekleyelim ki sonraki incoming itemlar için kontrol edilebilsin
+                    existing_slots.append(new_wa) 
+
+            # 2. Silinmek Üzere İşaretlenen Slotları Veritabanından Sil
+            deleted_count = 0
+            if slots_to_delete:
+                # delete() metodu geri dönen tuple'da silinen nesne sayısını döndürür.
+                # (silinen nesne sayısı, {model_adı: sayı})
+                deleted_count, _ = WeeklyAvailability.objects.filter(id__in=list(slots_to_delete)).delete()
+                
+            # 3. Yanıtı Oluştur
+            
+            # Sadece *güncel* kalanları listele
+            final_updated_objects = [obj for obj in updated_objects if obj.id not in slots_to_delete]
+            
+            # Güncel veriyi veritabanından yeniden çekmek en tutarlı sonucu verir.
+            current_data = WeeklyAvailabilitySerializer(
+                WeeklyAvailability.objects.filter(expert=expert), many=True
+            ).data
+
+            added_data = WeeklyAvailabilitySerializer(new_objects, many=True).data
+            updated_data = WeeklyAvailabilitySerializer(final_updated_objects, many=True).data
+
+            return Response({
+                'added': added_data,
+                'updated': updated_data,
+                'deleted_count': deleted_count, 
+                'current': current_data
+            }, status=200)
+
+
+    def delete(self, request):
+        """
+        Gelen availabilities listesine göre silme işlemi yapar.
+        Eğer listede slot yoksa, hata döner.
+        Ortaya bölme mantığı uygulanır.
+        """
+        user = request.user
+        expert = user.expertprofile
+        incoming = request.data.get('availabilities', [])
+        
+        print(incoming)
+
+        if not isinstance(incoming, list) or not incoming:
+            return Response({'error': 'availabilities bir liste olmalıdır ve boş olmamalıdır.'}, status=400)
+
+        # Mevcut slotlar
+        existing = list(WeeklyAvailability.objects.filter(expert=expert))
+        deleted_objects = []
+
+        with transaction.atomic(): # Atomik işlem kullanmak her zaman en iyisidir
+            for item in incoming:
+                # Her döngüde mevcut slotları veritabanından YENİDEN ÇEK
+                # Bu, önceki silme/bölme işlemlerinde oluşan tüm değişiklikleri yakalar.
+                existing = list(WeeklyAvailability.objects.filter(expert=expert))
+                
+                serializer = self.get_serializer(data=item)
+                serializer.is_valid(raise_exception=True)
+                data = serializer.validated_data
+
+                del_start = data['start_time']
+                del_end = data['end_time']
+                service_id = data['service'].id if data.get('service') else None
+                day = data['day_of_week']
+
+                # Aynı gün ve aynı servis için mevcut slotlar
+                same_day_slots = [
+                    slot for slot in existing
+                    if slot.day_of_week == day and (slot.service_id == service_id)
+                ]
+
+                for slot in same_day_slots:
+                    # Çakışma yoksa atla
+                    if slot.end_time <= del_start or slot.start_time >= del_end:
+                        continue
+
+                    # Slot tamamen silinmek istenen aralıkla kapsanıyorsa, direkt sil
+                    if del_start <= slot.start_time and del_end >= slot.end_time:
+                        slot.delete()
+                        deleted_objects.append(slot)
+                        existing.remove(slot)
+                    # Slot ortadan kesiliyorsa, ikiye böl
+                    elif del_start > slot.start_time and del_end < slot.end_time:
+                        # İlk parça: slot.start_time -> del_start
+                        slot1 = WeeklyAvailability.objects.create(
+                            expert=slot.expert,
+                            day_of_week=slot.day_of_week,
+                            start_time=slot.start_time,
+                            end_time=del_start,
+                            service=slot.service,
+                            is_active=slot.is_active,
+                            slot_minutes=slot.slot_minutes,
+                            capacity=slot.capacity
+                        )
+                        # İkinci parça: del_end -> slot.end_time
+                        slot2 = WeeklyAvailability.objects.create(
+                            expert=slot.expert,
+                            day_of_week=slot.day_of_week,
+                            start_time=del_end,
+                            end_time=slot.end_time,
+                            service=slot.service,
+                            is_active=slot.is_active,
+                            slot_minutes=slot.slot_minutes,
+                            capacity=slot.capacity
+                        )
+                        slot.delete()
+                        deleted_objects.append(slot)
+                        existing.remove(slot)
+                    # Slotun başı kesiliyorsa
+                    elif del_start <= slot.start_time < del_end < slot.end_time:
+                        slot.start_time = del_end
+                        slot.save()
+                        deleted_objects.append(slot)
+                    # Slotun sonu kesiliyorsa
+                    elif slot.start_time < del_start < slot.end_time <= del_end:
+                        slot.end_time = del_start
+                        slot.save()
+                        deleted_objects.append(slot)
+
+        deleted_data = WeeklyAvailabilitySerializer(deleted_objects, many=True).data
+
+        return Response({
+            'deleted_count': len(deleted_objects),
+            'deleted': deleted_data,
+            'current': WeeklyAvailabilitySerializer(
+                WeeklyAvailability.objects.filter(expert=expert), many=True
+            ).data
+        }, status=200)
+
+        
+        
+
+
+
+
+
+class AvailabilityExceptionView(generics.GenericAPIView):
+    """
+    Uzmanın istisnalarını getirir veya topluca günceller.
+    """
+    permission_classes = [IsExpertPermission]
+    serializer_class = AvailabilityExceptionSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if not hasattr(user, 'expertprofile'):
+            raise ValidationError("Kullanıcının bir uzman profili yok.")
+        return AvailabilityException.objects.filter(expert=user.expertprofile)
+
+    def get(self, request):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def put(self, request):
+        expert = request.user.expertprofile
+        incoming = request.data.get('exceptions', [])
+        if not isinstance(incoming, list):
+            return Response({'error': 'exceptions bir liste olmalıdır.'}, status=400)
+
+        existing = list(AvailabilityException.objects.filter(expert=expert))
+        existing_map = {
+            (str(e.date), e.exception_type, str(e.start_time), str(e.end_time)): e
+            for e in existing
         }
 
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        new_objects = []
+        keep_ids = []
 
+        for item in incoming:
+            serializer = self.get_serializer(data=item)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
 
+            key = (
+                str(data['date']),
+                data['exception_type'],
+                str(data['start_time']),
+                str(data['end_time'])
+            )
 
-class BulkAvailabilityExceptionView(generics.CreateAPIView):
-    """
-    Bulk create availability exceptions
-    """
-    permission_classes = [IsExpertPermission]
-    serializer_class = BulkAvailabilityExceptionSerializer
+            existing_exc = existing_map.get(key)
+            if existing_exc:
+                keep_ids.append(existing_exc.id)
+            else:
+                new_exc = AvailabilityException.objects.create(expert=expert, **data)
+                new_objects.append(new_exc)
+
+        # Silinmesi gerekenleri temizle
+        deleted = AvailabilityException.objects.filter(expert=expert).exclude(id__in=keep_ids)
+        deleted_count = deleted.count()
+        deleted.delete()
+
+        added_data = AvailabilityExceptionSerializer(new_objects, many=True).data
+        remaining_data = AvailabilityExceptionSerializer(
+            AvailabilityException.objects.filter(expert=expert), many=True
+        ).data
+
+        return Response({
+            'added': added_data,
+            'deleted_count': deleted_count,
+            'current': remaining_data
+        }, status=200)
+
+    def delete(self, request):
+        qs = self.get_queryset()
+        count = qs.count()
+        qs.delete()
+        return Response({'message': f'{count} istisna silindi.'}, status=200)
+
 
 
 class ExpertAvailabilityView(generics.ListAPIView):
@@ -206,12 +509,12 @@ class MyAvailabilityView(generics.GenericAPIView):
         current_date = start_date
         while current_date <= end_date:
             day_of_week = current_date.weekday()
-            day_avail = weekly_availabilities.filter(day_of_week=day_of_week).first()
+            day_avail_list = weekly_availabilities.filter(day_of_week=day_of_week)  # tüm slotları al
             day_exceptions = exceptions.filter(date=current_date)
 
             day_data = {
                 'date': current_date,
-                'weekly_availability': WeeklyAvailabilitySerializer(day_avail).data if day_avail else None,
+                'weekly_availability': WeeklyAvailabilitySerializer(day_avail_list, many=True).data,
                 'exceptions': AvailabilityExceptionSerializer(day_exceptions, many=True).data,
                 'is_available': True
             }
