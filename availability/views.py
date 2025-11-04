@@ -4,7 +4,9 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import WeeklyAvailability, AvailabilityException
 from .serializers import (
-    WeeklyAvailabilitySerializer, AvailabilityExceptionSerializer
+    WeeklyAvailabilitySerializer,
+    AvailabilityExceptionSerializer,
+    AvailabilityExceptionDeleteSerializer
 )
 from .permissions import IsExpertPermission, IsAvailabilityOwnerPermission, IsExpertOrAuthenticatedReadOnly
 from rest_framework.exceptions import ValidationError
@@ -377,7 +379,7 @@ class WeeklyAvailabilityView(generics.GenericAPIView):
 
 class AvailabilityExceptionView(generics.GenericAPIView):
     """
-    Uzmanın istisnalarını getirir veya topluca günceller.
+    Uzmanın istisnalarını getirir, oluşturur, günceller veya siler.
     """
     permission_classes = [IsExpertPermission]
     serializer_class = AvailabilityExceptionSerializer
@@ -393,61 +395,135 @@ class AvailabilityExceptionView(generics.GenericAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+    def get_serializer_class(self):
+        if self.request.method == 'DELETE':
+            return AvailabilityExceptionDeleteSerializer
+        return self.serializer_class
+
     def put(self, request):
+        """
+        ID varsa update, yoksa create yapar.
+        """
         expert = request.user.expertprofile
         incoming = request.data.get('exceptions', [])
+
         if not isinstance(incoming, list):
             return Response({'error': 'exceptions bir liste olmalıdır.'}, status=400)
 
-        existing = list(AvailabilityException.objects.filter(expert=expert))
-        existing_map = {
-            (str(e.date), e.exception_type, str(e.start_time), str(e.end_time)): e
-            for e in existing
-        }
+        created = []
+        updated = []
+        errors = []
 
-        new_objects = []
-        keep_ids = []
+        with transaction.atomic():
+            for item in incoming:
+                exc_id = item.get('id')
 
-        for item in incoming:
-            serializer = self.get_serializer(data=item)
-            serializer.is_valid(raise_exception=True)
-            data = serializer.validated_data
+                if exc_id:  # UPDATE
+                    try:
+                        instance = AvailabilityException.objects.get(id=exc_id, expert=expert)
+                    except AvailabilityException.DoesNotExist:
+                        errors.append({
+                            'id': exc_id,
+                            'message': f'ID {exc_id} ile eşleşen bir kayıt bulunamadı.'
+                        })
+                        continue
 
-            key = (
-                str(data['date']),
-                data['exception_type'],
-                str(data['start_time']),
-                str(data['end_time'])
-            )
+                    serializer = self.get_serializer(instance, data=item, partial=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                        updated.append(serializer.data)
+                    else:
+                        errors.append({
+                            'id': exc_id,
+                            'message': 'Doğrulama hatası',
+                            'details': serializer.errors
+                        })
 
-            existing_exc = existing_map.get(key)
-            if existing_exc:
-                keep_ids.append(existing_exc.id)
-            else:
-                new_exc = AvailabilityException.objects.create(expert=expert, **data)
-                new_objects.append(new_exc)
+                else:  # CREATE
+                    serializer = self.get_serializer(data=item)
+                    if serializer.is_valid():
+                        new_obj = serializer.save(expert=expert)
+                        created.append(self.get_serializer(new_obj).data)
+                    else:
+                        errors.append({
+                            'item': item,
+                            'message': 'Doğrulama hatası',
+                            'details': serializer.errors
+                        })
 
-        # Silinmesi gerekenleri temizle
-        deleted = AvailabilityException.objects.filter(expert=expert).exclude(id__in=keep_ids)
-        deleted_count = deleted.count()
-        deleted.delete()
-
-        added_data = AvailabilityExceptionSerializer(new_objects, many=True).data
-        remaining_data = AvailabilityExceptionSerializer(
+        current_data = self.get_serializer(
             AvailabilityException.objects.filter(expert=expert), many=True
         ).data
 
         return Response({
-            'added': added_data,
-            'deleted_count': deleted_count,
-            'current': remaining_data
-        }, status=200)
+            'created': created,
+            'updated': updated,
+            'errors': errors,
+            'current': current_data
+        }, status=status.HTTP_200_OK)
 
     def delete(self, request):
-        qs = self.get_queryset()
-        count = qs.count()
-        qs.delete()
-        return Response({'message': f'{count} istisna silindi.'}, status=200)
+        """
+        Gelen exceptions listesindeki öğelerle tam eşleşen
+        (id + date + start_time + end_time) istisnaları siler.
+        """
+        expert = request.user.expertprofile
+        incoming = request.data.get('exceptions', [])
+
+        if not isinstance(incoming, list) or not incoming:
+            return Response({'error': 'exceptions bir liste olmalıdır ve boş olmamalıdır.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        deleted = []
+        errors = []
+
+        with transaction.atomic():
+            for item in incoming:
+                serializer = self.get_serializer(data=item)
+                if not serializer.is_valid():
+                    errors.append({
+                        'item': item,
+                        'message': 'Doğrulama hatası',
+                        'details': serializer.errors
+                    })
+                    continue
+
+                data = serializer.validated_data
+                exc_id = data['id']
+                delete_date = data['date']
+                start_time = data['start_time']
+                end_time = data['end_time']
+
+                try:
+                    qs = AvailabilityException.objects.filter(
+                        id=exc_id,
+                        expert=expert,
+                        date=delete_date,
+                        start_time=start_time,
+                        end_time=end_time
+                    )
+
+                    if qs.exists():
+                        deleted.extend(self.get_serializer(qs, many=True).data)
+                        qs.delete()
+                    else:
+                        errors.append({
+                            'id': exc_id,
+                            'message': 'Eşleşen kayıt bulunamadı (id, tarih veya saat uyuşmuyor).'
+                        })
+                except Exception as e:
+                    errors.append({'id': exc_id, 'message': str(e)})
+
+        current_data = self.get_serializer(
+            AvailabilityException.objects.filter(expert=expert), many=True
+        ).data
+
+        return Response({
+            'deleted_count': len(deleted),
+            'deleted': deleted,
+            'errors': errors,
+            'current': current_data
+        }, status=status.HTTP_200_OK)
 
 
 

@@ -29,6 +29,7 @@ class WeeklyAvailabilitySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Başlangıç saati bitiş saatinden önce olmalıdır.")
         
         return data
+   
     
 class WeeklyAvailabilityDeleteSerializer(serializers.Serializer):
     day_of_week = serializers.IntegerField(
@@ -49,6 +50,7 @@ class WeeklyAvailabilityDeleteSerializer(serializers.Serializer):
             raise serializers.ValidationError("Başlangıç saati bitiş saatinden önce olmalıdır.")
         return data
 
+
 class AvailabilityExceptionSerializer(serializers.ModelSerializer):
     expert_name = serializers.CharField(source='expert.user.get_full_name', read_only=True)
     service_name = serializers.CharField(source='service.name', read_only=True)
@@ -63,10 +65,6 @@ class AvailabilityExceptionSerializer(serializers.ModelSerializer):
         read_only_fields = ['expert', 'created_at']
     
     def validate(self, data):
-        user = self.context['request'].user
-        if not hasattr(user, 'role') or user.role != 'expert':
-            raise serializers.ValidationError("Sadece uzmanlar müsaitlik istisnası tanımlayabilir.")
-        
         # Add tipinde start_time ve end_time zorunlu
         if data.get('exception_type') == 'add':
             if not data.get('start_time') or not data.get('end_time'):
@@ -77,6 +75,46 @@ class AvailabilityExceptionSerializer(serializers.ModelSerializer):
         
         return data
 
+
+class AvailabilityExceptionDeleteSerializer(serializers.Serializer):
+    """
+    AvailabilityException kaydını silmek için gereken doğrulama:
+    id + date + start_time + end_time zorunludur.
+    """
+    id = serializers.IntegerField(
+        required=True,
+        help_text="Silinecek istisnanın ID değeri (zorunlu)."
+    )
+    date = serializers.DateField(
+        required=True,
+        help_text="Silinecek istisnanın tarihi (YYYY-MM-DD, zorunlu)."
+    )
+    start_time = serializers.TimeField(
+        required=True,
+        help_text="Başlangıç saati (HH:MM:SS, zorunlu)."
+    )
+    end_time = serializers.TimeField(
+        required=True,
+        help_text="Bitiş saati (HH:MM:SS, zorunlu)."
+    )
+
+    def validate(self, data):
+        """
+        Tüm alanlar zorunlu.
+        Başlangıç saati bitiş saatinden önce olmalı.
+        """
+        if not all(field in data for field in ['id', 'date', 'start_time', 'end_time']):
+            raise serializers.ValidationError(
+                "Silme işlemi için id, date, start_time ve end_time alanlarının tümü zorunludur."
+            )
+
+        if data['start_time'] >= data['end_time']:
+            raise serializers.ValidationError("Başlangıç saati bitiş saatinden önce olmalıdır.")
+
+        return data
+
+
+    
 
 class BulkWeeklyAvailabilitySerializer(serializers.Serializer):
     availabilities = WeeklyAvailabilitySerializer(many=True)

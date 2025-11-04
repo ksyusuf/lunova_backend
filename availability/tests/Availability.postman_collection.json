@@ -197,7 +197,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"exceptions\": [\n    {\n      \"date\": \"2025-11-05\",\n      \"start_time\": \"13:00:00\",\n      \"end_time\": \"15:00:00\",\n      \"exception_type\": \"cancel\"\n    }\n  ]\n}"
+									"raw": "{\n  \"exceptions\": [\n    {\n      // id: Güncelleme yapılacaksa zorunludur. (Yeni kayıt oluşturulacaksa gönderilmez)\n      // Örnek: \"id\": 15,\n\n      \"date\": \"2025-11-05\",          // İstisnanın geçerli olduğu tarih (YYYY-MM-DD)\n      \"exception_type\": \"add\",       // \"add\" = ekstra müsaitlik, \"remove\" = iptal edilen zaman\n      \"start_time\": \"18:00:00\",      // Başlangıç saati (HH:MM:SS)\n      \"end_time\": \"19:00:00\",        // Bitiş saati (HH:MM:SS)\n      \"service\": 1,                  // (opsiyonel) İstisna belirli bir hizmete aitse o hizmetin ID’si\n      \"note\": \"Akşam özel danışmanlık eklendi\" // (opsiyonel) Açıklama / not bilgisi\n    }\n  ]\n}\n"
 								},
 								"url": {
 									"raw": "{{base_url}}/api/v1/availability/exceptions/",
@@ -220,6 +220,15 @@
 							"request": {
 								"method": "DELETE",
 								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"exceptions\": [\r\n    {\r\n      \"id\": 12,                       // Zorunlu: Silinecek istisnanın ID’si\r\n      \"date\": \"2025-11-05\",           // Zorunlu: İstisnanın tarihi (YYYY-MM-DD)\r\n      \"start_time\": \"18:00:00\",       // Zorunlu: Başlangıç saati (HH:MM:SS)\r\n      \"end_time\": \"19:00:00\"          // Zorunlu: Bitiş saati (HH:MM:SS)\r\n    },\r\n    {\r\n      \"id\": 9,                        // Zorunlu: İkinci istisna ID’si\r\n      \"date\": \"2025-11-04\",           // Zorunlu\r\n      \"start_time\": \"13:00:00\",       // Zorunlu\r\n      \"end_time\": \"14:00:00\"          // Zorunlu\r\n    }\r\n  ]\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
 								"url": {
 									"raw": "{{base_url}}/api/v1/availability/exceptions/",
 									"host": [
