@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "38434e6a-010f-4117-aa04-e98140b9990e",
+		"_postman_id": "710f7284-7160-4e53-b0e3-1dd6b0a83064",
 		"name": "Accounts",
 		"description": "Lunova Backend servisimizin testlerini yaptığımız çalışma alanı.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-38434e6a-010f-4117-aa04-e98140b9990e?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/37991120-710f7284-7160-4e53-b0e3-1dd6b0a83064?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
@@ -18,7 +18,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{ \"email\" : \"deneme@gmail.tr\" }\r\n// kişisel mail ile test edebilirsiniz.",
+							"raw": "{ \"email\" : \"expert1@example.com\" }\r\n// kişisel mail ile test edebilirsiniz.",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -54,7 +54,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n        \"uid\": \"NQ\",\r\n        \"token\": \"cx02ds-18fe5ccddb1d05660b8a0c44d1dcd24e\",\r\n        \"new_password\": \"yenisifre123\",\r\n        \"new_password_confirm\": \"yenisifre123\"\r\n}\r\n// şifre sıfırlama isteğinde konsolda verilen çıktı ile bu isteği atabilirsiniz.",
+							"raw": "{\r\n        \"uid\": \"MQ\",\r\n        \"token\": \"cxkhvp-099256595c2a56c95c9c755525432dab\",\r\n        \"new_password\": \"yenisifre123\",\r\n        \"new_password_confirm\": \"yenisifre123\"\r\n}\r\n// şifre sıfırlama isteğinde konsolda verilen çıktı ile bu isteği atabilirsiniz.",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -124,15 +124,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/api/v1/accounts/register/expert/",
-					"protocol": "http",
+					"raw": "{{base_url}}/api/v1/accounts/register/expert/",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{base_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"api",
 						"v1",
@@ -166,15 +161,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/api/v1/accounts/register/client/",
-					"protocol": "http",
+					"raw": "{{base_url}}/api/v1/accounts/register/client/",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{base_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"api",
 						"v1",
@@ -200,7 +190,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"first_name\": \"Admin\",\n  \"last_name\": \"User\",\n  \"email\": \"admin@lunova.com\",\n  \"password\": \"admin123\",\n  \"password2\": \"admin123\",\n  \"phone_number\": \"05329998877\",\n  \"id_number\": \"98765432109\",\n  \"country\": \"TR\",\n  \"national_id\": \"\"\n}",
+					"raw": "{\n  \"first_name\": \"Admin\",\n  \"last_name\": \"User\",\n  \"email\": \"admin@lunova.com\",\n  \"password\": \"Password-123\",\n  \"password2\": \"Password-123\",\n  \"phone_number\": \"05329998877\",\n  \"id_number\": \"98765432109\",\n  \"country\": \"TR\",\n  \"national_id\": \"\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -208,15 +198,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/api/v1/accounts/register/admin/",
-					"protocol": "http",
+					"raw": "{{base_url}}/api/v1/accounts/register/admin/",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{base_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"api",
 						"v1",
@@ -245,7 +230,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"email\": \"client12@example.com\", \"password\": \"password123\"}",
+					"raw": "{\"email\": \"expert2@example.com\", \"password\": \"password123\"}\r\n// {\"email\": \"client5@example.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"Password-123\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -253,15 +238,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/api/v1/accounts/login/",
-					"protocol": "http",
+					"raw": "{{base_url}}/api/v1/accounts/login/",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{base_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"api",
 						"v1",
@@ -277,33 +257,15 @@
 			"name": "logout",
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{access_token}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:8000/api/v1/accounts/logout/",
-					"protocol": "http",
+					"raw": "{{base_url}}/api/v1/accounts/logout/",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{base_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"api",
 						"v1",
@@ -319,27 +281,15 @@
 			"name": "me",
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{access_token}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:8000/api/v1/accounts/me/",
-					"protocol": "http",
+					"raw": "{{base_url}}/api/v1/accounts/me/",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{base_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"api",
 						"v1",
@@ -355,27 +305,15 @@
 			"name": "experts-list",
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{access_token}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:8000/api/v1/accounts/experts/?category=bilissel-terapi",
-					"protocol": "http",
+					"raw": "{{base_url}}/api/v1/accounts/experts/?category=bilissel-terapi",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{base_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"api",
 						"v1",
@@ -395,10 +333,28 @@
 			"response": []
 		}
 	],
-	"variable": [
+	"event": [
 		{
-			"key": "access_token",
-			"value": "AccessToken Giriniz"
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }

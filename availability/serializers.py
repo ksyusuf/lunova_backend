@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import WeeklyAvailability, AvailabilityException
+from .models import WeeklyAvailability, AvailabilityException, Service
 
 
 class WeeklyAvailabilitySerializer(serializers.ModelSerializer):
@@ -29,6 +29,26 @@ class WeeklyAvailabilitySerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Başlangıç saati bitiş saatinden önce olmalıdır.")
         
         return data
+   
+    
+class WeeklyAvailabilityDeleteSerializer(serializers.Serializer):
+    day_of_week = serializers.IntegerField(
+        min_value=0, 
+        max_value=6, 
+        help_text="0=Pazartesi, 6=Pazar"
+    )
+    start_time = serializers.TimeField(help_text="Başlangıç saati (HH:MM:SS)")
+    end_time = serializers.TimeField(help_text="Bitiş saati (HH:MM:SS)")
+    service = serializers.PrimaryKeyRelatedField(
+        queryset=Service.objects.all(), 
+        required=False,
+        help_text="Opsiyonel: sadece bu servis için sil"
+    )
+
+    def validate(self, data):
+        if data['start_time'] >= data['end_time']:
+            raise serializers.ValidationError("Başlangıç saati bitiş saatinden önce olmalıdır.")
+        return data
 
 
 class AvailabilityExceptionSerializer(serializers.ModelSerializer):
@@ -45,10 +65,6 @@ class AvailabilityExceptionSerializer(serializers.ModelSerializer):
         read_only_fields = ['expert', 'created_at']
     
     def validate(self, data):
-        user = self.context['request'].user
-        if not hasattr(user, 'role') or user.role != 'expert':
-            raise serializers.ValidationError("Sadece uzmanlar müsaitlik istisnası tanımlayabilir.")
-        
         # Add tipinde start_time ve end_time zorunlu
         if data.get('exception_type') == 'add':
             if not data.get('start_time') or not data.get('end_time'):
@@ -60,19 +76,77 @@ class AvailabilityExceptionSerializer(serializers.ModelSerializer):
         return data
 
 
+class AvailabilityExceptionDeleteSerializer(serializers.Serializer):
+    """
+    AvailabilityException kaydını silmek için gereken doğrulama:
+    id + date + start_time + end_time zorunludur.
+    """
+    id = serializers.IntegerField(
+        required=True,
+        help_text="Silinecek istisnanın ID değeri (zorunlu)."
+    )
+    date = serializers.DateField(
+        required=True,
+        help_text="Silinecek istisnanın tarihi (YYYY-MM-DD, zorunlu)."
+    )
+    start_time = serializers.TimeField(
+        required=True,
+        help_text="Başlangıç saati (HH:MM:SS, zorunlu)."
+    )
+    end_time = serializers.TimeField(
+        required=True,
+        help_text="Bitiş saati (HH:MM:SS, zorunlu)."
+    )
+
+    def validate(self, data):
+        """
+        Tüm alanlar zorunlu.
+        Başlangıç saati bitiş saatinden önce olmalı.
+        """
+        if not all(field in data for field in ['id', 'date', 'start_time', 'end_time']):
+            raise serializers.ValidationError(
+                "Silme işlemi için id, date, start_time ve end_time alanlarının tümü zorunludur."
+            )
+
+        if data['start_time'] >= data['end_time']:
+            raise serializers.ValidationError("Başlangıç saati bitiş saatinden önce olmalıdır.")
+
+        return data
+
+
+    
+
 class BulkWeeklyAvailabilitySerializer(serializers.Serializer):
     availabilities = WeeklyAvailabilitySerializer(many=True)
     
     def create(self, validated_data):
         availabilities_data = validated_data['availabilities']
-        created_availabilities = []
-        
+        added = []
+        skipped = []
+
+        expert = self.context['request'].user.expertprofile
+
         for availability_data in availabilities_data:
-            availability_data['expert'] = self.context['request'].user.expertprofile
-            availability = WeeklyAvailability.objects.create(**availability_data)
-            created_availabilities.append(availability)
-        
-        return {'availabilities': created_availabilities}
+            availability_data['expert'] = expert
+            
+            # Tekil kısıt kontrolü
+            exists = WeeklyAvailability.objects.filter(
+                expert=expert,
+                service=availability_data['service'],
+                day_of_week=availability_data['day_of_week'],
+                start_time=availability_data['start_time'],
+                end_time=availability_data['end_time']
+            ).exists()
+
+            if exists:
+                skipped.append(availability_data)
+                continue
+
+            # Kayıt oluştur
+            wa = WeeklyAvailability.objects.create(**availability_data)
+            added.append(wa)
+
+        return {'added': added, 'skipped': skipped}
 
 
 class BulkAvailabilityExceptionSerializer(serializers.Serializer):

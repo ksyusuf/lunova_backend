@@ -1,0 +1,308 @@
+{
+	"info": {
+		"_postman_id": "f2904f26-1154-4a09-9f70-a0a12d75a082",
+		"name": "Availability",
+		"description": "Availability API koleksiyonu (httpOnly JWT auth destekli).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37991120",
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-f2904f26-1154-4a09-9f70-a0a12d75a082?action=share&source=collection_link&creator=37991120"
+	},
+	"item": [
+		{
+			"name": "Client (Danışan) İşlemleri",
+			"item": [
+				{
+					"name": "Müsait Uzmanlar (Kategori + Tarih)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/availability/available-experts/?category={{category_slug}}&start_date={{start_date}}&end_date={{end_date}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"availability",
+								"available-experts",
+								""
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "{{category_slug}}"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}"
+								},
+								{
+									"key": "end_date",
+									"value": "{{end_date}}"
+								}
+							]
+						},
+						"description": "Belirli bir kategori ve tarih aralığına göre uygun uzmanları listeler."
+					},
+					"response": []
+				},
+				{
+					"name": "Uzman Takvimi (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/availability/expert/{{expert_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"availability",
+								"expert",
+								"{{expert_id}}",
+								""
+							]
+						},
+						"description": "Bir uzmanın haftalık uygunluk özetini döndürür (client erişimi)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Expert (Uzman) İşlemleri",
+			"item": [
+				{
+					"name": "Haftalık Müsaitlik Yönetimi",
+					"item": [
+						{
+							"name": "Haftalık Müsaitlik Listele",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/weekly/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"availability",
+										"weekly",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Haftalık Müsaitlik Güncelle",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"availabilities\": [\n    {\n      \"day_of_week\": 0,\n      \"start_time\": \"13:00:00\",\n      \"end_time\": \"16:00:00\",\n      \"service\": 1,\n      \"is_active\": true,\n      \"slot_minutes\": 60,\n      \"capacity\": 1\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/weekly/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"availability",
+										"weekly",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Haftalık Müsaitlik Tümünü Sil",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"availabilities\": [\r\n    {\r\n      \"day_of_week\": 4,\r\n      \"start_time\": \"10:00:00\",\r\n      \"end_time\": \"11:00:00\",\r\n      \"service\": 1\r\n    },\r\n    {\r\n      \"day_of_week\": 4,\r\n      \"start_time\": \"11:00:00\",\r\n      \"end_time\": \"13:00:00\",\r\n      \"service\": 1\r\n    }\r\n  ]\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/weekly/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"availability",
+										"weekly",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "İstisna Müsaitlik Yönetimi",
+					"item": [
+						{
+							"name": "İstisna Müsaitlik Listele",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/exceptions/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"availability",
+										"exceptions",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "İstisna Müsaitlik Güncelle",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"exceptions\": [\n    {\n      // id: Güncelleme yapılacaksa zorunludur. (Yeni kayıt oluşturulacaksa gönderilmez)\n      // Örnek: \"id\": 15,\n\n      \"date\": \"2025-11-05\",          // İstisnanın geçerli olduğu tarih (YYYY-MM-DD)\n      \"exception_type\": \"add\",       // \"add\" = ekstra müsaitlik, \"remove\" = iptal edilen zaman\n      \"start_time\": \"18:00:00\",      // Başlangıç saati (HH:MM:SS)\n      \"end_time\": \"19:00:00\",        // Bitiş saati (HH:MM:SS)\n      \"service\": 1,                  // (opsiyonel) İstisna belirli bir hizmete aitse o hizmetin ID’si\n      \"note\": \"Akşam özel danışmanlık eklendi\" // (opsiyonel) Açıklama / not bilgisi\n    }\n  ]\n}\n"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/exceptions/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"availability",
+										"exceptions",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "İstisna Müsaitlik Tümünü Sil",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"exceptions\": [\r\n    {\r\n      \"id\": 12,                       // Zorunlu: Silinecek istisnanın ID’si\r\n      \"date\": \"2025-11-05\",           // Zorunlu: İstisnanın tarihi (YYYY-MM-DD)\r\n      \"start_time\": \"18:00:00\",       // Zorunlu: Başlangıç saati (HH:MM:SS)\r\n      \"end_time\": \"19:00:00\"          // Zorunlu: Bitiş saati (HH:MM:SS)\r\n    },\r\n    {\r\n      \"id\": 9,                        // Zorunlu: İkinci istisna ID’si\r\n      \"date\": \"2025-11-04\",           // Zorunlu\r\n      \"start_time\": \"13:00:00\",       // Zorunlu\r\n      \"end_time\": \"14:00:00\"          // Zorunlu\r\n    }\r\n  ]\r\n}\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/v1/availability/exceptions/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"availability",
+										"exceptions",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Birleşik Takvimim (Weekly + Exceptions)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/availability/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"availability",
+								""
+							],
+							"query": [
+								{
+									"key": "start_date",
+									"value": "{{start_date}}",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "{{end_date}}",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Uzmanın kendi birleşik takvimini (weekly + exceptions) döndürür."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000"
+		},
+		{
+			"key": "expert_id",
+			"value": "1"
+		},
+		{
+			"key": "category_slug",
+			"value": "bilissel-terapi"
+		},
+		{
+			"key": "start_date",
+			"value": "2025-11-01"
+		},
+		{
+			"key": "end_date",
+			"value": "2025-11-30"
+		}
+	]
+}

@@ -1,0 +1,55 @@
+{
+	"info": {
+		"_postman_id": "2e89ce1c-1491-4c04-b5eb-b111d4304519",
+		"name": "Zoom",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37991120",
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/37991120-2e89ce1c-1491-4c04-b5eb-b111d4304519?action=share&source=collection_link&creator=37991120"
+	},
+	"item": [
+		{
+			"name": "zoom meet create",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"topic\": \"Özzzel Toplantı\",\r\n    \"start_time\": \"2024-01-15T10:00:00Z\",\r\n    \"duration\": 45\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/v1/zoom/meetings/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"zoom",
+						"meetings",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

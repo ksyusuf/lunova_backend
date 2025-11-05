@@ -1,22 +1,21 @@
 {
 	"info": {
-		"_postman_id": "forms-api-collection",
+		"_postman_id": "0b8274ef-2737-4e92-a29d-ba251bc7b317",
 		"name": "Forms",
 		"description": "Forms app için API endpoint'leri - Authentication gerekli",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37991120",
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/5310085-0b8274ef-2737-4e92-a29d-ba251bc7b317?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
 			"name": "Get Forms List",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"url": {
 					"raw": "{{base_url}}/api/v1/forms/",
 					"host": [
@@ -36,16 +35,13 @@
 		{
 			"name": "Get Form Detail",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/forms/1/",
+					"raw": "{{base_url}}/api/v1/forms/{{form_id}}/",
 					"host": [
 						"{{base_url}}"
 					],
@@ -53,7 +49,7 @@
 						"api",
 						"v1",
 						"forms",
-						"1",
+						"{{form_id}}",
 						""
 					]
 				},
@@ -64,13 +60,11 @@
 		{
 			"name": "Submit Form",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "POST",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json",
@@ -101,14 +95,11 @@
 		{
 			"name": "Get User Responses",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"url": {
 					"raw": "{{base_url}}/api/v1/forms/my-responses/",
 					"host": [
@@ -129,16 +120,13 @@
 		{
 			"name": "Get Form Response Detail",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{access_token}}",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/forms/responses/1/",
+					"raw": "{{base_url}}/api/v1/forms/responses/{{form_id}}/",
 					"host": [
 						"{{base_url}}"
 					],
@@ -147,7 +135,7 @@
 						"v1",
 						"forms",
 						"responses",
-						"1",
+						"{{form_id}}",
 						""
 					]
 				},
@@ -161,6 +149,7 @@
 			"listen": "prerequest",
 			"script": {
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					""
 				]
@@ -170,6 +159,7 @@
 			"listen": "test",
 			"script": {
 				"type": "text/javascript",
+				"requests": {},
 				"exec": [
 					""
 				]
@@ -179,13 +169,12 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8000",
-			"type": "string"
+			"value": "http://localhost:8000"
 		},
 		{
-			"key": "access_token",
-			"value": "your_jwt_token_here",
-			"type": "string"
+			"key": "form_id",
+			"value": "",
+			"type": "default"
 		}
 	]
 }

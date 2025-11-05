@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "313104df-c957-48fb-b0a6-576d470fcb07",
+		"_postman_id": "7e963976-ebb0-4a3e-9379-28d3ffaec134",
 		"name": "Appointments",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-313104df-c957-48fb-b0a6-576d470fcb07?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/37991120-7e963976-ebb0-4a3e-9379-28d3ffaec134?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
@@ -14,14 +14,7 @@
 					"name": "Uzman Tarafından Randevu Oluşturma",
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authorization-secret}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "POST",
 						"header": [
@@ -61,14 +54,7 @@
 					"name": "Danışan Tarafından Randevu Talebi",
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authorization-secret}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "POST",
 						"header": [
@@ -80,7 +66,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"expert\": 21,\n  \"date\": \"2025-02-27\",\n  \"time\": \"10:00:00\",\n  \"duration\": 45,\n  \"notes\": \"Danışan tarafından randevu talebi\"\n}",
+							"raw": "{\n  \"expert\": 2,\n  \"date\": \"2025-08-26\",\n  \"time\": \"15:00:00\",\n  \"duration\": 45,\n  \"notes\": \"Danışan tarafından randevu talebi\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -116,14 +102,7 @@
 					},
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authorization-secret}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "GET",
 						"header": [
@@ -143,7 +122,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/appointments/22/",
+							"raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}",
 							"host": [
 								"{{base_url}}"
 							],
@@ -151,8 +130,7 @@
 								"api",
 								"v1",
 								"appointments",
-								"22",
-								""
+								"{{appointment_id}}"
 							]
 						}
 					},
@@ -162,14 +140,7 @@
 					"name": "Rezervasyon Kısmi Güncelleme (PATCH)",
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authorization-secret}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "PATCH",
 						"header": [
@@ -189,7 +160,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/appointments/22/",
+							"raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/",
 							"host": [
 								"{{base_url}}"
 							],
@@ -197,7 +168,7 @@
 								"api",
 								"v1",
 								"appointments",
-								"22",
+								"{{appointment_id}}",
 								""
 							]
 						}
@@ -208,14 +179,7 @@
 					"name": "Rezervasyon Durum Güncelleme",
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authorization-secret}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "PATCH",
 						"header": [
@@ -235,7 +199,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/appointments/22/status/",
+							"raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/status/",
 							"host": [
 								"{{base_url}}"
 							],
@@ -243,7 +207,7 @@
 								"api",
 								"v1",
 								"appointments",
-								"22",
+								"{{appointment_id}}",
 								"status",
 								""
 							]
@@ -255,14 +219,7 @@
 					"name": "Rezervasyon Silme (Soft Delete)",
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authorization-secret}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "DELETE",
 						"header": [
@@ -273,7 +230,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/v1/appointments/22/",
+							"raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/",
 							"host": [
 								"{{base_url}}"
 							],
@@ -281,7 +238,7 @@
 								"api",
 								"v1",
 								"appointments",
-								"22",
+								"{{appointment_id}}",
 								""
 							]
 						}
@@ -297,14 +254,7 @@
 			},
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "GET",
 				"header": [
@@ -324,7 +274,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/",
+					"raw": "{{base_url}}/api/v1/appointments/?end_date=2025-10-31&start_date=2025-08-01",
 					"host": [
 						"{{base_url}}"
 					],
@@ -335,11 +285,6 @@
 						""
 					],
 					"query": [
-						{
-							"key": "start_date",
-							"value": "2025-10-01",
-							"description": "Başlangıç tarihi (YYYY-MM-DD) - zorunlu"
-						},
 						{
 							"key": "end_date",
 							"value": "2025-10-31",
@@ -380,6 +325,10 @@
 							"value": "completed",
 							"description": "Filter by status: completed",
 							"disabled": true
+						},
+						{
+							"key": "start_date",
+							"value": "2025-08-01"
 						}
 					]
 				}
@@ -390,14 +339,7 @@
 			"name": "Zoom Toplantı Bilgileri",
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "GET",
 				"header": [
@@ -408,7 +350,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/22/meeting-info/",
+					"raw": "{{base_url}}/api/v1/appointments/{{appointment_id}}/meeting-info/",
 					"host": [
 						"{{base_url}}"
 					],
@@ -416,7 +358,7 @@
 						"api",
 						"v1",
 						"appointments",
-						"22",
+						"{{appointment_id}}",
 						"meeting-info",
 						""
 					]
@@ -428,14 +370,7 @@
 			"name": "Uzman Randevuları (Danışan İçin)",
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{authorization-secret}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "GET",
 				"header": [
@@ -445,15 +380,6 @@
 						"type": "text"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "/*\nUzman Randevuları Endpoint'i - Danışanlar İçin\n\nBu endpoint danışan rolüne sahip kullanıcıların belirli bir uzmanın randevularını\nbelirtilen tarih aralığında görmesini sağlar.\n\nURL Yapısı: /api/v1/appointments/experts/{expert_id}/appointments/\n\nZorunlu Query Parametreleri:\n- start_date: Başlangıç tarihi (YYYY-MM-DD formatında)\n- end_date: Bitiş tarihi (YYYY-MM-DD formatında)\n\nDönen Veri:\n- expert_id: Uzman ID\n- start_date: Başlangıç tarihi\n- end_date: Bitiş tarihi\n- appointments: Randevu listesi (sadece id, date, time, status bilgileri)\n\nErişim Kısıtlaması:\n- Sadece 'client' rolüne sahip kullanıcılar erişebilir\n- Diğer roller (expert, admin) erişemez\n\nÖrnek Kullanım:\nGET /api/v1/appointments/experts/21/appointments/?start_date=2025-01-01&end_date=2025-01-30\n\nDönen Örnek Veri:\n{\n  \"expert_id\": 21,\n  \"start_date\": \"2025-01-01\",\n  \"end_date\": \"2025-01-30\",\n  \"appointments\": [\n    {\n      \"id\": 123,\n      \"date\": \"2025-01-15\",\n      \"time\": \"10:00:00\",\n      \"status\": \"confirmed\"\n    },\n    {\n      \"id\": 124,\n      \"date\": \"2025-01-20\",\n      \"time\": \"14:00:00\",\n      \"status\": \"pending\"\n    }\n  ]\n}\n\nHata Durumları:\n- 403 Forbidden: Kullanıcı client rolünde değil\n- 400 Bad Request: start_date veya end_date eksik ya da geçersiz format\n- 400 Bad Request: start_date > end_date\n*/",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
 					"raw": "{{base_url}}/api/v1/appointments/experts/{{expert_id}}/appointments/?start_date=2025-10-01&end_date=2025-12-30",
 					"host": [
@@ -483,6 +409,36 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "appointment_id",
+			"value": ""
 		}
 	]
 }
