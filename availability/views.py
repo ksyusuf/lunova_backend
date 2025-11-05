@@ -556,28 +556,40 @@ class MyAvailabilityView(generics.GenericAPIView):
 
         expert = user.expertprofile
 
-        # Tarih aralığı
-        today = datetime.today().date()
+        # Tarih aralığı için parametreleri al
         start_date_str = request.query_params.get('start_date')
         end_date_str = request.query_params.get('end_date')
 
         try:
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else today
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else today + timedelta(days=6)
+            # 1. Tarih parametrelerini kontrol et ve ata
+            if start_date_str and end_date_str:
+                # Parametreler geldiyse, onları kullan
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            else:
+                # Parametreler gelmediyse, varsayılan aralığı (5 gün öncesi, 5 gün sonrası) kullan
+                today = datetime.today().date()
+                start_date = today - timedelta(days=5)
+                end_date = today + timedelta(days=5)
+            
+            # 2. start_date > end_date kontrolü
+            if start_date > end_date:
+                return Response({'error': 'Başlangıç tarihi bitiş tarihinden sonra olamaz.'}, status=status.HTTP_400_BAD_REQUEST)
+                
         except ValueError:
+            # Tarih formatı hatası
             return Response({'error': 'Tarih formatı YYYY-MM-DD olmalıdır.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Weekly availability
+        # Weekly availability (Haftalık uygunluk)
         weekly_availabilities = WeeklyAvailability.objects.filter(
             expert=expert,
             is_active=True
         )
 
-        # Exceptions (son 7 gün)
-        exception_start = today - timedelta(days=6)
+        # Exceptions (İstisnalar) - Artık dinamik start_date ve end_date aralığını kullanıyor
         exceptions = AvailabilityException.objects.filter(
             expert=expert,
-            date__range=[exception_start, today + timedelta(days=6)]
+            date__range=[start_date, end_date] 
         )
 
         # Build calendar data
@@ -585,8 +597,8 @@ class MyAvailabilityView(generics.GenericAPIView):
         current_date = start_date
         while current_date <= end_date:
             day_of_week = current_date.weekday()
-            day_avail_list = weekly_availabilities.filter(day_of_week=day_of_week)  # tüm slotları al
-            day_exceptions = exceptions.filter(date=current_date)
+            day_avail_list = weekly_availabilities.filter(day_of_week=day_of_week)
+            day_exceptions = exceptions.filter(date=current_date) 
 
             day_data = {
                 'date': current_date,
@@ -608,7 +620,6 @@ class MyAvailabilityView(generics.GenericAPIView):
             'end_date': end_date,
             'calendar': calendar_data
         }, status=status.HTTP_200_OK)
-
 
 class AvailableExpertsByCategoryView(generics.ListAPIView):
     """
