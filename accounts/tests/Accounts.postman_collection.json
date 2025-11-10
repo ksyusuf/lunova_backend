@@ -5,7 +5,7 @@
 		"description": "Lunova Backend servisimizin testlerini yaptığımız çalışma alanı.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/37991120-710f7284-7160-4e53-b0e3-1dd6b0a83064?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-710f7284-7160-4e53-b0e3-1dd6b0a83064?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
@@ -116,7 +116,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"first_name\": \"Yusuf\",\n  \"last_name\": \"Kahraman\",\n  \"email\": \"ozel_5@expert.com\",\n  \"password\": \"baris123\",\n  \"password2\": \"baris123\",\n  \"phone_number\": \"05318849781\",\n  \"id_number\": \"15111111331\",\n  \"country\": \"TR\",\n  \"national_id\": \"\",\n  \"university\": \"İstanbul Üniversitesi\",\n  \"about\": \"Uzman psikolog\",\n  \"gender_id\": 1,\n  \"birth_date\": \"1990-01-20\"\n}",
+					"raw": "{\n    \"first_name\": \"Yusuf\",\n    \"last_name\": \"Kahraman\",\n    \"email\": \"expert_92@expert.com\",\n    \"password\": \"baris123\",\n    \"password2\": \"baris123\",\n    \"phone_number\": \"05316849781\",\n    \"id_number\": \"15515191332\",\n    \"country\": \"TR\",\n    \"national_id\": \"\",\n    \"university_id\": 1,\n    \"gender\": \"male\",\n    \"birth_date\": \"1990-01-20\"\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -153,7 +153,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"first_name\": \"Ahmet\",\n  \"last_name\": \"Yılmaz\",\n  \"email\": \"ahmet@client.com\",\n  \"password\": \"sifre123\",\n  \"password2\": \"sifre123\",\n  \"phone_number\": \"05321234567\",\n  \"id_number\": \"12345678901\",\n  \"country\": \"TR\",\n  \"national_id\": \"\",\n  \"birth_date\": \"1995-04-12\",\n  \"gender_id\": 2,\n  \"support_goal\": \"Bağımlılık tedavisi\",\n  \"received_service_before\": false\n}",
+					"raw": "{\n  \"first_name\": \"Ahmet\",\n  \"last_name\": \"Yılmaz\",\n  \"email\": \"ahmet_2@client.com\",\n  \"password\": \"sifre123\",\n  \"password2\": \"sifre123\",\n  \"phone_number\": \"05321234567\",\n  \"id_number\": \"12945678901\",\n  \"country\": \"TR\",\n  \"national_id\": \"\",\n  \"birth_date\": \"1995-04-12\",\n  \"gender\": \"female\",\n  \"support_goal\": \"Bağımlılık tedavisi görmek istiyorum\",\n  \"received_service_before\": false,\n  \"substances_used\": [1, 2] \n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -230,7 +230,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"email\": \"expert2@example.com\", \"password\": \"password123\"}\r\n// {\"email\": \"client5@example.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"Password-123\"}",
+					"raw": "{\"email\": \"expert1@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"client5@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"adminpassword\"}",
 					"options": {
 						"raw": {
 							"language": "json"
