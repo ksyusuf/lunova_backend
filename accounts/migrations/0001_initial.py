@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
             name='ExpertProfile',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('degree_file', models.FileField(blank=True, null=True, upload_to=accounts.models.expert_degree_upload_path)),
+                ('degree_file', models.FileField(blank=True, null=True, upload_to="accounts.models.expert_degree_upload_path")),
                 ('university', models.CharField(blank=True, max_length=128, null=True)),
                 ('about', models.TextField(blank=True, null=True)),
                 ('approval_status', models.BooleanField(default=False)),

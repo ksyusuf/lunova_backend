@@ -2,6 +2,10 @@
 """
 Database seeding script for accounts app
 Run this script after migrations to populate initial data
+
+Kullanım:
+1. Projenizin ana dizininde olduğunuzdan emin olun.
+2. 'python <script_path>/seed_accounts.py' komutunu çalıştırın.
 """
 
 import os
@@ -10,250 +14,385 @@ import django
 import random
 from datetime import date, timedelta
 from django.utils.text import slugify
+from django.db.utils import IntegrityError
 
-# Add the project root to Python path 3. levels up from current file
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Proje kök dizinini Python yoluna ekle (Bu scriptin 3 seviye yukarısı)
+# Varsayım: ProjeKök/apps/accounts/management/commands/seed_accounts.py gibi bir yapıda değil,
+# daha çok ProjeKök/scripts/seed_accounts.py yapısında.
+# Eğer accounts/models.py ile aynı seviyede değilse yolu düzenlemeniz gerekebilir.
+try:
+    # Django ayarlarını yükle
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')  # Proje adınızı kontrol edin
+    django.setup()
+except ImportError:
+    # Eğer django.setup() başarısız olursa, path'i kontrol et
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')  # Proje adınızı kontrol edin
+    django.setup()
 
-# Django setup
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')
-django.setup()
+from accounts.models import (
+    User, UserRole, ExpertProfile, ClientProfile, AdminProfile,
+    Service, AddictionType, University, DegreeLevel, Major,
+    Specialization, Language, ApproachMethod, TargetGroup, SessionType,
+    GenderChoices, DocumentType
+)
 
-from accounts.models import Service, AddictionType, Gender, User, ExpertProfile, ClientProfile, UserRole
+# ==============================================================================
+# 1. Sabit Veriler (Dummy Data)
+# ==============================================================================
 
-# Sample data for profiles
 TURKISH_FIRST_NAMES = [
-    "Ahmet", "Mehmet", "Ayşe", "Fatma", "Ali", "Mustafa", "Emine", "Hüseyin",
-    "Hatice", "İbrahim", "Zeynep", "Hasan", "Elif", "Osman", "Halime",
-    "Ayşe", "Fatma", "Emine", "Hatice", "Zeynep", "Elif", "Halime"
+    "Ahmet", "Mehmet", "Ayşe", "Fatma", "Ali", "Mustafa", "Emine", "Zeynep", "Elif"
 ]
-
 ENGLISH_FIRST_NAMES = [
-    "John", "Jane", "Michael", "Sarah", "David", "Emma", "James", "Olivia",
-    "Robert", "Sophia", "William", "Isabella", "Joseph", "Ava", "Charles",
-    "Mia", "Thomas", "Charlotte", "Christopher", "Amelia"
+    "John", "Jane", "Michael", "Sarah", "David", "Emma", "William", "Olivia"
 ]
-
 SURNAMES = [
-    "Yılmaz", "Kaya", "Demir", "Çelik", "Şahin", "Yıldız", "Öztürk", "Aydın",
-    "Kılıç", "Arslan", "Smith", "Johnson", "Williams", "Brown", "Jones",
-    "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Anderson", "Taylor"
+    "Yılmaz", "Kaya", "Demir", "Çelik", "Şahin", "Yıldız", "Smith", "Johnson", "Brown"
 ]
 
-UNIVERSITIES = [
+UNIVERSITIES_DATA = [
     "İstanbul Üniversitesi", "Ankara Üniversitesi", "Ege Üniversitesi",
-    "Hacettepe Üniversitesi", "ODTÜ", "Boğaziçi Üniversitesi",
-    "Harvard University", "Stanford University", "MIT", "Oxford University"
+    "Hacettepe Üniversitesi", "Boğaziçi Üniversitesi", "Ondokuz Mayıs Üniversitesi"
 ]
+
+DEGREE_LEVELS_DATA = ["Lisans", "Yüksek Lisans", "Doktora", "Önlisans"]
+MAJORS_DATA = ["Psikoloji", "Psikiyatri", "Sosyal Hizmetler", "Rehberlik ve Psikolojik Danışmanlık"]
+SPECIALIZATIONS_DATA = ["Bağımlılık Terapisi", "Travma Odaklı Terapi", "Çift ve Aile Terapisi", "Cinsel Terapi"]
+LANGUAGES_DATA = [{"name": "Türkçe", "code": "tr"}, {"name": "İngilizce", "code": "en"},
+                  {"name": "Almanca", "code": "de"}]
+APPROACH_METHODS_DATA = ["Bilişsel Davranışçı Terapi (BDT)", "Kabul ve Kararlılık Terapisi (ACT)", "EMDR",
+                         "Psikodinamik Terapi"]
+TARGET_GROUPS_DATA = ["Ergen", "Yetişkin", "Aile", "Çocuk"]
+SESSION_TYPES_DATA = ["Online", "Yüz Yüze", "Karma"]
 
 ABOUT_TEXTS = [
-    "Uzman psikolog, bilişsel davranışçı terapi alanında deneyimli.",
-    "Aile terapisi uzmanı, 10 yıllık deneyim.",
-    "Çocuk ve ergen psikolojisi konusunda uzman.",
-    "Bağımlılık tedavisi konusunda uzmanlaşmış terapist.",
-    "Clinical psychologist with expertise in cognitive behavioral therapy.",
-    "Family therapist with over 10 years of experience.",
-    "Specialist in child and adolescent psychology.",
-    "Addiction treatment specialist."
+    "Uzman psikolog, bilişsel davranışçı terapi alanında 10+ yıllık deneyimli.",
+    "Aile terapisi uzmanı, çift ve aile dinamikleri üzerine çalışıyorum.",
+    "Çocuk ve ergen psikolojisi konusunda uzmanım, oyun terapisi uyguluyorum.",
+    "Bağımlılık tedavisi ve rehabilitasyon süreçlerinde uzmanlaşmış terapistim.",
+]
+
+SERVICE_DATA = [
+    {"name": "Bireysel Danışmanlık", "description": "Birebir psikolojik danışmanlık hizmetleri."},
+    {"name": "Çift Terapisi", "description": "Evlilik ve ilişki sorunlarına yönelik seanslar."},
+    {"name": "Grup Terapisi", "description": "Belirli konular üzerine grup seansları."},
+    {"name": "Supervizyon", "description": "Meslektaşlara yönelik süpervizyon hizmetleri."},
+]
+
+ADDICTION_TYPE_DATA = [
+    {"name": "Alkol Bağımlılığı", "slug": slugify("Alkol Bağımlılığı")},
+    {"name": "Madde Bağımlılığı", "slug": slugify("Madde Bağımlılığı")},
+    {"name": "Dijital Bağımlılık", "slug": slugify("Dijital Bağımlılık")},
+    {"name": "Kumar Bağımlılığı", "slug": slugify("Kumar Bağımlılığı")},
+    {"name": "Yeme Bozuklukları", "slug": slugify("Yeme Bozuklukları")},
 ]
 
 SUPPORT_GOALS = [
     "Bağımlılıktan kurtulmak ve sağlıklı bir yaşam sürdürmek.",
-    "Aile içi sorunları çözmek.",
+    "Aile içi sorunları çözmek ve iletişimi güçlendirmek.",
     "Stres yönetimi ve anksiyete ile başa çıkmak.",
-    "İlişki sorunlarını çözmek.",
-    "To overcome addiction and maintain a healthy lifestyle.",
-    "To resolve family issues.",
-    "To manage stress and cope with anxiety.",
-    "To solve relationship problems."
+    "İlişki sorunlarını çözmek ve daha mutlu bir yaşam sürmek.",
 ]
 
 
-def seed_services():
-    """Seed Service table with initial services"""
-    services_data = [
-        {"name": "Bilişsel Terapi", "description": "Bilişsel davranışçı terapi yöntemleri."},
-        {"name": "Aile Terapisi", "description": "Aile içi ilişkiler üzerine terapi."},
-        {"name": "Çocuk ve Ergen", "description": "Çocuk ve ergenlere yönelik psikolojik danışmanlık."},
-        {"name": "Diğer", "description": "Belirtilmeyen diğer terapi türleri."},
+# ==============================================================================
+# 2. Besleme Fonksiyonları
+# ==============================================================================
+
+def safe_seed(model, data_list, unique_field, defaults_func=None):
+    """Genel amaçlı basit modeller için besleme fonksiyonu."""
+    model_name = model.__name__
+    for data in data_list:
+        if isinstance(data, str):
+            defaults = {"name": data}
+            filter_kwargs = {"name": data}
+        elif isinstance(data, dict):
+            filter_kwargs = {unique_field: data[unique_field]}
+            defaults = data
+            if defaults_func:
+                defaults = defaults_func(data)
+        else:
+            print(f"⚠️ Bilinmeyen veri tipi: {data}")
+            continue
+
+        try:
+            # Sadece filteleme alanını kullanıyoruz, slugify gibi işlemler defaults'ta.
+            obj, created = model.objects.get_or_create(
+                **filter_kwargs,
+                defaults=defaults
+            )
+            if created:
+                print(f"  ✓ {model_name} oluşturuldu: {getattr(obj, unique_field)}")
+            else:
+                print(f"  ○ {model_name} zaten mevcut: {getattr(obj, unique_field)}")
+        except IntegrityError as e:
+            print(f"  ❌ {model_name} oluşturulurken hata: {e} - Veri: {filter_kwargs}")
+
+
+def seed_core_models():
+    """Tüm basit yardımcı modelleri besler."""
+    print("✨ Yardımcı (İlişkisel) Modeller Besleniyor...")
+
+    print("\n-- Service --")
+    safe_seed(Service, SERVICE_DATA, "name", lambda d: {"slug": slugify(d["name"]), "description": d["description"]})
+
+    print("\n-- AddictionType --")
+
+    # Yeni, daha güvenli veri listesi:
+    ADDICTION_TYPE_DATA = [
+        {"name": name, "slug": slugify(name)}
+        for name in [
+            "Alkol Bağımlılığı",
+            "Madde Bağımlılığı",
+            "Dijital Bağımlılık",
+            "Kumar Bağımlılığı",
+            "Yeme Bozuklukları"
+        ]
     ]
 
-    for service_data in services_data:
-        slug = slugify(service_data["name"])
-        service, created = Service.objects.get_or_create(
-            name=service_data["name"],
-            defaults={
-                "slug": slug,
-                "description": service_data["description"]
-            }
-        )
-        if created:
-            print(f"✓ Service created: {service.name} (slug: {service.slug})")
+    # Tekil alan olarak 'slug'u kullan.
+    safe_seed(AddictionType, ADDICTION_TYPE_DATA, "slug", lambda d: d)
+
+    print("\n-- University --")
+    safe_seed(University, UNIVERSITIES_DATA, "name")
+
+    print("\n-- DegreeLevel --")
+    safe_seed(DegreeLevel, DEGREE_LEVELS_DATA, "name")
+
+    print("\n-- Major --")
+    safe_seed(Major, MAJORS_DATA, "name")
+
+    print("\n-- Specialization --")
+    safe_seed(Specialization, SPECIALIZATIONS_DATA, "name")
+
+    print("\n-- Language --")
+    safe_seed(Language, LANGUAGES_DATA, "code", lambda d: d)  # 'code' benzersiz alan
+
+    print("\n-- ApproachMethod --")
+    safe_seed(ApproachMethod, APPROACH_METHODS_DATA, "name")
+
+    print("\n-- TargetGroup --")
+    safe_seed(TargetGroup, TARGET_GROUPS_DATA, "name")
+
+    print("\n-- SessionType --")
+    safe_seed(SessionType, SESSION_TYPES_DATA, "name")
+
+
+def seed_admin_user():
+    """Admin kullanıcısı oluşturur."""
+    print("\n-- Admin Kullanıcısı --")
+    email = "admin@lunova.com"
+    try:
+        if User.objects.filter(email=email).exists():
+            print(f"  ○ Admin kullanıcısı ({email}) zaten mevcut.")
+            admin_user = User.objects.get(email=email)
         else:
-            print(f"○ Service already exists: {service.name}")
+            admin_user = User.objects.create_superuser(
+                email=email,
+                password='adminpassword',
+                first_name='Site',
+                last_name='Admin',
+                role=UserRole.ADMIN,
+                username='siteadmin'  # AbstractUser'dan gelen username alanı için
+            )
+            # AdminProfile oluştur (OneToOneField)
+            AdminProfile.objects.create(user=admin_user)
+            print(f"  ✓ Admin kullanıcısı oluşturuldu: {email}")
+        return admin_user
+    except Exception as e:
+        print(f"  ❌ Admin kullanıcısı oluşturulurken hata: {e}")
+        return None
 
 
-def seed_addiction_types():
-    """Seed AddictionType table with initial addiction types"""
-    addiction_names = [
-        "Alcohol",
-        "Substance",
-        "Digital",
-        "Gambling",
-        "Other"
-    ]
+def seed_expert_profiles(count=20):
+    """Örnek uzman profilleri oluşturur."""
+    print(f"\n-- {count} Uzman Profili Oluşturuluyor --")
 
-    for name in addiction_names:
-        slug = slugify(name)
-        addiction_type, created = AddictionType.objects.get_or_create(
-            name=name,
-            defaults={"slug": slug}
-        )
-        if created:
-            print(f"✓ AddictionType created: {addiction_type.name} (slug: {addiction_type.slug})")
-        else:
-            print(f"○ AddictionType already exists: {addiction_type.name}")
-
-
-def seed_genders():
-    """Seed Gender table with initial gender options"""
-    gender_names = [
-        "Kadın",
-        "Erkek",
-        "Diğer",
-        "Belirtmek istemiyorum"
-    ]
-
-    for name in gender_names:
-        gender, created = Gender.objects.get_or_create(name=name)
-        if created:
-            print(f"✓ Gender created: {gender.name}")
-        else:
-            print(f"○ Gender already exists: {gender.name}")
-
-
-def seed_expert_profiles():
-    """Seed ExpertProfile table with sample expert profiles"""
+    # İlişkisel verileri önbelleğe al
     services = list(Service.objects.all())
-    genders = list(Gender.objects.all())
+    universities = list(University.objects.all())
+    degree_levels = list(DegreeLevel.objects.all())
+    majors = list(Major.objects.all())
+    specializations = list(Specialization.objects.all())
+    languages = list(Language.objects.all())
+    approach_methods = list(ApproachMethod.objects.all())
+    target_groups = list(TargetGroup.objects.all())
+    session_types = list(SessionType.objects.all())
 
-    for i in range(20):
-        # Generate random name
-        first_name_pool = TURKISH_FIRST_NAMES + ENGLISH_FIRST_NAMES
-        surname_pool = SURNAMES
-        first_name = random.choice(first_name_pool)
-        last_name = random.choice(surname_pool)
+    # Eğer ilişkisel veri yoksa, besleme hatası olmaması için kontrol et
+    if not all([universities, degree_levels, majors, specializations, languages, approach_methods, target_groups,
+                session_types]):
+        print("  ⚠️ Uzman profilleri için gerekli ilişkisel veriler eksik. Devam ediliyor...")
+        if not services:
+            print("  ❌ Hata: 'Service' modeli boş. Lütfen önce 'Service' modelini besleyin.")
+            return
 
-        # Generate unique email
-        email = f"expert{i+1}@example.com"
+    for i in range(1, count + 1):
+        try:
+            # İsim ve e-posta oluşturma
+            first_name = random.choice(TURKISH_FIRST_NAMES + ENGLISH_FIRST_NAMES)
+            last_name = random.choice(SURNAMES)
+            email = f"expert{i}@mail.com"
 
-        # Generate random birth date (25-65 years old)
-        today = date.today()
-        birth_date = today - timedelta(days=random.randint(25*365, 65*365))
+            # Doğum tarihi (25-65 yaş arası)
+            today = date.today()
+            birth_date = today - timedelta(days=random.randint(25 * 365, 65 * 365))
 
-        # Generate random 11-digit ID number
-        id_number = ''.join(random.choices('0123456789', k=11))
+            # Rastgele 11 haneli TC Kimlik Numarası (Benzersizliği sağlamak için basitçe rastgele)
+            # Django'nun validator'ını geçmesi için sadece rakam
+            id_number = ''.join(random.choices('123456789', k=1) + random.choices('0123456789', k=10))
 
-        # Create user
-        user = User.objects.create_user(
-            email=email,
-            password='password123',  # Default password
-            first_name=first_name,
-            last_name=last_name,
-            role=UserRole.EXPERT,
-            birth_date=birth_date,
-            gender=random.choice(genders),
-            id_number=id_number,
-            phone_number=f"+90{random.randint(5000000000, 5999999999)}"
-        )
+            user = User.objects.filter(email=email).first()
+            if user:
+                if ExpertProfile.objects.filter(user=user).exists():
+                    print(f"  ○ Uzman profili zaten mevcut: {user.get_full_name()} ({email})")
+                    continue
+            else:
+                user = User.objects.create_user(
+                    email=email,
+                    password='password123',
+                    first_name=first_name,
+                    last_name=last_name,
+                    role=UserRole.EXPERT,
+                    birth_date=birth_date,
+                    gender=random.choice(GenderChoices.choices)[0],
+                    id_number=id_number,
+                    phone_number=f"+90{random.randint(5000000000, 5999999999)}"
+                )
 
-        # Create expert profile
-        expert_profile = ExpertProfile.objects.create(
-            user=user,
-            university=random.choice(UNIVERSITIES),
-            about=random.choice(ABOUT_TEXTS),
-            approval_status=random.choice([True, False])
-        )
+            # Uzman Profili oluştur
+            expert_profile = ExpertProfile.objects.create(
+                user=user,
+                about=random.choice(ABOUT_TEXTS),
+                approval_status=random.choice([True, True, False]),  # Çoğunlukla onaylı
+                title=f"{random.choice(['Uzman', 'Klinik'])} {random.choice(['Psikolog', 'Terapist'])}",
+                experience_years=random.randint(3, 20),
+                session_price=random.uniform(300, 1500),
+                video_intro_url=random.choice([
+                    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                    None,
+                    "https://vimeo.com/420455802"
+                ]),
+                availability_status=random.choice(
+                    [c[0] for c in ExpertProfile._meta.get_field('availability_status').choices]),
+                rating_average=random.uniform(3.5, 5.0),
+                rating_count=random.randint(10, 200),
 
-        # Assign random services (1-3 services)
-        num_services = random.randint(1, 3)
-        selected_services = random.sample(services, num_services)
-        expert_profile.services.set(selected_services)
+                # İlişkisel alanları ata
+                university=random.choice(universities) if universities else None,
+                degree_level=random.choice(degree_levels) if degree_levels else None,
+                major=random.choice(majors) if majors else None,
+            )
 
-        print(f"✓ Expert profile created: {user.get_full_name()} ({email})")
+            # ManyToMany alanları ata (Rastgele 1-3 adet)
+            def set_random_m2m(manager, items):
+                if items:
+                    num_items = random.randint(1, min(3, len(items)))
+                    manager.set(random.sample(items, num_items))
+
+            set_random_m2m(expert_profile.services, services)
+            set_random_m2m(expert_profile.specializations, specializations)
+            set_random_m2m(expert_profile.languages, languages)
+            set_random_m2m(expert_profile.approach_methods, approach_methods)
+            set_random_m2m(expert_profile.target_groups, target_groups)
+            set_random_m2m(expert_profile.session_types, session_types)
+
+            print(f"  ✓ Uzman oluşturuldu: {user.get_full_name()} ({email}) - {expert_profile.title}")
+
+        except Exception as e:
+            print(f"  ❌ Uzman oluşturulurken hata ({email}): {e}")
 
 
-def seed_client_profiles():
-    """Seed ClientProfile table with sample client profiles"""
+def seed_client_profiles(count=100):
+    """Örnek danışan profilleri oluşturur."""
+    print(f"\n-- {count} Danışan Profili Oluşturuluyor --")
+
     addiction_types = list(AddictionType.objects.all())
-    genders = list(Gender.objects.all())
+    experts = list(ExpertProfile.objects.filter(approval_status=True).all())  # Onaylı uzmanları ata
 
-    for i in range(100):
-        # Generate random name
-        first_name_pool = TURKISH_FIRST_NAMES + ENGLISH_FIRST_NAMES
-        surname_pool = SURNAMES
-        first_name = random.choice(first_name_pool)
-        last_name = random.choice(surname_pool)
+    for i in range(1, count + 1):
+        try:
+            # İsim ve e-posta oluşturma
+            first_name = random.choice(TURKISH_FIRST_NAMES + ENGLISH_FIRST_NAMES)
+            last_name = random.choice(SURNAMES)
+            email = f"client{i}@mail.com"
 
-        # Generate unique email
-        email = f"client{i+1}@example.com"
+            # Doğum tarihi (18-70 yaş arası)
+            today = date.today()
+            birth_date = today - timedelta(days=random.randint(18 * 365, 70 * 365))
 
-        # Generate random birth date (18-70 years old)
-        today = date.today()
-        birth_date = today - timedelta(days=random.randint(18*365, 70*365))
+            # Rastgele 11 haneli TC Kimlik Numarası (Benzersizliği sağlamak için basitçe rastgele)
+            id_number = ''.join(random.choices('123456789', k=1) + random.choices('0123456789', k=10))
 
-        # Generate random 11-digit ID number
-        id_number = ''.join(random.choices('0123456789', k=11))
+            # Önce kullanıcı var mı kontrol et
+            user = User.objects.filter(email=email).first()
+            if user:
+                # Eğer kullanıcı zaten varsa ve ClientProfile var mı kontrol et
+                if ClientProfile.objects.filter(user=user).exists():
+                    print(f"  ○ Danışan profili zaten mevcut: {user.get_full_name()} ({email})")
+                    continue
+            else:
+                # Kullanıcı yoksa oluştur
+                user = User.objects.create_user(
+                    email=email,
+                    password='password123',
+                    first_name=first_name,
+                    last_name=last_name,
+                    role=UserRole.CLIENT,
+                    birth_date=birth_date,
+                    gender=random.choice(GenderChoices.choices)[0],
+                    id_number=id_number,
+                    phone_number=f"+90{random.randint(5000000000, 5999999999)}"
+                )
 
-        # Create user
-        user = User.objects.create_user(
-            email=email,
-            password='password123',  # Default password
-            first_name=first_name,
-            last_name=last_name,
-            role=UserRole.CLIENT,
-            birth_date=birth_date,
-            gender=random.choice(genders),
-            id_number=id_number,
-            phone_number=f"+90{random.randint(5000000000, 5999999999)}"
-        )
+            # Danışan Profili oluştur
+            assigned_expert = random.choice(
+                experts) if experts and random.random() < 0.7 else None  # %70 ihtimalle uzman ata
+            client_profile = ClientProfile.objects.create(
+                user=user,
+                expert=assigned_expert,
+                received_service_before=random.choice([True, False]),
+                support_goal=random.choice(SUPPORT_GOALS),
+                onboarding_complete=random.choice([True, True, False]),
+                is_active_in_treatment=random.choice([True, True, True, False])
+            )
 
-        # Create client profile
-        client_profile = ClientProfile.objects.create(
-            user=user,
-            received_service_before=random.choice([True, False]),
-            support_goal=random.choice(SUPPORT_GOALS)
-        )
+            # Bağımlılık türleri ata (Rastgele 0-2 adet)
+            if addiction_types:
+                num_substances = random.randint(0, min(2, len(addiction_types)))
+                if num_substances > 0:
+                    selected_substances = random.sample(addiction_types, num_substances)
+                    client_profile.substances_used.set(selected_substances)
 
-        # Assign random substances (0-2 addiction types)
-        num_substances = random.randint(0, 2)
-        if num_substances > 0 and addiction_types:
-            selected_substances = random.sample(addiction_types, num_substances)
-            client_profile.substances_used.set(selected_substances)
+            print(f"  ✓ Danışan oluşturuldu: {user.get_full_name()} ({email})")
 
-        print(f"✓ Client profile created: {user.get_full_name()} ({email})")
+        except Exception as e:
+            print(f"  ❌ Danışan oluşturulurken hata ({email}): {e}")
 
 
 def main():
-    """Main seeding function"""
-    print("🌱 Starting database seeding...")
-    print("=" * 50)
-    
-    try:
-        seed_services()
-        print("-" * 30)
-        seed_addiction_types()
-        print("-" * 30)
-        seed_genders()
-        print("-" * 30)
-        seed_expert_profiles()
-        print("-" * 30)
-        seed_client_profiles()
-        print("-" * 30)
+    """Ana besleme fonksiyonu"""
+    print("🌱 Veritabanı Besleme Başlatılıyor (accounts app)...")
+    print("=" * 60)
 
-        print("✅ Database seeding completed successfully!")
+    try:
+        # 1. Yardımcı modelleri besle
+        seed_core_models()
+
+        print("\n" + "=" * 60)
+
+        # 2. Kullanıcı/Profil modellerini besle
+        seed_admin_user()
+        seed_expert_profiles(count=25)  # Uzman sayısını artırdım
+        seed_client_profiles(count=150)  # Danışan sayısını artırdım
+
+        print("\n" + "=" * 60)
+        print("✅ Veritabanı Besleme Başarıyla Tamamlandı!")
 
     except Exception as e:
-        print(f"❌ Error during seeding: {str(e)}")
+        print("\n" + "=" * 60)
+        print(f"❌ Besleme sırasında kritik hata: {type(e).__name__}: {str(e)}")
         sys.exit(1)
 
 

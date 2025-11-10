@@ -43,7 +43,7 @@
 4,5. Veritabanı Besleme
    Eğer ilk kez  veritabanı kuruyorsanız, lokal çalışma için veritabanını beslemelisiniz.
    ```bash
-   python accounts/db_feed.py
+   python accounts/tests/db_feed.py
    python availability/scripts/feed_availability.py
    python appointments/tests/db_feed.py
    python forms/management/commands/create_sample_forms.py

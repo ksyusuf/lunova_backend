@@ -29,18 +29,30 @@ env_file = BASE_DIR / '.env'
 if env_file.exists():
     env.read_env(env_file)
 
-# DATABASE - Production ve Local için
-if os.getenv('DATABASE_URL'):
-    # Production (Railway)
+# 1. Ortam Değişkenlerini Oku
+# Eğer ortam değişkenleri yoksa, varsayılan DB_NAME'i 'Lunova' (PostgreSQL) olarak ayarla.
+CUSTOM_DB_NAME = env.str('DB_NAME', default='Lunova')
+
+# 2. Veritabanı Seçimi ve Konfigürasyonu
+if env.str('ENVIRONMENT') == 'Production':
     DATABASES = {
         'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
     }
+elif env.str('ENVIRONMENT') == 'Development' and CUSTOM_DB_NAME == 'Lunova-lite':
+    print(">>> Veritabanı: Lunova-lite (SQLite) kullanılıyor.")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 else:
-    # Local geliştirme (parçalı env değişkenleri)
+    # C. LOCAL ANA KONFİGÜRASYON (PostgreSQL) - CUSTOM_DB_NAME = 'Lunova' veya başka bir değer
+    print(f">>> Veritabanı: {CUSTOM_DB_NAME} (PostgreSQL) kullanılıyor.")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': env.str('DB_NAME'),
+            'NAME': CUSTOM_DB_NAME, # .env'den okunan DB_NAME
             'USER': env.str('DB_USER'),
             'PASSWORD': env.str('DB_PASSWORD'),
             'HOST': env.str('DB_HOST'),
