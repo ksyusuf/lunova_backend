@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "710f7284-7160-4e53-b0e3-1dd6b0a83064",
+		"_postman_id": "c8acdf53-f54b-41da-8795-077c3e087a8b",
 		"name": "Accounts",
 		"description": "Lunova Backend servisimizin testlerini yaptığımız çalışma alanı.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-710f7284-7160-4e53-b0e3-1dd6b0a83064?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-c8acdf53-f54b-41da-8795-077c3e087a8b?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
@@ -96,6 +96,107 @@
 									"value": "yenisifre123!",
 									"disabled": true
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Profile",
+			"item": [
+				{
+					"name": "profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/profile/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"profile",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "profile-update",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "API'ye gönderilen verinin JSON formatında olduğunu belirtir.",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    /*==========================================================\n    EXPERT (Uzman) rolü için body\n    ==========================================================*/\n\n    // \"about\": \"Bilişsel Davranışçı Terapi (BDT) ve Kabul ve Kararlılık Terapisi (ACT) yöntemlerini kullanarak danışanlarıma destek sağlıyorum.\",\n    // \"experience_years\": 8,\n    \"title\": \"Uzm. Klinik Psk.\",\n    \"session_price\": 450.00,\n    \"currency\": \"TRY\",\n    \"availability_status\": \"active\",/* Foreign Key alanlar: İlgili tablonun ID'sini göndermelisiniz */\n    \"university\": 5, \n    \"degree_level\": 2, \n    \"major\": 1\n\n    // /* Many-to-Many alanlar: Güncel ID listesini göndermelisiniz. */\n    // \"services\": [1, 3, 2],\n    // \"specializations\": [1, 2],\n    // \"languages\": [\"tr\", \"en\"],\n    // \"approach_methods\": [2, 3]\n\n/* Kalan Expert alanları: */\n    // \"institution\": \"Ankara Üniversitesi\",\n    // \"license_number\": \"TR-4567\",\n    // \"appointment_duration\": 45,\n    // \"free_first_session\": true,\n    // \"video_intro_url\": \"https://youtube.com/myintro\"\n\n\n/* ========================================================== */\n\n/* CLIENT (Danışan) rolü için body\n(kullanmak için yukarıdaki Expert body'sini silin ve aşağıdaki body'nin yorum satırlarını kaldırın): */\n    // \"support_goal\": \"Yaşadığım panik ataklar için etkili başa çıkma stratejileri geliştirmek istiyorum.\",\n    // \"received_service_before\": true, \n    // \"onboarding_complete\": true,   \n    // \"is_active_in_treatment\": true,  \n    \n    // // Many-to-Many (M2M) Alan: Bağımlılık Türleri (AddictionType) \n    // \"substances_used\": [1, 3] // AddictionType ID'leri\n/* ========================================================== */\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/profile/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"profile",
+								""
+							]
+						},
+						"description": "Bu istek, giriş yapmış kullanıcının rolüne göre profilini günceller. Expert ve Client için ayrı body yapıları gereklidir. Aşağıdaki örnek EXPERT rolü içindir."
+					},
+					"response": []
+				},
+				{
+					"name": "documents",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "type",
+									"value": "profile_photo",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/ksyus/Documents/IS-GUC/Lunova/Site_Dosyalari/Logolar/noreply-logo (1).jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/documents/upload/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								"upload",
+								""
 							]
 						}
 					},

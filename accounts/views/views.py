@@ -1,6 +1,6 @@
 from rest_framework import generics
-from .serializers import ExpertRegisterSerializer, ClientRegisterSerializer, AdminRegisterSerializer
-from .serializers import LoginSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, ExpertListSerializer
+from ..serializers.serializers import ExpertRegisterSerializer, ClientRegisterSerializer, AdminRegisterSerializer
+from ..serializers.serializers import LoginSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, ExpertListSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -14,9 +14,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
 from django.db.models import Q
-from .models import UserRole, ExpertProfile, Service
+from ..models import UserRole, ExpertProfile
 
 User = get_user_model()
 

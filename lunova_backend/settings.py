@@ -25,9 +25,15 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = env.bool('DEBUG', default=False)
+
 env_file = BASE_DIR / '.env'
 if env_file.exists():
     env.read_env(env_file)
+    
+MEDIA_ROOT = env.str('MEDIA_ROOT')
+MEDIA_URL = env.str('MEDIA_ROOT')
 
 # 1. Ortam Değişkenlerini Oku
 # Eğer ortam değişkenleri yoksa, varsayılan DB_NAME'i 'Lunova' (PostgreSQL) olarak ayarla.
@@ -63,14 +69,8 @@ else:
 # STATIC_ROOT (production)
 STATIC_ROOT = 'staticfiles'
 
-# Quick-start Development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=False)
 
 # ALLOWED_HOSTS
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
@@ -91,16 +91,16 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    'django_extensions',  # Bu satırı ekle
+    'django_extensions',
 
-    # Senin app'lerin
-    'accounts',  # kullanıcı yönetim uygulaman
+    # apps
+    'accounts',         # Kullanıcılar
     'api',
-    'zoom',  # Zoom entegrasyonu
-    'appointments',  # Randevu yönetimi
-    'forms',  # Form yönetimi
+    'zoom',             # Zoom
+    'appointments',     # Randevular
+    'forms',            # Formlar
     'rest_framework_simplejwt.token_blacklist',
-    'availability',  # Uzman uygunluk yönetimi
+    'availability',     # Müsaitlik
 ]
 
 MIDDLEWARE = [
@@ -259,9 +259,6 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_SECURE': True,
     'AUTH_COOKIE_SAMESITE': 'None',
 }
-
-MEDIA_ROOT = env.str('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
-MEDIA_URL = env.str('MEDIA_URL', default='/media/')
 
 # Email Settings
 EMAIL_BACKEND = env.str('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')

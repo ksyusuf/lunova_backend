@@ -233,7 +233,10 @@ class Document(models.Model):
     file = models.FileField(upload_to=upload_document_path)
     type = models.CharField(max_length=32, choices=DocumentType.choices)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     verified = models.BooleanField(default=False)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    is_current = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.get_type_display()}"
