@@ -2,8 +2,8 @@
 from accounts.serializers.document_serializers import DocumentSerializer
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
-from accounts.models import Document, DocumentType
-from django.http import FileResponse, Http404, JsonResponse
+from accounts.models import Document
+from django.http import FileResponse, JsonResponse
 from rest_framework.views import APIView
 import uuid
 
@@ -33,7 +33,6 @@ class DocumentRetrieveView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-
     def get(self, request, *args, **kwargs):
         doc_type = request.query_params.get("type")
         uid = request.query_params.get("uid")
@@ -42,12 +41,13 @@ class DocumentRetrieveView(APIView):
         if not all([doc_type, uid, filename]):
             return JsonResponse({"detail": "Eksik parametre."}, status=400)
 
-        # UID geçerli bir UUID mi kontrol et
+        # UID kontrolü
         try:
             uid_obj = uuid.UUID(uid)
         except ValueError:
             return JsonResponse({"detail": "Geçersiz UID formatı."}, status=400)
 
+        # DB'de kayıt var mı?
         try:
             document = Document.objects.get(
                 uid=uid_obj,
@@ -56,8 +56,20 @@ class DocumentRetrieveView(APIView):
                 file__icontains=filename
             )
         except Document.DoesNotExist:
-            raise Http404("Belge bulunamadı.")
+            return JsonResponse({"detail": "Belge kaydı bulunamadı."}, status=404)
 
-        # Dosya yanıtı
-        response = FileResponse(document.file.open('rb'), filename=filename)
-        return response
+        # FİZİKSEL DOSYA GERÇEKTEN VAR MI?
+        try:
+            file_handle = document.file.open('rb')
+        except FileNotFoundError:
+            return JsonResponse({
+                "detail": "Dosya sunucuda bulunamadı.",
+                "error": "file_missing"
+            }, status=404)
+        except Exception:
+            return JsonResponse({
+                "detail": "Dosya okunurken bir hata oluştu."
+            }, status=500)
+
+        # Her şey yolundaysa dosyayı gönder
+        return FileResponse(file_handle, filename=filename)

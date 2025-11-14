@@ -1,6 +1,11 @@
 from rest_framework import generics
-from ..serializers.serializers import ExpertRegisterSerializer, ClientRegisterSerializer, AdminRegisterSerializer
-from ..serializers.serializers import LoginSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, ExpertListSerializer
+from ..serializers.serializers import (ExpertRegisterSerializer,
+                                       ClientRegisterSerializer,
+                                       AdminRegisterSerializer)
+from ..serializers.serializers import (LoginSerializer,
+                                       PasswordResetRequestSerializer,
+                                       PasswordResetConfirmSerializer,
+                                       ExpertListSerializer)
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,7 +20,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.contrib.auth.password_validation import validate_password
 from django.db.models import Q
-from ..models import UserRole, ExpertProfile
+from ..models import UserRole, ExpertProfile, Document, DocumentType
+from accounts.serializers.document_serializers import DocumentSerializer
 
 User = get_user_model()
 
@@ -104,11 +110,24 @@ class LoginView(APIView):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
+        # Profil fotoğrafını çek
+        profile_photo = Document.objects.filter(
+            user=user,
+            type=DocumentType.PROFILE_PHOTO
+        ).first()
+
+        if profile_photo:
+            serialized = DocumentSerializer(profile_photo, context={'request': request})
+            profile_photo_url = serialized.data.get("access_url")
+        else:
+            profile_photo_url = None
         response = Response({
             "name": user.first_name,
             "surname": user.last_name,
             "email": user.email,
-            "role": user.role,  # Role bilgisini de döndür
+            "profile_photo": profile_photo_url,
+            "gender": user.gender if user.gender else None
+            # profil fotoğrafı yoksa front ona gender'a göre pp atasın.
         }, status=status.HTTP_200_OK)
         # JWT'yi httpOnly cookie olarak ekle
         cookie_params = {
@@ -181,13 +200,25 @@ class MeView(APIView):
 
     def get(self, request):
         user = request.user
+        # Profil fotoğrafını çek
+        profile_photo = Document.objects.filter(
+            user=user,
+            type=DocumentType.PROFILE_PHOTO
+        ).first()
+
+        if profile_photo:
+            serialized = DocumentSerializer(profile_photo, context={'request': request})
+            profile_photo_url = serialized.data.get("access_url")
+        else:
+            profile_photo_url = None
+
         return Response({
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "role": getattr(user, "role", None),
             "first_name": user.first_name,
             "last_name": user.last_name,
+            "email": user.email,
+            "profile_photo": profile_photo_url,
+            "gender": user.gender if user.gender else None
+            # profil fotoğrafı yoksa front ona gender'a göre pp atasın.
         })
 
 

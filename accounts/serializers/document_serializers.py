@@ -39,10 +39,20 @@ class DocumentSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request is None:
             return None
-        # /api/v1/accounts/documents/retrieve/?uid=...&type=...&filename=...
+
+        # Dosya kaydı yoksa hiç URL üretme
+        if not obj.file or not obj.file.name:
+            return None
+
+        # Filename boşsa yine None dön
+        filename = self.get_filename(obj)
+        if not filename:
+            return None
+
+        # URL üret
         return request.build_absolute_uri(
             reverse("document_retrieve") +
-            f"?uid={obj.uid}&type={obj.type}&filename={self.get_filename(obj)}"
+            f"?uid={obj.uid}&type={obj.type}&filename={filename}"
         )
 
     def validate_type(self, value):
