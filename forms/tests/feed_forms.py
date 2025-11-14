@@ -1,18 +1,21 @@
+"""
+Database seeding script for forms app
+"""
+
 import os
 import sys
 import django
 
-# Add the project root to Python path
-# forms/management/commands/create_sample_forms.py -> forms/management/commands/
-# Go up 4 levels to reach project root: forms/management/commands -> forms -> project_root
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+# Script nereden çalıştırılırsa çalışsın, proje kökünü bul
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))  # script dizini
+BACKEND_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../"))  # 2 seviye yukarı backend
+sys.path.insert(0, BACKEND_DIR)
 
-# Django setup
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')
+# Django ayarlarını yükle
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')  # settings.py konumuna göre değiştir
 django.setup()
 
 from forms.models import Form, Question, QuestionOption
-
 
 def create_sample_forms():
     """Örnek form verileri oluşturur"""

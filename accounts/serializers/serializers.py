@@ -2,7 +2,13 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
-from accounts.models import UserRole, AdminProfile, ExpertProfile, ClientProfile, AddictionType
+from accounts.models import (UserRole,
+                             AdminProfile,
+                             ExpertProfile,
+                             ClientProfile,
+                             AddictionType,
+                             University,
+                             GenderChoices)
 
 User = get_user_model()
 
@@ -10,15 +16,15 @@ User = get_user_model()
 # -----------------------------
 # Profile Serializers
 # -----------------------------
-
 class BaseProfileSerializer(serializers.ModelSerializer):
     id_number = serializers.CharField(source='user.id_number', read_only=True)
     phone_number = serializers.CharField(source='user.phone_number', read_only=True)
     profile_photo = serializers.ImageField(source='user.profile_photo', read_only=True)
     country = serializers.CharField(source='user.country', read_only=True)
     national_id = serializers.CharField(source='user.national_id', read_only=True)
-    gender = serializers.IntegerField(source='user.gender_id', read_only=True)
+    gender = serializers.CharField(source='user.gender', read_only=True)
     birth_date = serializers.DateField(source='user.birth_date', read_only=True)
+
 
 class AdminProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -114,9 +120,8 @@ class BaseRegisterSerializer(serializers.Serializer):
     id_number = serializers.CharField(write_only=True, required=False, allow_blank=True)
     country = serializers.CharField(required=False, default="TR")
     national_id = serializers.CharField(required=False, allow_blank=True)
-    birth_date = serializers.DateField(required=False)
-    gender_id = serializers.IntegerField(required=False, allow_null=True)
-    profile_photo = serializers.ImageField(required=False)
+    birth_date = serializers.DateField(required=True)
+    gender = serializers.CharField(required=True)
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
@@ -151,6 +156,10 @@ class BaseRegisterSerializer(serializers.Serializer):
             if not national_id:
                 raise serializers.ValidationError({"national_id": f"{country} için kimlik numarası zorunludur."})
 
+        gender_value = attrs.get('gender')
+        if gender_value is not None and gender_value not in [choice.value for choice in GenderChoices]:
+            raise serializers.ValidationError({'gender': 'Geçersiz cinsiyet.'})
+
         return attrs
 
 
@@ -158,56 +167,30 @@ class BaseRegisterSerializer(serializers.Serializer):
 # Expert Register Serializer
 # -----------------------------
 class ExpertRegisterSerializer(BaseRegisterSerializer):
-    university = serializers.CharField(required=True)
-    about = serializers.CharField(required=False, allow_blank=True)
-    degree_file = serializers.FileField(required=False)
+    university_id = serializers.IntegerField(write_only=True, required=True)
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        # Expert-specific validations can be added here
+        # University kontrolü
+        try:
+            attrs['university'] = University.objects.get(id=attrs.pop('university_id'))
+        except University.DoesNotExist:
+            raise serializers.ValidationError({'university_id': 'Geçersiz üniversite IDsi.'})
         return attrs
 
     def create(self, validated_data):
-        password = validated_data.pop('password')
-        validated_data.pop('password2')
-        phone_number = validated_data.pop('phone_number')
-        id_number = validated_data.pop('id_number', None)
         university = validated_data.pop('university')
-        about = validated_data.pop('about', '')
-        degree_file = validated_data.pop('degree_file', None)
-        country = validated_data.pop('country', "TR")
-        national_id = validated_data.pop('national_id', "")
-        birth_date = validated_data.pop('birth_date', None)
-        gender_id = validated_data.pop('gender_id', None)
-        profile_photo = validated_data.pop('profile_photo', None)
 
-        # Extract only User model fields
-        user_data = {
-            'username': validated_data.get('email'),
-            'email': validated_data.get('email'),
-            'first_name': validated_data.get('first_name'),
-            'last_name': validated_data.get('last_name'),
-            'role': UserRole.EXPERT
-        }
-        
-        user = User(**user_data)
-        user.phone_number = phone_number
-        user.id_number = id_number
-        user.country = country
-        user.national_id = national_id
-        user.birth_date = birth_date
-        if gender_id is not None:
-            user.gender_id = gender_id
-        if profile_photo is not None:
-            user.profile_photo = profile_photo
+        # User oluşturma
+        password = validated_data.pop('password')
+        validated_data.pop('password2', None)
+        user = User(**validated_data, role=UserRole.EXPERT)
         user.set_password(password)
         user.save()
 
         ExpertProfile.objects.create(
             user=user,
-            university=university,
-            about=about,
-            degree_file=degree_file,
+            university=university
         )
 
         return user
@@ -229,56 +212,34 @@ class ExpertRegisterSerializer(BaseRegisterSerializer):
 # Client Register Serializer
 # -----------------------------
 class ClientRegisterSerializer(BaseRegisterSerializer):
-    birth_date = serializers.DateField(required=False)
-    gender_id = serializers.IntegerField(required=False, allow_null=True)
     support_goal = serializers.CharField(required=False, allow_blank=True)
     received_service_before = serializers.BooleanField(default=False)
-
-    def validate(self, attrs):
-        attrs = super().validate(attrs)
-        # Client-specific validations can be added here
-        return attrs
+    substances_used = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(queryset=AddictionType.objects.all()),
+        required=True,
+        allow_empty=False
+    )
 
     def create(self, validated_data):
-        password = validated_data.pop('password')
-        validated_data.pop('password2')
-        phone_number = validated_data.pop('phone_number')
-        id_number = validated_data.pop('id_number', None)
-        birth_date = validated_data.pop('birth_date', None)
-        gender_id = validated_data.pop('gender_id', None)
+        substances_used = validated_data.pop('substances_used', [])
         support_goal = validated_data.pop('support_goal', '')
         received_service_before = validated_data.pop('received_service_before', False)
-        country = validated_data.pop('country', "TR")
-        national_id = validated_data.pop('national_id', "")
-        profile_photo = validated_data.pop('profile_photo', None)
+        password = validated_data.pop('password')
+        validated_data.pop('password2', None)
 
-        # Extract only User model fields
-        user_data = {
-            'username': validated_data.get('email'),
-            'email': validated_data.get('email'),
-            'first_name': validated_data.get('first_name'),
-            'last_name': validated_data.get('last_name'),
-            'role': UserRole.CLIENT
-        }
-        
-        user = User(**user_data)
-        user.phone_number = phone_number
-        user.id_number = id_number
-        user.country = country
-        user.national_id = national_id
-        user.birth_date = birth_date
-        if gender_id is not None:
-            user.gender_id = gender_id
-        if profile_photo is not None:
-            user.profile_photo = profile_photo
+        # User oluştur
+        user = User(**validated_data, role=UserRole.CLIENT)
         user.set_password(password)
         user.save()
 
-        ClientProfile.objects.create(
+        # ClientProfile oluştur
+        client_profile = ClientProfile.objects.create(
             user=user,
             support_goal=support_goal,
             received_service_before=received_service_before
         )
+        if substances_used:
+            client_profile.substances_used.set(substances_used)
 
         return user
 
@@ -308,10 +269,6 @@ class AdminRegisterSerializer(BaseRegisterSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         validated_data.pop('password2')
-        phone_number = validated_data.pop('phone_number')
-        id_number = validated_data.pop('id_number', None)
-        country = validated_data.pop('country', "TR")
-        national_id = validated_data.pop('national_id', "")
 
         # Extract only User model fields
         user_data = {

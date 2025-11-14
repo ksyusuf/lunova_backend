@@ -1,4 +1,3 @@
-# availability/scripts/feed_availability.py
 """
 Bu script, veritabanındaki tüm uzmanlar (Expert) için çeşitli haftalık müsaitlik (WeeklyAvailability) ve istisnai durum (AvailabilityException) kayıtları oluşturur.
 Test ortamında kullanılmak üzere tasarlanmıştır.
@@ -7,19 +6,19 @@ Test ortamında kullanılmak üzere tasarlanmıştır.
 import os
 import sys
 import django
+
+# Script nereden çalıştırılırsa çalışsın, proje kökünü bul
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))  # script dizini
+BACKEND_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../"))  # 2 seviye yukarı backend
+sys.path.insert(0, BACKEND_DIR)
+
+# Django ayarlarını yükle
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')  # settings.py konumuna göre değiştir
+django.setup()
+
 import random
 from datetime import datetime, timedelta, time
 from django.db import IntegrityError
-
-# Add the project root to Python path
-# availability/scripts/feed_availability.py -> availability/scripts/
-# Go up 3 levels to reach project root: availability/scripts -> availability -> project_root
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-# Django setup
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')
-django.setup()
-
 from availability.models import WeeklyAvailability, AvailabilityException
 from accounts.models import ExpertProfile, Service
 
@@ -54,7 +53,7 @@ def create_availability_and_exceptions():
             # Haftanın gününü rastgele seç
             day_of_week = random.randint(0, 6)
             # Saat aralığını rastgele seç (08:00-18:00 arası)
-            start_hour = random.randint(8, 16)
+            start_hour = random.randint(8, 20)
             start_time = time(hour=start_hour, minute=0)
             # 1-3 saatlik seans
             duration_hours = random.randint(1, 3)
@@ -81,7 +80,7 @@ def create_availability_and_exceptions():
                 continue
         
         # Her uzman için 5 istisnai durum oluştur, gelecek 3 aya serpiştir
-        for j in range(5):
+        for j in range(8):
             days_ahead = random.randint(0, 89)  # 0-89 gün arası (yaklaşık 3 ay)
             exc_date = now.date() + timedelta(days=days_ahead)
             
@@ -90,7 +89,7 @@ def create_availability_and_exceptions():
             end_time = None
             
             if exception_type == 'add':
-                start_time = time(hour=random.randint(9, 17), minute=0)
+                start_time = time(hour=random.randint(9, 20), minute=0)
                 end_time = (datetime.combine(exc_date, start_time) + timedelta(hours=1)).time()
             
             AvailabilityException.objects.create(

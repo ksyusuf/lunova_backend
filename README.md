@@ -1,150 +1,102 @@
 # Lunova Backend
 
-## Geliştirme (Development) Ortamı
+<p align="center">
+  <img src="favicon-transparent.png" alt="Lunova Logo" width="80px">
+</p>
 
-> **Not:** Aşağıdaki işlemlere başlamadan önce sanal ortamı aktive etmelisin.
-> - Windows: `.venv/Scripts/activate`
-> - Mac/Linux: `source venv/bin/activate`
+## 🚀 Geliştirme (Development) Ortamı Kurulumu
 
-1. Gerekli bağımlılıkları yükle:
-   ```bash
-   pip install -r requirements.txt
-   ```
+Geliştirme ortamını çalıştırmadan önce izlenmesi gereken adımlar aşağıdadır.
 
-2. Ana dizinde `.env` dosyanı bulundur. Örnek bir `.env` dosyası:
-   ```env
-   SECRET_KEY=senin_secret_keyin
-   DEBUG=True
-   ALLOWED_HOSTS=localhost,127.0.0.1
-   DB_NAME=veritabani_adi
-   DB_USER=kullanici_adi
-   DB_PASSWORD=sifre
-   DB_HOST=localhost
-   DB_PORT=5432
-   ENVIRONMENT=Development
-   ```
+> **⚠️ Not:** Aşağıdaki işlemlere başlamadan önce **sanal ortamı (venv)** aktive etmelisin.
+> * **Windows:** `.venv/Scripts/activate`
+> * **Mac/Linux:** `source venv/bin/activate`
 
-   migration işlemleri uygulanamdan önce lokalindeki kullanıcı için grant yetkisi ver.
-   ```bash
-   GRANT ALL ON SCHEMA public TO lunova;
-   GRANT ALL PRIVILEGES ON DATABASE "lunova-test" TO lunova;
-   ```
-   
-3. Veritabanı migrasyonlarını oluştur:
-   ```bash
-   python manage.py makemigrations
-   ```
- 
-4. Veritabanı migrasyonlarını uygula:
-   ```bash
-   python manage.py migrate
-   ```
+### 1. Bağımlılıkları Yükleme
+Projenin ihtiyaç duyduğu tüm Python paketlerini yükleyin:
 
-4,5. Veritabanı Besleme
-   Eğer ilk kez  veritabanı kuruyorsanız, lokal çalışma için veritabanını beslemelisiniz.
-   ```bash
-   python accounts/db_feed.py
-   python availability/scripts/feed_availability.py
-   python appointments/tests/db_feed.py
-   python forms/management/commands/create_sample_forms.py
-   ```
-
-5. Geliştirme sunucusunu başlat:
-   ```bash
-   python manage.py runserver
-   ```
-
-http://localhost:8000/admin/
-
----
-
-## Production Ortamı
-
-yeni kurulum durumunda veritabanının beslenmesi gerekecek, railway'e bu şekilde bağlanıp feed çalıştırılabilir.
-link işlemi yapılırken proje ana dizininde olmaya dikkat et.
-link yaparken ilgili servisi seçmen gerek.
-
-```bash
-railway link
-railway ssh python accounts/db_feed.py
-railway ssh python availability/scripts/feed_availability.py
-railway ssh python forms/management/commands/create_sample_forms.py
+```
+pip install -r requirements.txt
 ```
 
-1. Ana dizinde **sadece** `.env.production` dosyanı bulundur. Örnek bir `.env.production` dosyası:
-   ```env
-   SECRET_KEY=guclu_secret_key
-   DEBUG=False
-   ALLOWED_HOSTS=senin_domainin.com
-   DB_NAME=prod_db_adi
-   DB_USER=prod_kullanici
-   DB_PASSWORD=prod_sifre
-   DB_HOST=localhost
-   DB_PORT=5432
-   ENVIRONMENT=Production
-   ```
+### 2. Ortam Değişkenleri
+Ana dizinde (`.env`) dosyanızın bulunduğundan emin olun. Gerekli içerik ve değişkenler için başlangıç kitini (starter kit) inceleyin.
 
-> **Not:** Aşağıdaki işlemlere başlamadan önce sanal ortamı aktive etmelisin.
-> - Windows: `.venv/Scripts/activate`
-> - Mac/Linux: `source venv/bin/activate`
+### 3. Veritabanı (DB) İşlemleri
 
-2. Gerekli bağımlılıkları yükle:
-   ```bash
-   pip install -r requirements.txt
-   ```
+#### PostgreSQL Kullanımı İçin Yetkilendirme
+(Eğer **Sqlite** tercih ediyorsanız bu adımı **pas geçin**.)
 
-3. Veritabanı migrasyonlarını uygula:
-   ```bash
-   python manage.py migrate
-   ```
+Lokal PostgreSQL servisini kullanıyorsanız, migration işlemlerini uygulamadan önce lokaldeki kullanıcınız için gerekli yetkiyi (grant) vermelisiniz:
 
-4. Statik dosyaları topla:
-   ```bash
-   python manage.py collectstatic
-   ```
+```
+GRANT ALL ON SCHEMA public TO lunova;
+GRANT ALL PRIVILEGES ON DATABASE "lunova-test" TO lunova;
+```
 
-5. **Production sunucusunu başlatmak için:**
-   - Sunucuyu başlat:
-     ```bash
-     python serve.py
-     ```
+#### Veritabanı Migrasyonları
+Veritabanı şeması değişikliklerini uygulayın:
+
+```
+python manage.py migrate
+```
+
+### 4. Veritabanı Besleme (Database Seeding) 💾
+
+Eğer veritabanını **ilk kez kuruyorsanız**, lokal çalışma için veritabanını beslemelisiniz.
+
+> **💡 SQLite Kullanıcısı Notu:** Eğer **SQLite** ile çalışıyorsanız, lokal dosyaların oluşturulması ve minimum başlangıç verilerinin sağlanması için **yalnızca `accounts` beslemesini** yapmanız yeterlidir. Diğerlerini pas geçebilirsiniz.
+
+| Veritabanı Tipi | İhtiyaç Duyulan Komutlar |
+| :--- | :--- |
+| **SQLite** | Sadece ilk komut (`feed_accounts`) yeterlidir. |
+| **PostgreSQL** | Tüm komutlar çalıştırılmalıdır. |
+
+```
+# Gerekli Temel Kullanıcı Verileri (ZORUNLUDUR)
+python accounts/tests/feed_accounts.py
+
+# Ekstra Uygulama Verileri
+python availability/tests/feed_availability.py
+python appointments/tests/feed_appointments.py
+python forms/tests/feed_forms.py
+```
+
+### 5. Geliştirme Sunucusunu Başlatma
+Kurulum tamamlandıktan sonra geliştirme sunucusunu başlatın:
+
+```
+python manage.py runserver
+```
+
+Sunucuya ve Django Yönetici Paneli'ne erişim:
+
+* **API Ana Sayfası:** `http://localhost:8000/`
+* **Yönetici Paneli:** `http://localhost:8000/admin/`
 
 ---
 
-## Ortam Dosyası Yönetimi
+## 🧩 Uygulamalar (Apps)
 
-- **Development ortamında:** Sadece `.env` dosyası bulundur.
-- **Production ortamında:** Sadece `.env.production` dosyası bulundur.
-- Her iki dosya da varsa, `.env.production` öncelikli olarak okunur.
-- Ortam değişkeni ayarlamaya gerek yoktur; dosya varlığına göre ortam otomatik belirlenir.
-
----
-
-## Apps
+Proje içerisindeki temel uygulama modülleri ve görevleri:
 
 ### Accounts
-- Kullanıcı yönetimi ve authentication
-- Client, Expert, Admin profilleri
+* **Kullanıcı yönetimi** ve authentication (kimlik doğrulama)
+* Client, Expert, Admin profil tiplerini barındırır
 
 ### Zoom
-- Zoom meeting entegrasyonu
-- Uzmanlar için meeting oluşturma
+* Zoom meeting entegrasyonu
+* Uzmanlar için dinamik **meeting oluşturma** ve yönetimi
 
 ### Appointments
-- Randevu yönetimi sistemi
-- Client-Expert randevu takibi
+* **Randevu yönetim** sistemi
+* Client ve Expert arasındaki randevu takibi ve durumu yönetimi
 
 ### Forms
-- Dinamik form sistemi
-- Farklı soru tipleri (text, test, çok seçimli)
-- Authentication korumalı API endpoints
+* **Dinamik form** oluşturma ve işleme sistemi
+* Farklı soru tipleri (text, test, çok seçimli vb.)
+* Authentication korumalı **API endpoints** (uç noktalar)
 
 ### Availability
-- Kullanıcıların haftalık ve istisnai müsaitlik durumları
-- İstisnai müsaitlik -> Ekstra / İptal
-
-## Ekstra Notlar
-
-- `.env` ve `.env.production` dosyalarını asla git'e ekleme! (Zaten .gitignore'da olmalı)
-- Migration ve collectstatic işlemlerini production deploy öncesi mutlaka yap.
-- Sorun yaşarsan veya özel bir servis dosyası (systemd, pm2, vs.) örneği istersen, README'yi güncelleyebilirsin. 
+* Kullanıcıların (özellikle Expert'lerin) haftalık düzenli **müsaitlik durumlarının** yönetimi
+* **İstisnai müsaitlik** durumlarının (ekstra mesai veya iptal edilen zaman dilimleri) yönetimi
