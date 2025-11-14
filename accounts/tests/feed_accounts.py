@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Database seeding script for accounts app
 Run this script after migrations to populate initial data
@@ -9,6 +8,7 @@ Kullanım:
 """
 import os
 import sys
+import django
 
 # Script nereden çalıştırılırsa çalışsın, proje kökünü bul
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))  # script dizini
@@ -17,7 +17,6 @@ sys.path.insert(0, BACKEND_DIR)
 
 # Django ayarlarını yükle
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')  # settings.py konumuna göre değiştir
-import django
 django.setup()
 
 # Modelleri import et
@@ -32,6 +31,8 @@ from django.utils.text import slugify
 from django.db.utils import IntegrityError
 import random
 from datetime import date, timedelta
+from PIL import Image
+from io import BytesIO
 
 
 # ==============================================================================
@@ -368,27 +369,52 @@ def seed_client_profiles(count=100):
             print(f"  ❌ Danışan oluşturulurken hata ({email}): {e}")
 
 
-def seed_mock_documents(count=20):
-    """Kullanıcılara örnek belge yüklemesi (mock)"""
-    print("\n-- Mock Document Yükleniyor --")
+def seed_mock_documents_varied(count=150):
+    """
+    Kullanıcılara rastgele tiplerde dokümanlar yükler:
+    - PROFILE_PHOTO -> 32x32 px JPEG
+    - DEGREE / CV / CONSENT_FORM / OTHER -> basit text/pdf dummy dosya
+    Her kullanıcıya 1-3 doküman atanır.
+    """
+    print("\n-- Mock Documents (Çeşitli Tipler) Yükleniyor --")
     users = list(User.objects.all()[:count])
 
+    doc_types = [DocumentType.PROFILE_PHOTO, DocumentType.DEGREE,
+                 DocumentType.CV, DocumentType.CONSENT_FORM, DocumentType.OTHER]
+
     for user in users:
-        # İçerik boş (dummy) ama dosya yolu oluşacak
-        file_content = ContentFile(b"dummy data", name=f"mock_profile_{user.id}.jpg")
+        num_docs = random.randint(1, 3)  # Her kullanıcıya 1-3 doküman
+        chosen_types = random.sample(doc_types, num_docs)
 
-        doc, created = Document.objects.get_or_create(
-            user=user,
-            type=DocumentType.PROFILE_PHOTO,
-            defaults={"file": file_content}
-        )
+        for doc_type in chosen_types:
+            if doc_type == DocumentType.PROFILE_PHOTO:
+                # Profil fotoğrafı (JPEG 32x32)
+                img = Image.new(
+                    "RGB",
+                    (32, 32),
+                    color=(
+                        random.randint(0, 255),
+                        random.randint(0, 255),
+                        random.randint(0, 255)
+                    )
+                )
+                buffer = BytesIO()
+                img.save(buffer, format="JPEG")
+                buffer.seek(0)
+                file_content = ContentFile(buffer.read(), name=f"{doc_type}_{user.id}.jpg")
 
-        if created:
-            print(f"  ✓ Document eklendi: {user.get_full_name()} ({doc.file.name})")
-        else:
-            print(f"  ○ Document zaten mevcut: {user.get_full_name()} ({doc.file.name})")
-            
-            
+            else:
+                # Diğer tipler için basit metin dosyası
+                dummy_text = f"{doc_type} dokümanı: Kullanıcı {user.get_full_name()}"
+                file_content = ContentFile(dummy_text.encode('utf-8'), name=f"{doc_type}_{user.id}.txt")
+                
+            # Document kaydı oluştur veya güncellemeden önce
+            Document.objects.filter(user=user, type=doc_type).delete()
+            doc = Document.objects.create(user=user, type=doc_type, file=file_content)
+
+            print(f"  ✓ Document ({doc_type}) eklendi/güncellendi: {user.get_full_name()} ({doc.file.name})")
+
+
 def main():
     """Ana besleme fonksiyonu"""
     print("🌱 Veritabanı Besleme Başlatılıyor (accounts app)...")
@@ -402,9 +428,9 @@ def main():
 
         # 2. Kullanıcı/Profil modellerini besle
         seed_admin_user()
-        seed_expert_profiles(count=25)  # Uzman sayısını artırdım
-        seed_client_profiles(count=150)  # Danışan sayısını artırdım
-        seed_mock_documents()
+        seed_expert_profiles(count=15)  # Uzman sayısını artırdım
+        seed_client_profiles(count=80)  # Danışan sayısını artırdım
+        seed_mock_documents_varied(count=150)
 
         print("\n" + "=" * 60)
         print("✅ Veritabanı Besleme Başarıyla Tamamlandı!")

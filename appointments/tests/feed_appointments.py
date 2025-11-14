@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Database seeding script for appointments app
 Run this script after migrations to populate initial appointment data
@@ -7,17 +6,18 @@ Run this script after migrations to populate initial appointment data
 import os
 import sys
 import django
-import random
-from datetime import date, time, datetime, timedelta
-from django.utils.text import slugify
 
-# Add the project root to Python path 3. levels up from current file
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Script nereden çalıştırılırsa çalışsın, proje kökünü bul
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))  # script dizini
+BACKEND_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../"))  # 2 seviye yukarı backend
+sys.path.insert(0, BACKEND_DIR)
 
-# Django setup
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')
+# Django ayarlarını yükle
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')  # settings.py konumuna göre değiştir
 django.setup()
 
+import random
+from datetime import date, time, datetime, timedelta
 from appointments.models import Appointment
 from accounts.models import User, UserRole
 
