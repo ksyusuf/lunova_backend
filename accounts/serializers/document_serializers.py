@@ -2,6 +2,7 @@
 
 from rest_framework import serializers
 from accounts.models import Document, DocumentType
+from django.urls import reverse
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -10,25 +11,39 @@ class DocumentSerializer(serializers.ModelSerializer):
     yönetmek için temel serializer.
     """
     
+    file = serializers.FileField(write_only=True, required=True)
     filename = serializers.SerializerMethodField()
+    access_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
         fields = [
-            "id",
+            "uid",
             "type",
-            "file", # burası dosyanın tam dizinini dönüyor. böyle olmamalı. sadece kullanıcı id'si hariç sonrasını dönmeli.
+            "file",
             "filename",
+            "access_url",
             "updated_at",
             "verified",
             'verified_at',
         ]
-        read_only_fields = ["id", "uploaded_at", "verified", "filename",]
+        read_only_fields = ["uploaded_at", "verified", "filename"]
         
+
     def get_filename(self, obj):
-        # obj.file.name -> experts/2/profile_photos/noreply-logo.jpg
-        # split('/') ile sadece son kısmı alıyoruz
-        return obj.file.name.split('/')[-1]
+        if obj.file:  # file None değilse
+            return obj.file.name.split('/')[-1]
+        return None
+    
+    def get_access_url(self, obj):
+        request = self.context.get('request')
+        if request is None:
+            return None
+        # /api/v1/accounts/documents/retrieve/?uid=...&type=...&filename=...
+        return request.build_absolute_uri(
+            reverse("document_retrieve") +
+            f"?uid={obj.uid}&type={obj.type}&filename={self.get_filename(obj)}"
+        )
 
     def validate_type(self, value):
         """
@@ -57,20 +72,26 @@ class DocumentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['request'].user
         doc_type = validated_data.get("type")
+        uploaded_file = validated_data.get("file")
 
-        # Tekil olması gereken belge tipleri
         single_instance_types = [DocumentType.PROFILE_PHOTO]
 
         if doc_type in single_instance_types:
-            existing = Document.objects.filter(user=user, type=doc_type).first()
-            if existing:
-                # Güncelleme mantığı — yeni dosya ile eskisini değiştir
-                # şimdilik sadece profil fotoğrafı için çalışır.
-                existing.file = validated_data.get("file", existing.file)
-                existing.save(update_fields=["file"])
-                return existing
+            document, created = Document.objects.get_or_create(
+                user=user,
+                type=doc_type,
+                defaults={"file": uploaded_file}
+            )
+            if not created and uploaded_file:
+                if document.file:
+                    document.file.delete(save=False)
+                document.file = uploaded_file
+                document.save()
+            return document
 
-        # Çoklu belge türleri için normal create
-        validated_data["user"] = user
-        return super().create(validated_data)
-
+        document = Document.objects.create(
+            user=user,
+            type=doc_type,
+            file=uploaded_file
+        )
+        return document

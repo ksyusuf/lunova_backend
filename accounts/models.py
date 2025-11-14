@@ -2,6 +2,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.core.validators import RegexValidator
+import uuid
 
 
 class UserRole(models.TextChoices):
@@ -230,6 +231,7 @@ def upload_document_path(instance, filename):
 
 class Document(models.Model):
     user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="documents")
+    uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     file = models.FileField(upload_to=upload_document_path)
     type = models.CharField(max_length=32, choices=DocumentType.choices)
     uploaded_at = models.DateTimeField(auto_now_add=True)

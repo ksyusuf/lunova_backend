@@ -33,7 +33,7 @@ if env_file.exists():
     env.read_env(env_file)
     
 MEDIA_ROOT = env.str('MEDIA_ROOT')
-MEDIA_URL = env.str('MEDIA_ROOT')
+MEDIA_URL = env.str('MEDIA_URL')
 
 # 1. Ortam Değişkenlerini Oku
 # Eğer ortam değişkenleri yoksa, varsayılan DB_NAME'i 'Lunova' (PostgreSQL) olarak ayarla.

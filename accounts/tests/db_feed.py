@@ -7,35 +7,32 @@ Kullanım:
 1. Projenizin ana dizininde olduğunuzdan emin olun.
 2. 'python <script_path>/seed_accounts.py' komutunu çalıştırın.
 """
-
 import os
 import sys
+
+# Script nereden çalıştırılırsa çalışsın, proje kökünü bul
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))  # script dizini
+BACKEND_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../"))  # 2 seviye yukarı backend
+sys.path.insert(0, BACKEND_DIR)
+
+# Django ayarlarını yükle
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')  # settings.py konumuna göre değiştir
 import django
-import random
-from datetime import date, timedelta
-from django.utils.text import slugify
-from django.db.utils import IntegrityError
+django.setup()
 
-# Proje kök dizinini Python yoluna ekle (Bu scriptin 3 seviye yukarısı)
-# Varsayım: ProjeKök/apps/accounts/management/commands/seed_accounts.py gibi bir yapıda değil,
-# daha çok ProjeKök/scripts/seed_accounts.py yapısında.
-# Eğer accounts/models.py ile aynı seviyede değilse yolu düzenlemeniz gerekebilir.
-try:
-    # Django ayarlarını yükle
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')  # Proje adınızı kontrol edin
-    django.setup()
-except ImportError:
-    # Eğer django.setup() başarısız olursa, path'i kontrol et
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lunova_backend.settings')  # Proje adınızı kontrol edin
-    django.setup()
-
+# Modelleri import et
 from accounts.models import (
     User, UserRole, ExpertProfile, ClientProfile, AdminProfile,
     Service, AddictionType, University, DegreeLevel, Major,
     Specialization, Language, ApproachMethod, TargetGroup, SessionType,
-    GenderChoices, DocumentType
+    GenderChoices, Document, DocumentType
 )
+from django.core.files.base import ContentFile
+from django.utils.text import slugify
+from django.db.utils import IntegrityError
+import random
+from datetime import date, timedelta
+
 
 # ==============================================================================
 # 1. Sabit Veriler (Dummy Data)
@@ -371,6 +368,27 @@ def seed_client_profiles(count=100):
             print(f"  ❌ Danışan oluşturulurken hata ({email}): {e}")
 
 
+def seed_mock_documents(count=20):
+    """Kullanıcılara örnek belge yüklemesi (mock)"""
+    print("\n-- Mock Document Yükleniyor --")
+    users = list(User.objects.all()[:count])
+
+    for user in users:
+        # İçerik boş (dummy) ama dosya yolu oluşacak
+        file_content = ContentFile(b"dummy data", name=f"mock_profile_{user.id}.jpg")
+
+        doc, created = Document.objects.get_or_create(
+            user=user,
+            type=DocumentType.PROFILE_PHOTO,
+            defaults={"file": file_content}
+        )
+
+        if created:
+            print(f"  ✓ Document eklendi: {user.get_full_name()} ({doc.file.name})")
+        else:
+            print(f"  ○ Document zaten mevcut: {user.get_full_name()} ({doc.file.name})")
+            
+            
 def main():
     """Ana besleme fonksiyonu"""
     print("🌱 Veritabanı Besleme Başlatılıyor (accounts app)...")
@@ -386,6 +404,7 @@ def main():
         seed_admin_user()
         seed_expert_profiles(count=25)  # Uzman sayısını artırdım
         seed_client_profiles(count=150)  # Danışan sayısını artırdım
+        seed_mock_documents()
 
         print("\n" + "=" * 60)
         print("✅ Veritabanı Besleme Başarıyla Tamamlandı!")

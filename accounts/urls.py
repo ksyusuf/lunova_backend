@@ -1,7 +1,7 @@
 from django.urls import path
 from .views.views import ExpertRegisterView, ClientRegisterView, AdminRegisterView, LoginView, LogoutView, MeView, ExpertListView, PasswordResetRequestView, PasswordResetConfirmView
 from .views.profile import ProfileView
-from .views.document_views import DocumentUploadView
+from .views.document_views import DocumentUploadView, DocumentRetrieveView
 
 urlpatterns = [
     path('register/expert/', ExpertRegisterView.as_view(), name='register_expert'),
@@ -14,6 +14,7 @@ urlpatterns = [
     
     path("profile/", ProfileView.as_view(), name="profile"),
     path("documents/upload/", DocumentUploadView.as_view(), name="document_upload"),
+    path("documents/retrieve/", DocumentRetrieveView.as_view(), name="document_retrieve"),
 
     # password reset enpoints
     path('auth/password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),

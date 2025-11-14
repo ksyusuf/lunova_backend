@@ -175,13 +175,13 @@
 							"formdata": [
 								{
 									"key": "type",
-									"value": "profile_photo",
+									"value": "cv",
 									"type": "text"
 								},
 								{
 									"key": "file",
 									"type": "file",
-									"src": "/C:/Users/ksyus/Documents/IS-GUC/Lunova/Site_Dosyalari/Logolar/noreply-logo (1).jpg"
+									"src": []
 								}
 							]
 						},
@@ -201,119 +201,165 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "documents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/accounts/documents/retrieve/?uid=f41987da-dcba-4791-a2b3-a4a8ada56e60&type=profile_photo&filename=mock_profile_2.jpg",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								"retrieve",
+								""
+							],
+							"query": [
+								{
+									"key": "uid",
+									"value": "f41987da-dcba-4791-a2b3-a4a8ada56e60"
+								},
+								{
+									"key": "type",
+									"value": "profile_photo"
+								},
+								{
+									"key": "filename",
+									"value": "mock_profile_2.jpg"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
 		{
-			"name": "register-expert",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"first_name\": \"Yusuf\",\n    \"last_name\": \"Kahraman\",\n    \"email\": \"expert_92@expert.com\",\n    \"password\": \"baris123\",\n    \"password2\": \"baris123\",\n    \"phone_number\": \"05316849781\",\n    \"id_number\": \"15515191332\",\n    \"country\": \"TR\",\n    \"national_id\": \"\",\n    \"university_id\": 1,\n    \"gender\": \"male\",\n    \"birth_date\": \"1990-01-20\"\n}\n",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "Register",
+			"item": [
+				{
+					"name": "register-expert",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Yusuf\",\n    \"last_name\": \"Kahraman\",\n    \"email\": \"expert_92@expert.com\",\n    \"password\": \"baris123\",\n    \"password2\": \"baris123\",\n    \"phone_number\": \"05316849781\",\n    \"id_number\": \"15515191332\",\n    \"country\": \"TR\",\n    \"national_id\": \"\",\n    \"university_id\": 1,\n    \"gender\": \"male\",\n    \"birth_date\": \"1990-01-20\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/register/expert/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"register",
+								"expert",
+								""
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/accounts/register/expert/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"accounts",
-						"register",
-						"expert",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "register-client",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"first_name\": \"Ahmet\",\n  \"last_name\": \"Yılmaz\",\n  \"email\": \"ahmet_2@client.com\",\n  \"password\": \"sifre123\",\n  \"password2\": \"sifre123\",\n  \"phone_number\": \"05321234567\",\n  \"id_number\": \"12945678901\",\n  \"country\": \"TR\",\n  \"national_id\": \"\",\n  \"birth_date\": \"1995-04-12\",\n  \"gender\": \"female\",\n  \"support_goal\": \"Bağımlılık tedavisi görmek istiyorum\",\n  \"received_service_before\": false,\n  \"substances_used\": [1, 2] \n}",
-					"options": {
-						"raw": {
-							"language": "json"
+				{
+					"name": "register-client",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"Ahmet\",\n  \"last_name\": \"Yılmaz\",\n  \"email\": \"ahmet_2@client.com\",\n  \"password\": \"sifre123\",\n  \"password2\": \"sifre123\",\n  \"phone_number\": \"05321234567\",\n  \"id_number\": \"12945678901\",\n  \"country\": \"TR\",\n  \"national_id\": \"\",\n  \"birth_date\": \"1995-04-12\",\n  \"gender\": \"female\",\n  \"support_goal\": \"Bağımlılık tedavisi görmek istiyorum\",\n  \"received_service_before\": false,\n  \"substances_used\": [1, 2] \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/register/client/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"register",
+								"client",
+								""
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/accounts/register/client/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"accounts",
-						"register",
-						"client",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "register-admin",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"first_name\": \"Admin\",\n  \"last_name\": \"User\",\n  \"email\": \"admin@lunova.com\",\n  \"password\": \"Password-123\",\n  \"password2\": \"Password-123\",\n  \"phone_number\": \"05329998877\",\n  \"id_number\": \"98765432109\",\n  \"country\": \"TR\",\n  \"national_id\": \"\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+				{
+					"name": "register-admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"Admin\",\n  \"last_name\": \"User\",\n  \"email\": \"admin@lunova.com\",\n  \"password\": \"Password-123\",\n  \"password2\": \"Password-123\",\n  \"phone_number\": \"05329998877\",\n  \"id_number\": \"98765432109\",\n  \"country\": \"TR\",\n  \"national_id\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/register/admin/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"register",
+								"admin",
+								""
+							]
 						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/accounts/register/admin/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"accounts",
-						"register",
-						"admin",
-						""
-					]
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
 			"name": "login",
