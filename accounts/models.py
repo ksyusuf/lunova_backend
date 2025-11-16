@@ -68,38 +68,6 @@ class User(AbstractUser):
     timezone = models.CharField("Saat Dilimi", max_length=64, default="Europe/Istanbul",
                                 help_text="Kullanıcının varsayılan saat dilimi")
 
-    @property
-    def profile_photo_url(self):
-        """Kullanıcının profil fotoğrafını döndürür. Yüklenmiş yoksa, varsayılan statik URL'yi döndürür.
-           Varsayılan resimlerin kendisi yoksa (404), None döndürülür."""
-
-        # 1. Adım: Yüklenmiş fotoğrafı kontrol et
-        photo_doc = self.documents.filter(type=DocumentType.PROFILE_PHOTO).first()
-        if photo_doc and photo_doc.file:
-            return photo_doc.file.url
-
-        # 2. Adım: Varsayılan fotoğraf mantığı
-
-        # Cinsiyet kodunu al. Eğer null veya boşsa 'neutral' olarak kabul et.
-        gender_code = self.gender if self.gender else 'neutral'
-
-        # Tüm olası durumlar için tanımlı statik yollar.
-        default_photos = {
-            "male": "/static/default_photos/male.png",
-            "female": "/static/default_photos/female.png",
-            "other": "/static/default_photos/neutral.png",
-            "pn2s": "/static/default_photos/neutral.png",
-            "neutral": "/static/default_photos/neutral.png",  # self.gender is None ise
-        }
-
-        # İlgili URL'yi al. Eğer gender_code beklenmedik bir şeyse, yine "neutral" döner.
-        chosen_url = default_photos.get(gender_code, default_photos["neutral"])
-
-        # 3. Adım: Güvenli Dönüş
-        # Eğer chosen_url bir string ise ve boş değilse onu döndür.
-        # Aksi halde (None, veya beklenmedik bir hata sonucu empty string ise) None döndür.
-        return chosen_url if isinstance(chosen_url, str) and chosen_url else None
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'role']
     
