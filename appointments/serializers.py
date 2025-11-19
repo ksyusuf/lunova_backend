@@ -4,6 +4,7 @@ from zoom.services import create_zoom_meeting
 from datetime import datetime
 from django.conf import settings
 from availability.models import WeeklyAvailability, AvailabilityException
+from accounts.models import ExpertProfile
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
@@ -154,7 +155,7 @@ class ClientCreateAppointmentSerializer(serializers.ModelSerializer):
             expert=expert,
             date=appointment_date,
             time=appointment_time,
-            status__in=['pending', 'waiting_approval', 'confirmed'],
+            status='confirmed', # uzmanın onaylanmış randevuları hariç tutulur
             is_deleted=False
         ).exists()
 
@@ -164,24 +165,35 @@ class ClientCreateAppointmentSerializer(serializers.ModelSerializer):
             )
 
         # 2. Client'ın aynı saatte başka randevusu var mı kontrol et
-        client_existing_appointment = Appointment.objects.filter(
+        existing_appointment = Appointment.objects.filter(
             client=user,
             date=appointment_date,
             time=appointment_time,
-            status__in=['pending', 'waiting_approval', 'confirmed'],
             is_deleted=False
-        ).exists()
+        ).first()
 
-        if client_existing_appointment:
-            raise serializers.ValidationError(
-                "Bu tarih ve saatte sizin başka bir randevunuz bulunmaktadır."
-            )
+        if existing_appointment:
+            if existing_appointment.status == 'waiting_approval':
+                raise serializers.ValidationError(
+                    "Bu saat için onay bekleyen bir randevunuz var."
+                )
+            elif existing_appointment.status == 'pending':
+                raise serializers.ValidationError(
+                    "Bu saat için uzman onayı bekleyen başka bir randevunuz bulunuyor."
+                )
+            elif existing_appointment.status == 'confirmed':
+                raise serializers.ValidationError(
+                    "Bu saat için onaylanmış başka bir randevunuz var."
+                )
 
         # 3. Uzmanın weekly availability kontrolü
         day_of_week = appointment_date.weekday()  # 0=Monday, 6=Sunday
 
+        expert_user = ExpertProfile.objects.get(id=expert.id)
+
+        # weeklyAvailability User değil ExpertProfile bekler.
         weekly_available = WeeklyAvailability.objects.filter(
-            expert__user=expert,
+            expert=expert_user,
             day_of_week=day_of_week,
             start_time__lte=appointment_time,
             end_time__gt=appointment_time,  # end_time > appointment_time (çakışmayı önlemek için)

@@ -72,18 +72,40 @@ ABOUT_TEXTS = [
 ]
 
 SERVICE_DATA = [
-    {"name": "Bireysel Danışmanlık", "description": "Birebir psikolojik danışmanlık hizmetleri."},
-    {"name": "Çift Terapisi", "description": "Evlilik ve ilişki sorunlarına yönelik seanslar."},
-    {"name": "Grup Terapisi", "description": "Belirli konular üzerine grup seansları."},
-    {"name": "Supervizyon", "description": "Meslektaşlara yönelik süpervizyon hizmetleri."},
+    {
+        "name": "Bilişsel Terapi",
+        "slug": "bilissel-terapi",
+        "description": "Çok özel bir terapi türü."
+    },
+    {
+        "name": "Bireysel Danışmanlık",
+        "slug": "bireysel-danismanlik",
+        "description": "Birebir psikolojik danışmanlık hizmetleri."
+    },
+    {
+        "name": "Çift Terapisi",
+        "slug": "cift-terapisi",
+        "description": "Evlilik ve ilişki sorunlarına yönelik seanslar."
+    },
+    {
+        "name": "Grup Terapisi",
+        "slug": "grup-terapisi",
+        "description": "Belirli konular üzerine grup seansları."
+    },
+    {
+        "name": "Supervizyon",
+        "slug": "supervizyon",
+        "description": "Meslektaşlara yönelik süpervizyon hizmetleri."
+    },
 ]
 
+
 ADDICTION_TYPE_DATA = [
-    {"name": "Alkol Bağımlılığı", "slug": slugify("Alkol Bağımlılığı")},
-    {"name": "Madde Bağımlılığı", "slug": slugify("Madde Bağımlılığı")},
-    {"name": "Dijital Bağımlılık", "slug": slugify("Dijital Bağımlılık")},
-    {"name": "Kumar Bağımlılığı", "slug": slugify("Kumar Bağımlılığı")},
-    {"name": "Yeme Bozuklukları", "slug": slugify("Yeme Bozuklukları")},
+    {"name": "Alkol Bağımlılığı", "slug": "alkol-bagimliligi"},
+    {"name": "Madde Bağımlılığı", "slug": "madde-bagimliligi"},
+    {"name": "Dijital Bağımlılık", "slug": "dijital-bagimlilik"},
+    {"name": "Kumar Bağımlılığı", "slug": "kumar-bagimliligi"},
+    {"name": "Yeme Bozuklukları", "slug": "yeme-bozukluklari"},
 ]
 
 SUPPORT_GOALS = [
@@ -133,24 +155,21 @@ def seed_core_models():
     print("✨ Yardımcı (İlişkisel) Modeller Besleniyor...")
 
     print("\n-- Service --")
-    safe_seed(Service, SERVICE_DATA, "name", lambda d: {"slug": slugify(d["name"]), "description": d["description"]})
+    safe_seed(Service, SERVICE_DATA, "slug", lambda d: d)
 
     print("\n-- AddictionType --")
 
     # Yeni, daha güvenli veri listesi:
-    ADDICTION_TYPE_DATA = [
-        {"name": name, "slug": slugify(name)}
-        for name in [
-            "Alkol Bağımlılığı",
-            "Madde Bağımlılığı",
-            "Dijital Bağımlılık",
-            "Kumar Bağımlılığı",
-            "Yeme Bozuklukları"
-        ]
+    STATIC_ADDICTION_TYPES = [
+        {"name": "Alkol Bağımlılığı", "slug": "alkol-bagimliligi"},
+        {"name": "Madde Bağımlılığı", "slug": "madde-bagimliligi"},
+        {"name": "Dijital Bağımlılık", "slug": "dijital-bagimlilik"},
+        {"name": "Kumar Bağımlılığı", "slug": "kumar-bagimliligi"},
+        {"name": "Yeme Bozuklukları", "slug": "yeme-bozukluklari"},
     ]
 
     # Tekil alan olarak 'slug'u kullan.
-    safe_seed(AddictionType, ADDICTION_TYPE_DATA, "slug", lambda d: d)
+    safe_seed(AddictionType, STATIC_ADDICTION_TYPES, "slug", lambda d: d)
 
     print("\n-- University --")
     safe_seed(University, UNIVERSITIES_DATA, "name")
