@@ -4,7 +4,7 @@ from zoom.services import create_zoom_meeting
 from datetime import datetime
 from django.conf import settings
 from availability.models import WeeklyAvailability, AvailabilityException
-from accounts.models import ExpertProfile
+from accounts.models import ExpertProfile, User
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
@@ -119,54 +119,68 @@ class ClientCreateAppointmentSerializer(serializers.ModelSerializer):
     expert_name = serializers.CharField(source='expert.get_full_name', read_only=True)
     client_name = serializers.CharField(source='client.get_full_name', read_only=True)
     client = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    expert_user_id = serializers.IntegerField(write_only=True)
     
     class Meta:
         model = Appointment
         fields = [
-            'id', 'expert', 'client', 'expert_name', 'client_name',
+            'id', 'expert', 'expert_user_id', 'client', 'expert_name', 'client_name',
             'date', 'time', 'duration', 'notes', 'status',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['status', 'created_at', 'updated_at']
+        read_only_fields = ['expert', 'status', 'created_at', 'updated_at']
     
     def validate(self, data):
         """
-        Danışan randevu oluştururken gerekli validasyonlar
+        Danışan randevu oluştururken gerekli validasyonlar ve ID/Nesne dönüşümü
         """
-        # Ek güvenlik kontrolü: Sadece danışanlar randevu talebi oluşturabilir
         user = self.context['request'].user
+        
+        # Güvenlik ve Zorunluluk Kontrolleri
         if not hasattr(user, 'role') or user.role != 'client':
             raise serializers.ValidationError("Sadece danışanlar bu şekilde randevu talebi oluşturabilir.")
 
-        # Expert zorunlu
-        if 'expert' not in data:
+        expert_uid = data.get('expert_user_id')
+        if not expert_uid:
             raise serializers.ValidationError("Uzman seçimi zorunludur.")
-
-        # Tarih ve saat zorunlu
+            
         if 'date' not in data or 'time' not in data:
             raise serializers.ValidationError("Tarih ve saat bilgisi zorunludur.")
 
-        expert = data['expert']
         appointment_date = data['date']
         appointment_time = data['time']
 
-        # 1. Uzmanın başka randevusu var mı kontrol et (expert ve client bağımsız)
+        try:
+            # ExpertProfile, User ID ile ilişkili olduğu için çekilir.
+            expert_profile = ExpertProfile.objects.get(user_id=expert_uid)
+        except ExpertProfile.DoesNotExist:
+            raise serializers.ValidationError({"expert_user_id": "Seçilen ID ile eşleşen bir uzman profili bulunamadı."})
+            
+        # --- ADIM 2: User Nesnesini Çekme (Appointment kaydı için zorunlu) ---
+        # Appointment.expert = User nesnesi beklediği için çekilir.
+        try:
+             expert_user_obj = User.objects.get(id=expert_uid)
+        except User.DoesNotExist:
+             raise serializers.ValidationError({"expert_user_id": "Kullanıcı bulunamadı."})
+
+        # --- ADIM 3: Appointment Modeli için User Nesnesini Atama ---
+        data['expert'] = expert_user_obj 
+
+        # 1. Uzmanın başka randevusu var mı kontrol et (Appointment.expert -> User)
         existing_appointment = Appointment.objects.filter(
-            expert=expert,
+            expert_id=expert_uid,
             date=appointment_date,
             time=appointment_time,
-            status='confirmed', # uzmanın onaylanmış randevuları hariç tutulur
+            status='confirmed',
             is_deleted=False
         ).exists()
 
         if existing_appointment:
-            raise serializers.ValidationError(
-                "Bu tarih ve saatte uzmanın başka bir randevusu bulunmaktadır."
-            )
+            raise serializers.ValidationError("Bu tarih ve saatte uzmanın başka bir randevusu bulunmaktadır.")
 
-        # 2. Client'ın aynı saatte başka randevusu var mı kontrol et
+        # 2. Client'ın aynı saatte başka randevusu var mı kontrol et (Appointment.client -> User)
         existing_appointment = Appointment.objects.filter(
-            client=user,
+            client_id=user.id, # En güvenli ve direkt sorgulama yöntemi.
             date=appointment_date,
             time=appointment_time,
             is_deleted=False
@@ -174,61 +188,45 @@ class ClientCreateAppointmentSerializer(serializers.ModelSerializer):
 
         if existing_appointment:
             if existing_appointment.status == 'waiting_approval':
-                raise serializers.ValidationError(
-                    "Bu saat için onay bekleyen bir randevunuz var."
-                )
+                raise serializers.ValidationError("Bu saat için onay bekleyen bir randevunuz var.")
             elif existing_appointment.status == 'pending':
-                raise serializers.ValidationError(
-                    "Bu saat için uzman onayı bekleyen başka bir randevunuz bulunuyor."
-                )
+                raise serializers.ValidationError("Bu saat için uzman onayı bekleyen başka bir randevunuz bulunuyor.")
             elif existing_appointment.status == 'confirmed':
-                raise serializers.ValidationError(
-                    "Bu saat için onaylanmış başka bir randevunuz var."
-                )
+                raise serializers.ValidationError("Bu saat için onaylanmış başka bir randevunuz var.")
 
-        # 3. Uzmanın weekly availability kontrolü
-        day_of_week = appointment_date.weekday()  # 0=Monday, 6=Sunday
+        # 3. Uzmanın weekly availability kontrolü (WeeklyAvailability.expert -> ExpertProfile)
+        day_of_week = appointment_date.weekday()
 
-        expert_user = ExpertProfile.objects.get(id=expert.id)
-
-        # weeklyAvailability User değil ExpertProfile bekler.
+        # ExpertProfile nesnesini (expert_profile) kullanarak sorgu yapıyoruz.
         weekly_available = WeeklyAvailability.objects.filter(
-            expert=expert_user,
+            expert=expert_profile,
             day_of_week=day_of_week,
             start_time__lte=appointment_time,
-            end_time__gt=appointment_time,  # end_time > appointment_time (çakışmayı önlemek için)
+            end_time__gt=appointment_time,
             is_active=True
         ).exists()
 
         if not weekly_available:
-            raise serializers.ValidationError(
-                "Uzman bu tarih ve saatte müsait değildir (haftalık program)."
-            )
+            raise serializers.ValidationError("Uzman bu tarih ve saatte müsait değildir (haftalık program).")
 
-        # 4. Availability exceptions kontrolü
+        # 4. Availability exceptions kontrolü (AvailabilityException.expert -> ExpertProfile)
         # Önce normal tarih için kontrol et
         exception = AvailabilityException.objects.filter(
-            expert__user=expert,
+            expert=expert_profile,
             date=appointment_date,
             exception_type='cancel'
         ).first()
 
         if exception:
-            # İptal exception'ı varsa, saat kontrolü yap
             if (exception.start_time and exception.end_time and
                 exception.start_time <= appointment_time < exception.end_time):
-                raise serializers.ValidationError(
-                    "Uzman bu tarih ve saatte müsait değildir (özel istisna)."
-                )
+                raise serializers.ValidationError("Uzman bu tarih ve saatte müsait değildir (özel istisna).")
             elif not exception.start_time and not exception.end_time:
-                # Tüm gün iptal
-                raise serializers.ValidationError(
-                    "Uzman bu tarihte müsait değildir (özel istisna)."
-                )
+                raise serializers.ValidationError("Uzman bu tarihte müsait değildir (özel istisna).")
 
-        # Tekrarlayan istisnalar için kontrol (her yıl aynı tarih)
+        # Tekrarlayan istisnalar için kontrol
         recurring_exceptions = AvailabilityException.objects.filter(
-            expert__user=expert,
+            expert=expert_profile,
             date__month=appointment_date.month,
             date__day=appointment_date.day,
             is_recurring=True,
@@ -238,13 +236,9 @@ class ClientCreateAppointmentSerializer(serializers.ModelSerializer):
         for rec_exception in recurring_exceptions:
             if (rec_exception.start_time and rec_exception.end_time and
                 rec_exception.start_time <= appointment_time < rec_exception.end_time):
-                raise serializers.ValidationError(
-                    "Uzman bu tarih ve saatte müsait değildir (tekrarlayan istisna)."
-                )
+                raise serializers.ValidationError("Uzman bu tarih ve saatte müsait değildir (tekrarlayan istisna).")
             elif not rec_exception.start_time and not rec_exception.end_time:
-                raise serializers.ValidationError(
-                    "Uzman bu tarihte müsait değildir (tekrarlayan istisna)."
-                )
+                raise serializers.ValidationError("Uzman bu tarihte müsait değildir (tekrarlayan istisna).")
 
         return data
     
@@ -252,12 +246,13 @@ class ClientCreateAppointmentSerializer(serializers.ModelSerializer):
         """
         Danışan randevusu oluştur - waiting_approval durumunda
         """
-        # Danışan randevusu waiting_approval durumunda oluşturulur
+        # Giriş amaçlı kullanılan expert_user_id tamsayısını kaldırıyoruz.
+        validated_data.pop('expert_user_id')
+        
+        # 'expert' anahtarında User nesnesi mevcut.
         validated_data['status'] = 'waiting_approval'
         
         appointment = Appointment.objects.create(**validated_data)
-        
-        # Zoom meeting oluşturulmaz, sadece onaylandığında oluşturulur
         
         return appointment
 
