@@ -198,12 +198,9 @@ class ExpertRegisterSerializer(BaseRegisterSerializer):
     def to_representation(self, instance):
         """Control what gets returned in the response"""
         return {
-            'id': instance.id,
             'email': instance.email,
             'first_name': instance.first_name,
             'last_name': instance.last_name,
-            'role': instance.role,
-            'username': instance.username,
             'message': 'Expert user registered successfully'
         }
 

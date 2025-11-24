@@ -370,12 +370,6 @@ class WeeklyAvailabilityView(generics.GenericAPIView):
             ).data
         }, status=200)
 
-        
-        
-
-
-
-
 
 class AvailabilityExceptionView(generics.GenericAPIView):
     """
@@ -526,7 +520,6 @@ class AvailabilityExceptionView(generics.GenericAPIView):
         }, status=status.HTTP_200_OK)
 
 
-
 class ExpertAvailabilityView(generics.ListAPIView):
     """
     Get expert's availability summary (public access for clients)
@@ -537,7 +530,7 @@ class ExpertAvailabilityView(generics.ListAPIView):
     def get_queryset(self):
         expert_id = self.kwargs.get('expert_id')
         return WeeklyAvailability.objects.filter(
-            expert_id=expert_id,
+            expert__user_id=expert_id,
             is_active=True
         )
 
@@ -551,10 +544,21 @@ class MyAvailabilityView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         user = request.user
 
-        if not hasattr(user, 'expertprofile'):
-            return Response({'error': 'User is not an expert.'}, status=status.HTTP_403_FORBIDDEN)
+        # Check if the user has an expertprofile or clientprofile
+        if hasattr(user, 'expertprofile'):
+            expert = user.expertprofile
+        elif hasattr(user, 'clientprofile'):
+            # For clientprofile, check for expert_id in query params
+            expert_user_id = request.query_params.get('expert_user_id')
+            if not expert_user_id:
+                return Response({'error': 'expert_user_id parametresi gereklidir.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        expert = user.expertprofile
+            try:
+                expert = ExpertProfile.objects.get(user_id=expert_user_id)
+            except ExpertProfile.DoesNotExist:
+                return Response({'error': 'Belirtilen expert_user_id ile eşleşen bir uzman bulunamadı.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'error': 'Kullanıcı bir uzman veya müşteri profiline sahip değil.'}, status=status.HTTP_403_FORBIDDEN)
 
         # Tarih aralığı için parametreleri al
         start_date_str = request.query_params.get('start_date')
@@ -571,11 +575,11 @@ class MyAvailabilityView(generics.GenericAPIView):
                 today = datetime.today().date()
                 start_date = today - timedelta(days=5)
                 end_date = today + timedelta(days=5)
-            
+
             # 2. start_date > end_date kontrolü
             if start_date > end_date:
                 return Response({'error': 'Başlangıç tarihi bitiş tarihinden sonra olamaz.'}, status=status.HTTP_400_BAD_REQUEST)
-                
+
         except ValueError:
             # Tarih formatı hatası
             return Response({'error': 'Tarih formatı YYYY-MM-DD olmalıdır.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -615,11 +619,12 @@ class MyAvailabilityView(generics.GenericAPIView):
             current_date += timedelta(days=1)
 
         return Response({
-            'expert_id': expert.id,
+            'expert_user_id': expert.user.id,
             'start_date': start_date,
             'end_date': end_date,
             'calendar': calendar_data
         }, status=status.HTTP_200_OK)
+
 
 class AvailableExpertsByCategoryView(generics.ListAPIView):
     """
@@ -676,16 +681,49 @@ class AvailableExpertsByCategoryView(generics.ListAPIView):
 
             while current_date <= end_date:
                 day_of_week = current_date.weekday()
-                if weekly_availabilities.filter(day_of_week=day_of_week).exists() and not exceptions.filter(
-                    date=current_date, exception_type='cancel'
-                ).exists():
+                day_avail_list = weekly_availabilities.filter(day_of_week=day_of_week)
+                day_exceptions = exceptions.filter(date=current_date)
+
+                # Günlük uygunlukları kontrol et
+                for slot in day_avail_list:
+                    slot_start = slot.start_time
+                    slot_end = slot.end_time
+
+                    # İptal istisnalarını kontrol et
+                    cancel_exceptions = day_exceptions.filter(exception_type='cancel')
+                    is_fully_cancelled = False
+
+                    for cancel in cancel_exceptions:
+                        cancel_start = cancel.start_time
+                        cancel_end = cancel.end_time
+
+                        # Eğer saat aralığı belirtilmişse, çakışmayı kontrol et
+                        if cancel_start and cancel_end:
+                            if cancel_start <= slot_start and cancel_end >= slot_end:
+                                is_fully_cancelled = True
+                                break
+                        else:
+                            # Saat aralığı belirtilmemişse, tüm günü iptal olarak kabul et
+                            is_fully_cancelled = True
+                            break
+
+                    if not is_fully_cancelled:
+                        has_any_available_day = True
+                        break
+
+                # Ekstra uygunlukları kontrol et
+                add_exceptions = day_exceptions.filter(exception_type='add')
+                if add_exceptions.exists():
                     has_any_available_day = True
+
+                if has_any_available_day:
                     break
+
                 current_date += timedelta(days=1)
 
             if has_any_available_day:
                 results.append({
-                    "expert_id": expert.id,
+                    "expert_user_id": expert.user.id,
                     "name": expert.user.get_full_name(),
                     "photo": expert.photo.url if getattr(expert, 'photo', None) else None,
                     "about": expert.about or "",

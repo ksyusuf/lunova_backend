@@ -4,7 +4,7 @@
 		"name": "Appointments",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/37991120-7e963976-ebb0-4a3e-9379-28d3ffaec134?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-7e963976-ebb0-4a3e-9379-28d3ffaec134?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
@@ -66,7 +66,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"expert\": 2,\n  \"date\": \"2025-08-26\",\n  \"time\": \"15:00:00\",\n  \"duration\": 45,\n  \"notes\": \"Danışan tarafından randevu talebi\"\n}",
+							"raw": "{\n  \"expert_user_id\": 4,\n  \"date\": \"2025-11-26\",\n  \"time\": \"21:00:00\",\n  \"duration\": 50,\n  \"notes\": \"Danışan tarafından randevu talebi\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -266,7 +266,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "/*\nRandevu Listesi Endpoint'i - Tarih Aralığı ve Durum Filtreleme\n\nZorunlu Sorgu Parametreleri:\n\nstart_date: Başlangıç tarihi (YYYY-MM-DD formatında)\nend_date: Bitiş tarihi (YYYY-MM-DD formatında)\n\nİsteğe Bağlı Sorgu Parametreleri:\n\nstatus: Randevu durumuna göre filtrele\nGeçerli değerler: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed\n\nTarih Aralığı Kısıtlamaları:\n- Admin kullanıcılar için maksimum 6 ay\n- Diğer kullanıcılar için maksimum 4 ay\n- start_date, end_date'den büyük olamaz\n\nÖrnekler:\n- Kullanıcının Ekim ayı randevuları: ?start_date=2025-10-01&end_date=2025-10-31\n- Kullanıcının onaylanmış randevuları (Kasım): ?start_date=2025-11-01&end_date=2025-11-30&status=confirmed\n- Kullanıcının bekleyen randevuları (Aralık): ?start_date=2025-12-01&end_date=2025-12-31&status=pending\n\nRol Tabanlı Erişim:\n- Tüm kullanıcılar sadece kendi randevularını görebilir (uzman veya danışan olarak)\n- Admin kullanıcılar daha geniş tarih aralığı kullanabilir\n\nNot: start_date ve end_date parametreleri zorunludur.\n*/",
+					"raw": "/*\nRandevu Listesi Endpoint'i - Tarih Aralığı ve Durum Filtreleme\n\nZorunlu Sorgu Parametreleri:\n\nstart_date: Başlangıç tarihi (YYYY-MM-DD formatında)\nend_date: Bitiş tarihi (YYYY-MM-DD formatında)\n\nİsteğe Bağlı Sorgu Parametreleri:\n\nstatus: Randevu durumuna göre filtrele\nGeçerli değerler: pending, waiting_approval, confirmed, cancel_requested, cancelled, completed\n\nTarih Aralığı Kısıtlamaları:\n- Admin kullanıcılar için maksimum 6 ay\n- Diğer kullanıcılar için maksimum 4 ay\n- start_date, end_date'den büyük olamaz\n\nÖrnekler:\n- Kullanıcının Ekim ayı randevuları: ?start_date=2025-10-01&end_date=2025-10-31\n- Kullanıcının onaylanmış randevuları (Kasım): ?start_date=2025-11-01&end_date=2025-11-30&status=confirmed\n- Kullanıcının bekleyen randevuları (Aralık): ?start_date=2025-12-01&end_date=2025-12-31&status=pending\n\nRol Tabanlı Erişim:\n- Tüm kullanıcılar sadece kendi randevularını görebilir (uzman veya danışan olarak)\n- Admin kullanıcılar daha geniş tarih aralığı kullanabilir\n*/",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -274,7 +274,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/api/v1/appointments/?end_date=2025-10-31&start_date=2025-08-01",
+					"raw": "{{base_url}}/api/v1/appointments/?end_date=2025-12-10&start_date=2025-10-10",
 					"host": [
 						"{{base_url}}"
 					],
@@ -287,7 +287,7 @@
 					"query": [
 						{
 							"key": "end_date",
-							"value": "2025-10-31",
+							"value": "2025-12-10",
 							"description": "Bitiş tarihi (YYYY-MM-DD) - zorunlu"
 						},
 						{
@@ -328,7 +328,7 @@
 						},
 						{
 							"key": "start_date",
-							"value": "2025-08-01"
+							"value": "2025-10-10"
 						}
 					]
 				}

@@ -48,12 +48,24 @@
 					"response": []
 				},
 				{
-					"name": "Uzman Takvimi (Public)",
+					"name": "Uzman Müsaitliği",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "/*\r\n\r\nbu endpointe istek atarken\r\n\r\nexpert kullanıcısı expert_id göndermez.\r\nclient kullanıcısı expert_id gönderir.\r\n\r\n*/",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/availability/expert/{{expert_id}}/",
+							"raw": "{{base_url}}/api/v1/availability/?expert_user_id={{expert_user_id}}&start_date={{start_date}}&end_date={{end_date}}",
 							"host": [
 								"{{base_url}}"
 							],
@@ -61,12 +73,25 @@
 								"api",
 								"v1",
 								"availability",
-								"expert",
-								"{{expert_id}}",
 								""
+							],
+							"query": [
+								{
+									"key": "expert_user_id",
+									"value": "{{expert_user_id}}",
+									"description": "Yalnızca Client kullanıcıları"
+								},
+								{
+									"key": "start_date",
+									"value": "{{start_date}}"
+								},
+								{
+									"key": "end_date",
+									"value": "{{end_date}}"
+								}
 							]
 						},
-						"description": "Bir uzmanın haftalık uygunluk özetini döndürür (client erişimi)."
+						"description": "Uzmanın haftalık ve istisnai müsaitlik bilgisi."
 					},
 					"response": []
 				}
@@ -249,11 +274,23 @@
 				},
 				{
 					"name": "Birleşik Takvimim (Weekly + Exceptions)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "/*\r\n\r\nbu endpointe istek atarken\r\n\r\nexpert kullanıcısı expert_id göndermez.\r\nclient kullanıcısı expert_id gönderir.\r\n\r\n*/",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/availability/",
+							"raw": "{{base_url}}/api/v1/availability/?start_date={{start_date}}&end_date={{end_date}}",
 							"host": [
 								"{{base_url}}"
 							],
@@ -266,13 +303,11 @@
 							"query": [
 								{
 									"key": "start_date",
-									"value": "{{start_date}}",
-									"disabled": true
+									"value": "{{start_date}}"
 								},
 								{
 									"key": "end_date",
-									"value": "{{end_date}}",
-									"disabled": true
+									"value": "{{end_date}}"
 								}
 							]
 						},
