@@ -9,6 +9,9 @@ class Form(models.Model):
     is_active = models.BooleanField(default=True, verbose_name="Aktif mi?")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturulma Tarihi")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Güncellenme Tarihi")
+    instructions = models.TextField(blank=True, verbose_name="Talimatlar")
+    disclaimer = models.TextField(blank=True, verbose_name="Etik Hatırlatma")
+    stage = models.PositiveIntegerField(default=1, verbose_name="Aşama")
     
     class Meta:
         verbose_name = "Form"
@@ -32,6 +35,10 @@ class Question(models.Model):
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, verbose_name="Soru Tipi")
     order = models.PositiveIntegerField(default=0, verbose_name="Sıra")
     is_required = models.BooleanField(default=True, verbose_name="Zorunlu mu?")
+    score_weight = models.FloatField(default=1.0, verbose_name="Puan Ağırlığı")
+    next_question = models.ForeignKey(
+        'self', null=True, blank=True, on_delete=models.SET_NULL, verbose_name="Sonraki Soru"
+    )
     
     class Meta:
         verbose_name = "Soru"
@@ -62,6 +69,8 @@ class FormResponse(models.Model):
     form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='responses', verbose_name="Form")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Kullanıcı")
     submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="Gönderilme Tarihi")
+    total_score = models.FloatField(default=0.0, verbose_name="Toplam Puan")
+    risk_level = models.CharField(max_length=50, blank=True, verbose_name="Risk Seviyesi")
     
     class Meta:
         verbose_name = "Form Cevabı"

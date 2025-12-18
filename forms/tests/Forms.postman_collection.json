@@ -1,15 +1,55 @@
 {
 	"info": {
-		"_postman_id": "0b8274ef-2737-4e92-a29d-ba251bc7b317",
+		"_postman_id": "5c6d884c-fdbb-4a71-b4ba-c34dc1903a1c",
 		"name": "Forms",
-		"description": "Forms app için API endpoint'leri - Authentication gerekli",
+		"description": "Forms app için API endpoint'leri",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/5310085-0b8274ef-2737-4e92-a29d-ba251bc7b317?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-5c6d884c-fdbb-4a71-b4ba-c34dc1903a1c?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
-			"name": "Get Forms List",
+			"name": "Client",
+			"item": [
+				{
+					"name": "Submit Form",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"form_id\": 1,\n    \"answers\": [\n        {\n            \"question_id\": 1,\n            \"text_answer\": \"Baş ağrısı\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/forms/submit/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								"submit",
+								""
+							]
+						},
+						"description": "Form cevaplarını gönderir."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Forms List",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -28,12 +68,12 @@
 						""
 					]
 				},
-				"description": "Aktif formların listesini getirir. Authentication gerekli."
+				"description": "Aktif formların listesini getirir."
 			},
 			"response": []
 		},
 		{
-			"name": "Get Form Detail",
+			"name": "Form Detail",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -53,47 +93,12 @@
 						""
 					]
 				},
-				"description": "Belirli bir formun detaylarını ve sorularını getirir. Authentication gerekli."
+				"description": "Belirli bir formun detaylarını getirir."
 			},
 			"response": []
 		},
 		{
-			"name": "Submit Form",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"form_id\": 1,\n    \"answers\": [\n        {\n            \"question_id\": 1,\n            \"text_answer\": \"Baş ağrısı ve mide bulantısı yaşıyorum\"\n        },\n        {\n            \"question_id\": 2,\n            \"selected_option_ids\": [3]\n        },\n        {\n            \"question_id\": 3,\n            \"selected_option_ids\": [6, 9, 10]\n        },\n        {\n            \"question_id\": 4,\n            \"text_answer\": \"Evet, 2 yıl önce benzer şikayetlerim vardı. Ağrı kesici ile tedavi edildi.\"\n        }\n    ]\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/forms/submit/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"forms",
-						"submit",
-						""
-					]
-				},
-				"description": "Form cevaplarını gönderir. Authentication gerekli. Bir kullanıcı bir formu sadece bir kez doldurabilir."
-			},
-			"response": []
-		},
-		{
-			"name": "Get User Responses",
+			"name": "User Responses",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -113,12 +118,12 @@
 						""
 					]
 				},
-				"description": "Kullanıcının doldurduğu formları getirir. Authentication gerekli."
+				"description": "Kullanıcının doldurduğu formları getirir."
 			},
 			"response": []
 		},
 		{
-			"name": "Get Form Response Detail",
+			"name": "Form Response Detail",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -126,7 +131,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/forms/responses/{{form_id}}/",
+					"raw": "{{base_url}}/api/v1/forms/responses/{{response_id}}/",
 					"host": [
 						"{{base_url}}"
 					],
@@ -135,46 +140,19 @@
 						"v1",
 						"forms",
 						"responses",
-						"{{form_id}}",
+						"{{response_id}}",
 						""
 					]
 				},
-				"description": "Belirli bir form cevabının detaylarını getirir. Authentication gerekli. Sadece kendi cevaplarını görüntüleyebilir."
+				"description": "Belirli bir form cevabının detaylarını getirir."
 			},
 			"response": []
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"requests": {},
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"requests": {},
-				"exec": [
-					""
-				]
-			}
 		}
 	],
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8000"
-		},
-		{
-			"key": "form_id",
-			"value": "",
-			"type": "default"
+			"value": "http://127.0.0.1:8000"
 		}
 	]
 }

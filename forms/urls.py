@@ -1,21 +1,16 @@
-from django.urls import path
-from . import views
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import (
+    FormListView, FormDetailView, FormSubmitView, UserResponsesView, FormResponseDetailView
+)
 
 app_name = 'forms'
 
 urlpatterns = [
-    # Form listesi
-    path('', views.get_forms_list, name='forms_list'),
-    
-    # Form detayı
-    path('<int:form_id>/', views.get_form_detail, name='form_detail'),
-    
-    # Form gönderimi
-    path('submit/', views.submit_form, name='submit_form'),
-    
-    # Kullanıcı cevapları
-    path('my-responses/', views.get_user_responses, name='user_responses'),
-    
-    # Cevap detayı
-    path('responses/<int:response_id>/', views.get_form_response_detail, name='response_detail'),
+    # Client endpoints
+    path('', FormListView.as_view(), name='forms_list'),
+    path('<int:form_id>/', FormDetailView.as_view(), name='form_detail'),
+    path('submit/', FormSubmitView.as_view(), name='submit_form'),
+    path('my-responses/', UserResponsesView.as_view(), name='user_responses'),
+    path('responses/<int:response_id>/', FormResponseDetailView.as_view(), name='response_detail'),
 ]

@@ -33,7 +33,7 @@ class FormListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Form
-        fields = ['id', 'title', 'description', 'is_active', 'created_at']
+        fields = '__all__'
 
 
 class AnswerSubmitSerializer(serializers.Serializer):
@@ -139,3 +139,15 @@ class FormResponseSerializer(serializers.ModelSerializer):
             answers.append(answer_data)
         
         return answers
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = '__all__'
+
+
+class QuestionOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuestionOption
+        fields = '__all__'
