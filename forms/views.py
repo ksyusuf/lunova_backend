@@ -49,34 +49,64 @@ class FormDetailView(APIView):
         for question in response_data['questions']:
             options_qs = QuestionOption.objects.filter(question_id=question['id'])
             option_serializer = QuestionOptionSerializer(options_qs, many=True)
-            # keep raw options for compatibility
-            question['options'] = option_serializer.data
 
-            # Build a `possible_answers` field depending on question type:
+            # Always communicate allowed answers via `options`.
+            # For choice-based questions this is the DB-driven option list.
+            # For open-ended questions we return a single option describing the expected input.
             q_type = question.get('question_type')
-            if q_type == 'multiple_choice':
-                # return option id + text for clients to render checkboxes/radios
-                question['possible_answers'] = [
-                    {'id': opt.get('id'), 'text': opt.get('option_text')}
-                    for opt in option_serializer.data
-                ]
-            elif q_type == 'test':
-                # If explicit options exist (e.g. A/B/C/D), return them; otherwise
-                # provide a default binary mapping (Evet/Hayır) commonly used in tests.
-                if option_serializer.data:
-                    question['possible_answers'] = [
-                        {'id': opt.get('id'), 'text': opt.get('option_text')}
-                        for opt in option_serializer.data
+            options_data = option_serializer.data
+
+            if q_type in {'single_choice', 'multiple_choice', 'yes_no', 'test'}:
+                if q_type == 'yes_no' and not options_data:
+                    # Fallback to a standard yes/no mapping if DB options are missing.
+                    question['options'] = [
+                        {'value': 1, 'text': 'Evet'},
+                        {'value': 0, 'text': 'Hayır'},
                     ]
                 else:
-                    question['possible_answers'] = [
-                        {'value': 1, 'label': 'Evet'},
-                        {'value': 0, 'label': 'Hayır'}
+                    question['options'] = options_data
+
+            elif q_type == 'scale':
+                scale_labels = question.get('scale_labels') or {}
+                if isinstance(scale_labels, dict) and scale_labels:
+                    def _key(item):
+                        try:
+                            return float(item[0])
+                        except Exception:
+                            return item[0]
+
+                    question['options'] = [
+                        {'value': float(k) if str(k).replace('.', '', 1).isdigit() else k, 'text': v}
+                        for k, v in sorted(scale_labels.items(), key=_key)
                     ]
-            else:  # text or other open types
-                # For text fields we provide a hint so the client knows free text is expected
-                question['possible_answers'] = [
-                    {'type': 'text', 'placeholder': question.get('placeholder', 'Cevabınızı yazınız...')}
+                else:
+                    question['options'] = [
+                        {
+                            'type': 'scale',
+                            'min': question.get('min_scale_value', 0),
+                            'max': question.get('max_scale_value', 4),
+                            'step': 1,
+                        }
+                    ]
+
+            elif q_type == 'number':
+                question['options'] = [
+                    {'type': 'number'}
+                ]
+
+            elif q_type == 'date':
+                question['options'] = [
+                    {'type': 'date', 'format': 'YYYY-MM-DD'}
+                ]
+
+            elif q_type == 'textarea':
+                question['options'] = [
+                    {'type': 'textarea', 'placeholder': 'Cevabınızı yazınız...'}
+                ]
+
+            else:  # text and any other open types
+                question['options'] = [
+                    {'type': 'text', 'placeholder': 'Cevabınızı yazınız...'}
                 ]
 
         return Response(response_data)
