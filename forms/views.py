@@ -1,190 +1,235 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from rest_framework import status
+from django.shortcuts import get_object_or_404
+
+from accounts.models import UserRole, ClientProfile, ExpertProfile
 from .models import Form, FormResponse, Answer, Question, QuestionOption
 from .serializers import (
-    FormSerializer, FormListSerializer, FormSubmitSerializer, 
-    FormResponseSerializer, QuestionSerializer, QuestionOptionSerializer
+    FormSerializer,
+    FormListSerializer,
+    FormSubmitSerializer,
+    QuestionSerializer,
+    QuestionOptionSerializer,
+    FormResponseClientSummarySerializer,
+    FormResponseExpertSummarySerializer,
+    FormResponseClientDetailSerializer,
+    FormResponseExpertDetailSerializer,
 )
+
+# --------------------------------------------------
+# Public / authenticated
+# --------------------------------------------------
 
 class FormListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """
-        Aktif formların listesini getir
-        - Admin kullanıcılar tüm formları görebilir.
-        - Diğer kullanıcılar yalnızca aktif formları görebilir.
-        """
-        if request.user.is_staff:  # Admin kullanıcılar
+        if request.user.is_staff:
             forms = Form.objects.all()
-        else:  # Normal kullanıcılar
+        else:
             forms = Form.objects.filter(is_active=True)
 
         serializer = FormListSerializer(forms, many=True)
         return Response(serializer.data)
 
+
 class FormDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, form_id):
-        """
-        Belirli bir formun detaylarını, sorularını ve seçeneklerini getir
-        """
         form = get_object_or_404(Form, id=form_id, is_active=True)
-        has_responded = FormResponse.objects.filter(form=form, user=request.user).exists()
+        has_responded = FormResponse.objects.filter(
+            form=form, user=request.user
+        ).exists()
 
-        # Form detaylarını serialize et
-        form_serializer = FormSerializer(form)
-        response_data = form_serializer.data
-        response_data['has_responded'] = has_responded
+        data = FormSerializer(form).data
+        data["has_responded"] = has_responded
 
-        # Soruları ve seçenekleri ekle
         questions = Question.objects.filter(form=form)
-        question_serializer = QuestionSerializer(questions, many=True)
-        response_data['questions'] = question_serializer.data
+        q_data = QuestionSerializer(questions, many=True).data
 
-        for question in response_data['questions']:
-            options_qs = QuestionOption.objects.filter(question_id=question['id'])
-            option_serializer = QuestionOptionSerializer(options_qs, many=True)
+        for q in q_data:
+            options_qs = QuestionOption.objects.filter(question_id=q["id"])
+            options = QuestionOptionSerializer(options_qs, many=True).data
+            q_type = q.get("question_type")
 
-            # Always communicate allowed answers via `options`.
-            # For choice-based questions this is the DB-driven option list.
-            # For open-ended questions we return a single option describing the expected input.
-            q_type = question.get('question_type')
-            options_data = option_serializer.data
+            if q_type in {"single_choice", "multiple_choice", "test"}:
+                q["options"] = options
 
-            if q_type in {'single_choice', 'multiple_choice', 'yes_no', 'test'}:
-                if q_type == 'yes_no' and not options_data:
-                    # Fallback to a standard yes/no mapping if DB options are missing.
-                    question['options'] = [
-                        {'value': 1, 'text': 'Evet'},
-                        {'value': 0, 'text': 'Hayır'},
-                    ]
-                else:
-                    question['options'] = options_data
-
-            elif q_type == 'scale':
-                scale_labels = question.get('scale_labels') or {}
-                if isinstance(scale_labels, dict) and scale_labels:
-                    def _key(item):
-                        try:
-                            return float(item[0])
-                        except Exception:
-                            return item[0]
-
-                    question['options'] = [
-                        {'value': float(k) if str(k).replace('.', '', 1).isdigit() else k, 'text': v}
-                        for k, v in sorted(scale_labels.items(), key=_key)
-                    ]
-                else:
-                    question['options'] = [
-                        {
-                            'type': 'scale',
-                            'min': question.get('min_scale_value', 0),
-                            'max': question.get('max_scale_value', 4),
-                            'step': 1,
-                        }
-                    ]
-
-            elif q_type == 'number':
-                question['options'] = [
-                    {'type': 'number'}
+            elif q_type == "yes_no":
+                q["options"] = options or [
+                    {"value": 1, "text": "Evet"},
+                    {"value": 0, "text": "Hayır"},
                 ]
 
-            elif q_type == 'date':
-                question['options'] = [
-                    {'type': 'date', 'format': 'YYYY-MM-DD'}
+            elif q_type == "scale":
+                q["options"] = [
+                    {
+                        "type": "scale",
+                        "min": q.get("min_scale_value", 0),
+                        "max": q.get("max_scale_value", 4),
+                        "step": 1,
+                    }
                 ]
 
-            elif q_type == 'textarea':
-                question['options'] = [
-                    {'type': 'textarea', 'placeholder': 'Cevabınızı yazınız...'}
-                ]
+            elif q_type == "number":
+                q["options"] = [{"type": "number"}]
 
-            else:  # text and any other open types
-                question['options'] = [
-                    {'type': 'text', 'placeholder': 'Cevabınızı yazınız...'}
-                ]
+            elif q_type == "date":
+                q["options"] = [{"type": "date", "format": "YYYY-MM-DD"}]
 
-        return Response(response_data)
+            elif q_type == "textarea":
+                q["options"] = [{"type": "textarea"}]
+
+            else:
+                q["options"] = [{"type": "text"}]
+
+        data["questions"] = q_data
+        return Response(data)
+
+# --------------------------------------------------
+# Client
+# --------------------------------------------------
 
 class FormSubmitView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        """
-        Form cevaplarını gönder
-        """
         serializer = FormSubmitSerializer(data=request.data)
-        if serializer.is_valid():
-            form_id = serializer.validated_data['form_id']
-            answers_data = serializer.validated_data['answers']
+        serializer.is_valid(raise_exception=True)
 
-            if FormResponse.objects.filter(form_id=form_id, user=request.user).exists():
-                return Response(
-                    {'error': 'Bu formu zaten doldurdunuz'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+        form_id = serializer.validated_data["form_id"]
+        answers = serializer.validated_data["answers"]
 
-            try:
-                form_response = FormResponse.objects.create(
-                    form_id=form_id,
-                    user=request.user
-                )
+        if FormResponse.objects.filter(form_id=form_id, user=request.user).exists():
+            return Response(
+                {"detail": "Bu form zaten dolduruldu."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-                for answer_data in answers_data:
-                    question_id = answer_data['question_id']
-                    text_answer = answer_data.get('text_answer', '')
-                    selected_option_ids = answer_data.get('selected_option_ids', [])
+        response_obj = FormResponse.objects.create(
+            form_id=form_id, user=request.user
+        )
 
-                    answer = Answer.objects.create(
-                        form_response=form_response,
-                        question_id=question_id,
-                        text_answer=text_answer
-                    )
+        for a in answers:
+            answer = Answer.objects.create(
+                form_response=response_obj,
+                question_id=a["question_id"],
+                text_answer=a.get("text_answer", ""),
+            )
+            if a.get("selected_option_ids"):
+                answer.selected_options.set(a["selected_option_ids"])
 
-                    if selected_option_ids:
-                        answer.selected_options.set(selected_option_ids)
+        return Response(
+            {"response_id": response_obj.id},
+            status=status.HTTP_201_CREATED,
+        )
 
-                return Response(
-                    {'message': 'Form başarıyla gönderildi', 'response_id': form_response.id},
-                    status=status.HTTP_201_CREATED
-                )
-
-            except Exception as e:
-                return Response(
-                    {'error': f'Form gönderilirken hata oluştu: {str(e)}'},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserResponsesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """
-        Kullanıcının doldurduğu formları getir
-        """
+        if request.user.role != UserRole.CLIENT:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
         responses = FormResponse.objects.filter(user=request.user)
-        serializer = FormResponseSerializer(responses, many=True)
+        serializer = FormResponseClientSummarySerializer(responses, many=True)
         return Response(serializer.data)
 
-class FormResponseDetailView(APIView):
+
+class UserResponseDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, response_id):
-        """
-        Belirli bir form cevabının detaylarını getir
-        """
-        response = get_object_or_404(FormResponse, id=response_id, user=request.user)
-        serializer = FormResponseSerializer(response)
+        if request.user.role != UserRole.CLIENT:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        response_obj = get_object_or_404(
+            FormResponse, id=response_id, user=request.user
+        )
+        # Client kullanıcılar için detaylı serializer - tüm cevapları içerir
+        serializer = FormResponseClientDetailSerializer(response_obj)
         return Response(serializer.data)
 
-class IsAdminUserPermission(IsAuthenticated):
-    def has_permission(self, request, view):
-        return super().has_permission(request, view) and request.user.role == 'admin'
+# --------------------------------------------------
+# Expert
+# --------------------------------------------------
 
+class FormClientResponsesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, client_id):
+        if request.user.role != UserRole.EXPERT:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        expert = get_object_or_404(ExpertProfile, user=request.user)
+        
+        # client_id hem ClientProfile.id hem de User.id olabilir
+        # Önce ClientProfile.id olarak dene
+        try:
+            client_profile = ClientProfile.objects.get(id=client_id)
+            user_id = client_profile.user_id
+        except ClientProfile.DoesNotExist:
+            # Eğer ClientProfile.id değilse, User.id olarak dene
+            try:
+                client_profile = ClientProfile.objects.get(user_id=client_id)
+                user_id = client_id
+            except ClientProfile.DoesNotExist:
+                return Response(
+                    {"detail": "No ClientProfile matches the given query."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        # Expert kontrolü: eğer client_profile'ın expert'i varsa, mevcut expert ile eşleşmeli
+        if client_profile.expert and client_profile.expert != expert:
+            return Response(
+                {"detail": "Bu danışana erişim yetkiniz yok."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        responses = FormResponse.objects.filter(user_id=user_id)
+        serializer = FormResponseExpertSummarySerializer(responses, many=True)
+        return Response(serializer.data)
+
+
+class FormClientResponseDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, client_id, response_id):
+        if request.user.role != UserRole.EXPERT:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        expert = get_object_or_404(ExpertProfile, user=request.user)
+        
+        # client_id hem ClientProfile.id hem de User.id olabilir
+        # Önce ClientProfile.id olarak dene
+        try:
+            client_profile = ClientProfile.objects.get(id=client_id)
+            user_id = client_profile.user_id
+        except ClientProfile.DoesNotExist:
+            # Eğer ClientProfile.id değilse, User.id olarak dene
+            try:
+                client_profile = ClientProfile.objects.get(user_id=client_id)
+                user_id = client_id
+            except ClientProfile.DoesNotExist:
+                return Response(
+                    {"detail": "No ClientProfile matches the given query."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        # Expert kontrolü: eğer client_profile'ın expert'i varsa, mevcut expert ile eşleşmeli
+        if client_profile.expert and client_profile.expert != expert:
+            return Response(
+                {"detail": "Bu danışana erişim yetkiniz yok."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        response_obj = get_object_or_404(
+            FormResponse, id=response_id, user_id=user_id
+        )
+        # Expert kullanıcılar için detaylı serializer - cevaplar + scoring + interpretation + recommendations
+        serializer = FormResponseExpertDetailSerializer(response_obj)
+        return Response(serializer.data)

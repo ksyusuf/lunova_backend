@@ -1,11 +1,12 @@
 from rest_framework import generics
 from ..serializers.serializers import (ExpertRegisterSerializer,
-                                       ClientRegisterSerializer,
-                                       AdminRegisterSerializer)
+                                      ClientRegisterSerializer,
+                                      AdminRegisterSerializer)
 from ..serializers.serializers import (LoginSerializer,
-                                       PasswordResetRequestSerializer,
-                                       PasswordResetConfirmSerializer,
-                                       ExpertListSerializer)
+                                      PasswordResetRequestSerializer,
+                                      PasswordResetConfirmSerializer,
+                                      ExpertListSerializer,
+                                      ClientListSerializer)
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -20,7 +21,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.contrib.auth.password_validation import validate_password
 from django.db.models import Q
-from ..models import UserRole, ExpertProfile, Document, DocumentType
+from ..models import UserRole, ExpertProfile, ClientProfile, Document, DocumentType
 from accounts.serializers.document_serializers import DocumentSerializer
 
 User = get_user_model()
@@ -232,7 +233,7 @@ class ExpertListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = ExpertProfile.objects.filter(approval_status=True).select_related('user', 'user__gender')
+        queryset = ExpertProfile.objects.filter(approval_status=True).select_related('user')
 
         # Kategori filtresi
         category_slug = self.request.query_params.get('category', None)
@@ -243,6 +244,36 @@ class ExpertListView(generics.ListAPIView):
             ).distinct()
 
         return queryset
+    
+
+class ClientListView(generics.ListAPIView):
+    """
+    GET /accounts/clients/ endpointi danışanları listeler.
+    - Admin kullanıcılar tüm danışanları görebilir
+    - Expert kullanıcılar sadece kendisiyle randevusu olan danışanları görebilir
+    - Client kullanıcılar bu endpoint'e erişemez
+    """
+    serializer_class = ClientListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = ClientProfile.objects.select_related('user', 'expert', 'expert__user').prefetch_related('substances_used')
+
+        # Admin ise tüm client'ları göster
+        if user.role == UserRole.ADMIN:
+            return queryset
+
+        # Expert ise sadece kendisine atanan client'ları göster
+        if user.role == UserRole.EXPERT:
+            try:
+                expert_profile = user.expertprofile
+                return queryset.filter(expert=expert_profile)
+            except ExpertProfile.DoesNotExist:
+                return queryset.none()
+
+        # Client kullanıcılar için boş queryset döndür
+        return queryset.none()
 
 
 class PasswordResetRequestView(APIView):
