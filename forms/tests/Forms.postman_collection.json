@@ -27,7 +27,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"form_id\": 1,\n    \"answers\": [\n        {\n            \"question_id\": 1,\n            \"text_answer\": \"Baş ağrısı\"\n        }\n    ]\n}"
+							"raw": "{\n    \"form_id\": 1,\n    \"user_id\": 123,\n    \"answers\": [\n        {\n            \"question_id\": 1,\n            \"answer\": \"1\" // Binary question: 1 for Yes, 0 for No\n        },\n        {\n            \"question_id\": 2,\n            \"answer\": \"Some text answer\" // Text question: Provide a string response\n        },\n        {\n            \"question_id\": 3,\n            \"selected_options\": [1, 2] // Multiple choice question: Provide an array of selected option IDs\n        }\n    ]\n}\n\n/*\nFor Form 2 (SDS - Esrar Bağımlılık Şiddeti Ölçeği):\n\"form_id\": 2,\n\"answers\": [\n    {\n        \"question_id\": 1,\n        \"answer\": \"Maddeyi bırakmayı düşündüm\" // Text response\n    },\n    {\n        \"question_id\": 2,\n        \"answer\": \"1\" // Binary response\n    }\n]\n*/"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/v1/forms/submit/",
@@ -42,7 +42,7 @@
 								""
 							]
 						},
-						"description": "Form cevaplarını gönderir."
+						"description": "Form cevaplarını gönderir. Bu örnek, 1. form için hazırlanmıştır. Ayrıca, 2. form için yorum satırlarında örnek bir cevaplama gösterilmiştir."
 					},
 					"response": []
 				}

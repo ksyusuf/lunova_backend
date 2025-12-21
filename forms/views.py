@@ -47,9 +47,37 @@ class FormDetailView(APIView):
         response_data['questions'] = question_serializer.data
 
         for question in response_data['questions']:
-            options = QuestionOption.objects.filter(question_id=question['id'])
-            option_serializer = QuestionOptionSerializer(options, many=True)
+            options_qs = QuestionOption.objects.filter(question_id=question['id'])
+            option_serializer = QuestionOptionSerializer(options_qs, many=True)
+            # keep raw options for compatibility
             question['options'] = option_serializer.data
+
+            # Build a `possible_answers` field depending on question type:
+            q_type = question.get('question_type')
+            if q_type == 'multiple_choice':
+                # return option id + text for clients to render checkboxes/radios
+                question['possible_answers'] = [
+                    {'id': opt.get('id'), 'text': opt.get('option_text')}
+                    for opt in option_serializer.data
+                ]
+            elif q_type == 'test':
+                # If explicit options exist (e.g. A/B/C/D), return them; otherwise
+                # provide a default binary mapping (Evet/Hayır) commonly used in tests.
+                if option_serializer.data:
+                    question['possible_answers'] = [
+                        {'id': opt.get('id'), 'text': opt.get('option_text')}
+                        for opt in option_serializer.data
+                    ]
+                else:
+                    question['possible_answers'] = [
+                        {'value': 1, 'label': 'Evet'},
+                        {'value': 0, 'label': 'Hayır'}
+                    ]
+            else:  # text or other open types
+                # For text fields we provide a hint so the client knows free text is expected
+                question['possible_answers'] = [
+                    {'type': 'text', 'placeholder': question.get('placeholder', 'Cevabınızı yazınız...')}
+                ]
 
         return Response(response_data)
 
