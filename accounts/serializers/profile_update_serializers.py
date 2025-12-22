@@ -82,7 +82,7 @@ class ExpertProfileUpdateSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
-        user_data = validated_data.pop('user_data', None)
+        user_data = validated_data.pop('user', None)
         user_instance = instance.user
 
         if user_data is not None:
@@ -134,7 +134,7 @@ class ClientProfileUpdateSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
-        user_data = validated_data.pop('user_data', None)
+        user_data = validated_data.pop('user', None) 
         user_instance = instance.user
 
         if user_data is not None:
