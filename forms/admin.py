@@ -1,95 +1,88 @@
 from django.contrib import admin
-from .models import Form, Question, QuestionOption, FormResponse, Answer
+from .models import Form, Question, QuestionOption, FormResponse, Answer, RiskLevelMapping
 
+# --- INLINES ---
 
 class QuestionOptionInline(admin.TabularInline):
-    """Soru seçenekleri için inline admin"""
+    """Adminler seçenekleri ve puan değerlerini yönetebilir."""
     model = QuestionOption
     extra = 1
     ordering = ['order']
-
+    fields = ('option_text', 'score_value', 'is_correct', 'order')
 
 class QuestionInline(admin.TabularInline):
-    """Sorular için inline admin"""
+    """Adminler form altındaki soruları yönetebilir."""
     model = Question
     extra = 1
     ordering = ['order']
-    inlines = [QuestionOptionInline]
+    fields = ('question_text', 'question_type', 'order', 'is_required')
 
-
-class AnswerInline(admin.TabularInline):
-    """Cevaplar için inline admin"""
-    model = Answer
-    extra = 0
-    readonly_fields = ['question', 'text_answer', 'selected_options']
-    
-    def has_add_permission(self, request, obj=None):
-        return False
-
+# --- ADMIN CLASSES ---
 
 @admin.register(Form)
 class FormAdmin(admin.ModelAdmin):
-    """Form admin paneli"""
-    list_display = ['title', 'is_active', 'created_at', 'question_count']
-    list_filter = ['is_active', 'created_at']
-    search_fields = ['title', 'description']
-    readonly_fields = ['created_at', 'updated_at']
+    """
+    Adminler form başlıklarını, açıklamalarını ve genel ayarlarını yönetir.
+    """
+    list_display = ['title', 'scoring_type', 'stage', 'is_active']
+    list_filter = ['scoring_type', 'is_active', 'stage']
+    search_fields = ['title']
     inlines = [QuestionInline]
-    
-    def question_count(self, obj):
-        return obj.questions.count()
-    question_count.short_description = 'Soru Sayısı'
-
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    """Soru admin paneli"""
-    list_display = ['question_text', 'form', 'question_type', 'order', 'is_required']
-    list_filter = ['question_type', 'is_required', 'form']
-    search_fields = ['question_text', 'form__title']
-    ordering = ['form', 'order']
+    """
+    Soru bazlı CRUD işlemleri yapılabilir.
+    """
+    list_display = ['question_text', 'form', 'question_type', 'order']
+    list_filter = ['form', 'question_type']
+    search_fields = ['question_text']
     inlines = [QuestionOptionInline]
-
 
 @admin.register(QuestionOption)
 class QuestionOptionAdmin(admin.ModelAdmin):
-    """Soru seçeneği admin paneli"""
-    list_display = ['option_text', 'question', 'order']
-    list_filter = ['question__form', 'question__question_type']
-    search_fields = ['option_text', 'question__question_text']
-    ordering = ['question', 'order']
+    """
+    Seçenek bazlı CRUD işlemleri yapılabilir.
+    """
+    list_display = ['option_text', 'question', 'score_value', 'order']
+    list_filter = ['question__form']
 
+@admin.register(RiskLevelMapping)
+class RiskLevelMappingAdmin(admin.ModelAdmin):
+    """
+    Adminler hangi puan aralığının hangi riske denk geleceğini (formülleri) yönetebilir.
+    Ancak bu eşleşmenin kime çarptığını göremezler.
+    """
+    list_display = ['form_type', 'min_score', 'max_score', 'risk_level', 'is_active']
+    list_filter = ['form_type', 'is_active']
+
+# --- GİZLİLİK KRİTİK ALANLAR (CEVAPLAR VE SONUÇLAR) ---
 
 @admin.register(FormResponse)
 class FormResponseAdmin(admin.ModelAdmin):
-    """Form cevabı admin paneli"""
-    list_display = ['user', 'form', 'submitted_at']
-    list_filter = ['submitted_at', 'form']
+    """
+    Admin sadece formun doldurulduğu bilgisini görür. 
+    Puan, Risk Seviyesi, Yorum gibi alanlar tamamen gizlendi.
+    """
+    list_display = ['user', 'form', 'submitted_at'] # total_score ve risk_level ÇIKARILDI
+    list_filter = ['form', 'submitted_at']
     search_fields = ['user__username', 'form__title']
-    readonly_fields = ['submitted_at']
-    inlines = [AnswerInline]
+    
+    # Detay sayfasında sadece kimin ne zaman doldurduğu görünür.
+    fields = ['user', 'form', 'submitted_at']
+    readonly_fields = ['user', 'form', 'submitted_at']
 
+    def has_add_permission(self, request): return False
+    def has_change_permission(self, request, obj=None): return False
 
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
-    """Cevap admin paneli"""
-    list_display = ['form_response', 'question', 'answer_summary']
-    list_filter = ['question__question_type', 'question__form']
-    search_fields = ['question__question_text', 'form_response__user__username']
-    readonly_fields = ['form_response', 'question', 'text_answer', 'selected_options']
-    
-    def answer_summary(self, obj):
-        if obj.text_answer:
-            return obj.text_answer[:50] + "..." if len(obj.text_answer) > 50 else obj.text_answer
-        elif obj.selected_options.exists():
-            options = [opt.option_text for opt in obj.selected_options.all()]
-            return ", ".join(options)
-        return "Cevap yok"
-    
-    answer_summary.short_description = 'Cevap Özeti'
-    
-    def has_add_permission(self, request, obj=None):
+    """
+    Cevaplar tablosu admin panelinde hiç görünmez. 
+    Bireysel cevaplar üzerinde CRUD yapılamaz, admin erişemez.
+    """
+    def has_module_permission(self, request):
         return False
-    
-    def has_change_permission(self, request, obj=None):
+
+    def has_view_permission(self, request, obj=None):
         return False

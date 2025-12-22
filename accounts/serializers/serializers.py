@@ -58,7 +58,7 @@ class ExpertListSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email', read_only=True)
     phone_number = serializers.CharField(source='user.phone_number', read_only=True)
     profile_photo = serializers.ImageField(source='user.profile_photo', read_only=True)
-    gender = serializers.CharField(source='user.gender.name', read_only=True)
+    gender = serializers.CharField(source='user.gender', read_only=True)
     services = serializers.SerializerMethodField()
 
     class Meta:
@@ -252,6 +252,38 @@ class ClientRegisterSerializer(BaseRegisterSerializer):
             'message': 'Client user registered successfully'
         }
 
+class ClientListSerializer(serializers.ModelSerializer):
+    """Simplified serializer for client listing with basic profile info"""
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    phone_number = serializers.CharField(source='user.phone_number', read_only=True)
+    profile_photo = serializers.ImageField(source='user.profile_photo', read_only=True)
+    gender = serializers.CharField(source='user.gender', read_only=True)
+    substances_used = serializers.SerializerMethodField()
+    birth_date = serializers.DateField(source='user.birth_date', read_only=True)
+
+    class Meta:
+        model = ClientProfile
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+            'profile_photo',
+            'gender',
+            'birth_date',
+            'substances_used',
+            'support_goal',
+            'received_service_before',
+            'onboarding_complete',
+            'is_active_in_treatment',
+        ]
+
+    def get_substances_used(self, obj):
+        """Return list of addiction type names"""
+        return [addiction.name for addiction in obj.substances_used.all()]
 
 # -----------------------------
 # Admin Register Serializer

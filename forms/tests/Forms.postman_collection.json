@@ -1,180 +1,215 @@
 {
 	"info": {
-		"_postman_id": "0b8274ef-2737-4e92-a29d-ba251bc7b317",
+		"_postman_id": "5a809253-0461-4496-961d-0efbb59c1b07",
 		"name": "Forms",
-		"description": "Forms app için API endpoint'leri - Authentication gerekli",
+		"description": "Forms app için RESTful API endpoint'leri (Client / Expert)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/64ed6f43-4915-46ce-87d1-d18eb0f111d0/collection/5310085-0b8274ef-2737-4e92-a29d-ba251bc7b317?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-5a809253-0461-4496-961d-0efbb59c1b07?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
-			"name": "Get Forms List",
-			"request": {
-				"auth": {
-					"type": "noauth"
+			"name": "Forms (Public)",
+			"item": [
+				{
+					"name": "Forms List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/forms/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								""
+							]
+						},
+						"description": "Aktif formların listesini döndürür (admin kullanıcılar için tüm formlar)."
+					},
+					"response": []
 				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/v1/forms/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"forms",
-						""
-					]
-				},
-				"description": "Aktif formların listesini getirir. Authentication gerekli."
-			},
-			"response": []
+				{
+					"name": "Form Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/forms/{{form_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								"{{form_id}}",
+								""
+							]
+						},
+						"description": "Belirli bir formun detaylarını ve sorularını döndürür."
+					},
+					"response": []
+				}
+			]
 		},
 		{
-			"name": "Get Form Detail",
-			"request": {
-				"auth": {
-					"type": "noauth"
+			"name": "Client",
+			"item": [
+				{
+					"name": "Submit Form",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"form_id\": 1,\n  \"answers\": [\n    {\n      \"question_id\": 1,\n      \"text_answer\": \"1\"\n    },\n    {\n      \"question_id\": 2,\n      \"text_answer\": \"Some text answer\"\n    },\n    {\n      \"question_id\": 3,\n      \"selected_option_ids\": [1, 2]\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/forms/submit/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								"submit",
+								""
+							]
+						},
+						"description": "Kullanıcının bir formu doldurup göndermesini sağlar ve form cevabını kaydeder."
+					},
+					"response": []
 				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/v1/forms/{{form_id}}/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"forms",
-						"{{form_id}}",
-						""
-					]
+				{
+					"name": "My Form Responses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/forms/me/form-responses/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								"me",
+								"form-responses",
+								""
+							]
+						},
+						"description": "Kullanıcının kendi form cevaplarının özet listesini döndürür (sadece client kullanıcılar için)."
+					},
+					"response": []
 				},
-				"description": "Belirli bir formun detaylarını ve sorularını getirir. Authentication gerekli."
-			},
-			"response": []
+				{
+					"name": "My Form Response Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/forms/me/form-responses/{{response_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								"me",
+								"form-responses",
+								"{{response_id}}",
+								""
+							]
+						},
+						"description": "Kullanıcının belirli bir form cevabının detaylarını ve tüm cevaplarını döndürür (sadece client kullanıcılar için)."
+					},
+					"response": []
+				}
+			]
 		},
 		{
-			"name": "Submit Form",
-			"request": {
-				"auth": {
-					"type": "noauth"
+			"name": "Expert",
+			"item": [
+				{
+					"name": "Client Form Responses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/forms/clients/{{client_id}}/form-responses/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								"clients",
+								"{{client_id}}",
+								"form-responses",
+								""
+							]
+						},
+						"description": "Expert kullanıcının bir client'ın form cevaplarının özet listesini görüntülemesini sağlar."
+					},
+					"response": []
 				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"form_id\": 1,\n    \"answers\": [\n        {\n            \"question_id\": 1,\n            \"text_answer\": \"Baş ağrısı ve mide bulantısı yaşıyorum\"\n        },\n        {\n            \"question_id\": 2,\n            \"selected_option_ids\": [3]\n        },\n        {\n            \"question_id\": 3,\n            \"selected_option_ids\": [6, 9, 10]\n        },\n        {\n            \"question_id\": 4,\n            \"text_answer\": \"Evet, 2 yıl önce benzer şikayetlerim vardı. Ağrı kesici ile tedavi edildi.\"\n        }\n    ]\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/forms/submit/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"forms",
-						"submit",
-						""
-					]
-				},
-				"description": "Form cevaplarını gönderir. Authentication gerekli. Bir kullanıcı bir formu sadece bir kez doldurabilir."
-			},
-			"response": []
-		},
-		{
-			"name": "Get User Responses",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/v1/forms/my-responses/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"forms",
-						"my-responses",
-						""
-					]
-				},
-				"description": "Kullanıcının doldurduğu formları getirir. Authentication gerekli."
-			},
-			"response": []
-		},
-		{
-			"name": "Get Form Response Detail",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/api/v1/forms/responses/{{form_id}}/",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"forms",
-						"responses",
-						"{{form_id}}",
-						""
-					]
-				},
-				"description": "Belirli bir form cevabının detaylarını getirir. Authentication gerekli. Sadece kendi cevaplarını görüntüleyebilir."
-			},
-			"response": []
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"requests": {},
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"requests": {},
-				"exec": [
-					""
-				]
-			}
+				{
+					"name": "Client Form Response Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/forms/clients/{{client_id}}/form-responses/{{response_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"forms",
+								"clients",
+								"{{client_id}}",
+								"form-responses",
+								"{{response_id}}",
+								""
+							]
+						},
+						"description": "Expert kullanıcının bir client'ın belirli bir form cevabının detaylarını, skorlamasını ve yorumlarını görüntülemesini sağlar."
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8000"
+			"value": "http://127.0.0.1:8000"
 		},
 		{
 			"key": "form_id",
-			"value": "",
-			"type": "default"
+			"value": "16"
+		},
+		{
+			"key": "client_id",
+			"value": "6"
+		},
+		{
+			"key": "response_id",
+			"value": "210"
 		}
 	]
 }

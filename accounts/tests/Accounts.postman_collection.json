@@ -377,7 +377,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"email\": \"expert1@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"client5@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"adminpassword\"}",
+					"raw": "{\"email\": \"expert1@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"client1@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"adminpassword\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -457,7 +457,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/accounts/experts/?category=bilissel-terapi",
+					"raw": "{{base_url}}/api/v1/accounts/experts/?category=cift-terapisi",
 					"host": [
 						"{{base_url}}"
 					],
@@ -471,9 +471,33 @@
 					"query": [
 						{
 							"key": "category",
-							"value": "bilissel-terapi",
-							"description": "Kategoriye göre filtreleme (örn: bilissel-terapi, aile-terapisi) kategori yoksa hepsi gelir."
+							"value": "cift-terapisi",
+							"description": "Kategoriye göre filtreleme (örn: cift-terapisi, aile-terapisi) kategori yoksa hepsi gelir."
 						}
+					]
+				}
+			},
+			"response": []
+		},
+    {
+			"name": "clients-list",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/v1/accounts/clients/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"accounts",
+						"clients",
+						""
 					]
 				}
 			},
