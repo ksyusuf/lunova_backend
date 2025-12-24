@@ -8,47 +8,16 @@ from accounts.models import (UserRole,
                              ClientProfile,
                              AddictionType,
                              University,
-                             GenderChoices)
+                             GenderChoices,
+                             EmergencyContact)
 
 User = get_user_model()
-
-
-# -----------------------------
-# Profile Serializers
-# -----------------------------
-class BaseProfileSerializer(serializers.ModelSerializer):
-    id_number = serializers.CharField(source='user.id_number', read_only=True)
-    phone_number = serializers.CharField(source='user.phone_number', read_only=True)
-    profile_photo = serializers.ImageField(source='user.profile_photo', read_only=True)
-    country = serializers.CharField(source='user.country', read_only=True)
-    national_id = serializers.CharField(source='user.national_id', read_only=True)
-    gender = serializers.CharField(source='user.gender', read_only=True)
-    birth_date = serializers.DateField(source='user.birth_date', read_only=True)
 
 
 class AdminProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminProfile
         fields = []
-
-
-class ExpertProfileSerializer(BaseProfileSerializer):
-    class Meta:
-        model = ExpertProfile
-        fields = [
-            'id_number',
-            'degree_file',
-            'university',
-            'phone_number',
-            'about',
-            'approval_status',
-            'profile_photo',
-            'services',
-            'country',
-            'national_id',
-            'gender',
-            'birth_date',
-        ]
 
 
 class ExpertListSerializer(serializers.ModelSerializer):
@@ -88,22 +57,15 @@ class AddictionTypeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'is_active']
 
 
-class ClientProfileSerializer(BaseProfileSerializer):
-    substances_used = AddictionTypeSerializer(many=True, read_only=True)
-
+class EmergencyContactSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ClientProfile
+        model = EmergencyContact
         fields = [
-            'id_number',
-            'received_service_before',
-            'substances_used',
-            'support_goal',
-            'birth_date',
-            'gender',
-            'phone_number',
-            'profile_photo',
-            'country',
-            'national_id',
+            "id",
+            "name",
+            "phone_number",
+            "relationship",
+            "is_primary",
         ]
 
 

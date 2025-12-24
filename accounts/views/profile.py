@@ -7,6 +7,7 @@ from accounts.serializers.profile_update_serializers import (
     ClientProfileUpdateSerializer,
 )
 from accounts.permissions import IsOwnerProfile
+from accounts.serializers.profileSerializers import ClientProfileSerializer, ExpertProfileSerializer
 
 
 class ProfileView(RetrieveUpdateAPIView):
@@ -14,7 +15,6 @@ class ProfileView(RetrieveUpdateAPIView):
     Tek endpoint üzerinden kullanıcı rolüne göre profil bilgilerini getirir ve günceller.
     /profile/
     """
-
     permission_classes = [IsAuthenticated, IsOwnerProfile]
 
     def get_object(self):
@@ -30,9 +30,20 @@ class ProfileView(RetrieveUpdateAPIView):
     def get_serializer_class(self):
         user = self.request.user
 
-        if user.role == UserRole.EXPERT:
-            return ExpertProfileUpdateSerializer
-        elif user.role == UserRole.CLIENT:
-            return ClientProfileUpdateSerializer
+        # READ
+        if self.request.method == "GET":
+            if user.role == UserRole.EXPERT:
+                return ExpertProfileSerializer
+            elif user.role == UserRole.CLIENT:
+                return ClientProfileSerializer
+            else:
+                raise PermissionDenied("Bu endpoint sadece uzman ve danışan kullanıcılar içindir.")
+            
+        # UPDATE
+        if self.request.method in ("PUT", "PATCH"):
+            if user.role == UserRole.EXPERT:
+                return ExpertProfileUpdateSerializer
+            elif user.role == UserRole.CLIENT:
+                return ClientProfileUpdateSerializer
 
         raise PermissionDenied("Bu endpoint sadece uzman ve danışan kullanıcılar içindir.")

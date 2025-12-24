@@ -76,7 +76,8 @@ class ExpertProfileUpdateSerializer(serializers.ModelSerializer):
         invalid_fields = received_fields - allowed_fields
         if invalid_fields:
             raise serializers.ValidationError({
-                "detail": f"Geçersiz alan(lar): {', '.join(invalid_fields)}"
+                "detail": f"Geçersiz alan(lar): {', '.join(invalid_fields)}. "
+                        f"Kullanıcı alanları 'user_data' içinde gönderilmelidir."
             })
 
         return super().validate(attrs)
@@ -128,7 +129,8 @@ class ClientProfileUpdateSerializer(serializers.ModelSerializer):
         invalid_fields = received_fields - allowed_fields
         if invalid_fields:
             raise serializers.ValidationError({
-                "detail": f"Geçersiz alan(lar): {', '.join(invalid_fields)}"
+                "detail": f"Geçersiz alan(lar): {', '.join(invalid_fields)}. "
+                        f"Kullanıcı alanları 'user_data' içinde gönderilmelidir."
             })
 
         return super().validate(attrs)
