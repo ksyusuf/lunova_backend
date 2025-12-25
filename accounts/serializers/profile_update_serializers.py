@@ -1,13 +1,14 @@
 # accounts/serializers/base_update_serializer.py
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from accounts.models import GenderChoices
+from accounts.models import EmergencyContact, GenderChoices
 from rest_framework import serializers
 from accounts.models import (
     ExpertProfile, ClientProfile, Language, AddictionType
     # Diğer Foreign Key/M2M modellerini de eklemeyi unutmayın
 )
 from .document_serializers import DocumentSerializer
+from .serializers import EmergencyContactSerializer
 
 User = get_user_model()
 
@@ -108,6 +109,7 @@ class ClientProfileUpdateSerializer(serializers.ModelSerializer):
         many=True, 
         required=False
     )
+    emergency_contacts = EmergencyContactSerializer(many=True, required=False)
 
     class Meta:
         model = ClientProfile
@@ -118,6 +120,7 @@ class ClientProfileUpdateSerializer(serializers.ModelSerializer):
             "onboarding_complete",
             "is_active_in_treatment",
             "documents",
+            "emergency_contacts",
             "user_data",
         ]
         read_only_fields = ["user", "expert"]
@@ -136,17 +139,25 @@ class ClientProfileUpdateSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def update(self, instance, validated_data):
-        user_data = validated_data.pop('user', None) 
-        user_instance = instance.user
-
-        if user_data is not None:
+        # 1. Acil durum kişilerini pop ile al (super().update hata vermesin diye)
+        # 'source' kullandığımız için validated_data içine 'emergency_contacts' anahtarıyla gelir
+        emergency_data = validated_data.pop('emergency_contacts', None)
+        
+        # 2. User verilerini işle
+        user_data = validated_data.pop('user', None)
+        if user_data:
             user_serializer = BaseUserUpdateSerializer(
-                instance=user_instance, 
-                data=user_data, 
-                partial=True
+                instance=instance.user, data=user_data, partial=True
             )
             user_serializer.is_valid(raise_exception=True)
             user_serializer.save()
 
-        instance = super().update(instance, validated_data)
-        return instance
+        # 3. Emergency Contact verilerini işle
+        if emergency_data is not None:
+            # Mevcutları silip yenileri eklemek en temiz yoldur
+            instance.emergency_contacts.all().delete()
+            for contact_item in emergency_data:
+                EmergencyContact.objects.create(client_profile=instance, **contact_item)
+
+        # 4. Profilin kendi alanlarını güncelle
+        return super().update(instance, validated_data)
