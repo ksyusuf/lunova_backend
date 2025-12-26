@@ -22,7 +22,9 @@ class DocumentSerializer(serializers.ModelSerializer):
             "type",
             "file",
             "filename",
+            "is_primary",
             "access_url",
+            "uploaded_at",
             "updated_at",
             "verified",
             'verified_at',
@@ -79,18 +81,35 @@ class DocumentSerializer(serializers.ModelSerializer):
         
         return value
     
+    def validate(self, attrs):
+        user = self.context['request'].user
+        doc_type = attrs.get('type')
+        
+        # Sadece yeni oluşturma (create) durumunda limit kontrolü yapalım
+        if not self.instance:
+            existing_count = Document.objects.filter(user=user, type=doc_type).count()
+            if existing_count >= 3:
+                raise serializers.ValidationError({
+                    "type": f"Aynı tipte ({doc_type}) en fazla 3 dosya yükleyebilirsiniz."
+                })
+        
+        return attrs
+    
     def create(self, validated_data):
         user = self.context['request'].user
         doc_type = validated_data.get("type")
         uploaded_file = validated_data.get("file")
+        is_primary = validated_data.get("is_primary", False)
 
+        # Profil fotoğrafı gibi tek olması gereken tipler için eski mantığı koruyoruz
         single_instance_types = [DocumentType.PROFILE_PHOTO]
 
         if doc_type in single_instance_types:
+            # Profil fotoğrafı her zaman "primary" olmalı
             document, created = Document.objects.get_or_create(
                 user=user,
                 type=doc_type,
-                defaults={"file": uploaded_file}
+                defaults={"file": uploaded_file, "is_primary": True}
             )
             if not created and uploaded_file:
                 if document.file:
@@ -99,9 +118,10 @@ class DocumentSerializer(serializers.ModelSerializer):
                 document.save()
             return document
 
-        document = Document.objects.create(
+        # Normal dökümanlar için create
+        return Document.objects.create(
             user=user,
             type=doc_type,
-            file=uploaded_file
+            file=uploaded_file,
+            is_primary=is_primary
         )
-        return document

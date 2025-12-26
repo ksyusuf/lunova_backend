@@ -315,10 +315,12 @@ def seed_expert_profiles(count=20):
             set_random_m2m(expert_profile.target_groups, target_groups)
             set_random_m2m(expert_profile.session_types, session_types)
 
-            print(f"  ✓ Uzman oluşturuldu: {user.get_full_name()} ({email}) - {expert_profile.title}")
+            print(f"\r\033[K  ✓ Uzman oluşturuldu: {user.get_full_name()} ({email}) - {expert_profile.title}", end='', flush=True)
 
         except Exception as e:
             print(f"  ❌ Uzman oluşturulurken hata ({email}): {e}")
+            
+    print(f"\r\033[K-- {count} Uzman Profili Oluşturuldu --")
 
 
 def seed_client_profiles(count=100):
@@ -382,10 +384,12 @@ def seed_client_profiles(count=100):
                     selected_substances = random.sample(addiction_types, num_substances)
                     client_profile.substances_used.set(selected_substances)
 
-            print(f"  ✓ Danışan oluşturuldu: {user.get_full_name()} ({email})")
+            print(f"\r\033[K  ✓ Danışan oluşturuldu: {user.get_full_name()} ({email})", end='', flush=True)
 
         except Exception as e:
             print(f"  ❌ Danışan oluşturulurken hata ({email}): {e}")
+            
+    print(f"\r\033[K-- {count} Danışan Profili Oluşturuldu --")
 
 
 def seed_mock_documents_varied(count=150):
@@ -396,43 +400,55 @@ def seed_mock_documents_varied(count=150):
     Her kullanıcıya 1-3 doküman atanır.
     """
     print("\n-- Mock Documents (Çeşitli Tipler) Yükleniyor --")
-    users = list(User.objects.all()[:count])
+    users = list(User.objects.all()[1:count]) # admin kullanıcısını atla
 
-    doc_types = [DocumentType.PROFILE_PHOTO, DocumentType.DEGREE,
-                 DocumentType.CV, DocumentType.CONSENT_FORM, DocumentType.OTHER]
+    doc_types = [
+        DocumentType.PROFILE_PHOTO, 
+        DocumentType.DEGREE,
+        DocumentType.CV, 
+        DocumentType.CONSENT_FORM, 
+        DocumentType.OTHER
+    ]
 
     for user in users:
-        num_docs = random.randint(1, 3)  # Her kullanıcıya 1-3 doküman
+        # Her kullanıcıya rastgele 1-3 döküman tipi seç
+        num_docs = random.randint(1, 3)
         chosen_types = random.sample(doc_types, num_docs)
 
         for doc_type in chosen_types:
             if doc_type == DocumentType.PROFILE_PHOTO:
-                # Profil fotoğrafı (JPEG 32x32)
+                # Profil fotoğrafı üret (JPEG)
                 img = Image.new(
-                    "RGB",
-                    (32, 32),
-                    color=(
-                        random.randint(0, 255),
-                        random.randint(0, 255),
-                        random.randint(0, 255)
-                    )
+                    "RGB", (32, 32),
+                    color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
                 )
                 buffer = BytesIO()
                 img.save(buffer, format="JPEG")
-                buffer.seek(0)
-                file_content = ContentFile(buffer.read(), name=f"{doc_type}_{user.id}.jpg")
-
+                # Not: name parametresi upload_to fonksiyonuna 'filename' olarak gider.
+                file_content = ContentFile(buffer.getvalue(), name="profile.jpg")
             else:
-                # Diğer tipler için basit metin dosyası
-                dummy_text = f"{doc_type} dokümanı: Kullanıcı {user.get_full_name()}"
-                file_content = ContentFile(dummy_text.encode('utf-8'), name=f"{doc_type}_{user.id}.txt")
-                
-            # Document kaydı oluştur veya güncellemeden önce
-            Document.objects.filter(user=user, type=doc_type).delete()
-            doc = Document.objects.create(user=user, type=doc_type, file=file_content)
+                # Diğerleri için dummy text/pdf içeriği
+                dummy_text = f"İçerik: {doc_type} - Kullanıcı: {user.get_full_name()} (Role: {user.role})"
+                file_content = ContentFile(dummy_text.encode('utf-8'), name=f"document.txt")
 
-            print(f"  ✓ Document ({doc_type}) eklendi/güncellendi: {user.get_full_name()} ({doc.file.name})")
+            # Mevcut aynı tip dökümanı temizle (get_or_create mantığına benzer temizlik)
+            old_docs = Document.objects.filter(user=user, type=doc_type)
+            for old_doc in old_docs:
+                if old_doc.file:
+                    old_doc.file.delete(save=False)
+                old_doc.delete()
 
+            # Yeni kaydı oluştur
+            # Bu aşamada Document.upload_document_path tetiklenecek ve dosya
+            # experts/{id}/... veya clients/{id}/... yoluna gidecektir.
+            doc = Document.objects.create(
+                user=user,
+                type=doc_type,
+                file=file_content,
+                is_primary=random.choice([True, False])
+            )
+
+            print(f"  ✓ {user.role.upper()} | {doc_type} yüklendi: {user.get_full_name()} -> Path: {doc.file.name}")
 
 def main():
     """Ana besleme fonksiyonu"""
