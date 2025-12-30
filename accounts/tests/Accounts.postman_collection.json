@@ -164,84 +164,6 @@
 						"description": "Bu istek, giriş yapmış kullanıcının rolüne göre profilini günceller. Expert ve Client için ayrı body yapıları gereklidir. Aşağıdaki örnek EXPERT rolü içindir."
 					},
 					"response": []
-				},
-				{
-					"name": "documents",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "type",
-									"value": "cv",
-									"type": "text"
-								},
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/accounts/documents/upload/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"accounts",
-								"documents",
-								"upload",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "documents",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8000/api/v1/accounts/documents/retrieve/?uid=f41987da-dcba-4791-a2b3-a4a8ada56e60&type=profile_photo&filename=mock_profile_2.jpg",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8000",
-							"path": [
-								"api",
-								"v1",
-								"accounts",
-								"documents",
-								"retrieve",
-								""
-							],
-							"query": [
-								{
-									"key": "uid",
-									"value": "f41987da-dcba-4791-a2b3-a4a8ada56e60"
-								},
-								{
-									"key": "type",
-									"value": "profile_photo"
-								},
-								{
-									"key": "filename",
-									"value": "mock_profile_2.jpg"
-								}
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
@@ -362,6 +284,60 @@
 			]
 		},
 		{
+			"name": "Documents",
+			"item": [
+				{
+					"name": "Add remote bucket",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "",
+									"type": "file",
+									"src": "/C:/Users/ksyus/Downloads/bilgisayar-muh.-final-v4.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://ccmuclvpabfwzphswxae.supabase.co/storage/v1/object/upload/sign/selam/clients/21/profile_photo/92aa7d10-ad8e-48f2-bd31-976b2c2e071b.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83OGM1OGJhYi00ZmNlLTRmN2EtOTdkNC1iZjVhNDlhMzNlNTIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzZWxhbS9jbGllbnRzLzIxL3Byb2ZpbGVfcGhvdG8vOTJhYTdkMTAtYWQ4ZS00OGYyLWJkMzEtOTc2YjJjMmUwNzFiLnBuZyIsInVwc2VydCI6ZmFsc2UsImlhdCI6MTc2NzEzMjczNywiZXhwIjoxNzY3MTM5OTM3fQ.8g0UnES7SOD5S8OvUuQuuwhN3T8SzoxExgeiBJ5aCsk",
+							"protocol": "https",
+							"host": [
+								"ccmuclvpabfwzphswxae",
+								"supabase",
+								"co"
+							],
+							"path": [
+								"storage",
+								"v1",
+								"object",
+								"upload",
+								"sign",
+								"selam",
+								"clients",
+								"21",
+								"profile_photo",
+								"92aa7d10-ad8e-48f2-bd31-976b2c2e071b.png"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83OGM1OGJhYi00ZmNlLTRmN2EtOTdkNC1iZjVhNDlhMzNlNTIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzZWxhbS9jbGllbnRzLzIxL3Byb2ZpbGVfcGhvdG8vOTJhYTdkMTAtYWQ4ZS00OGYyLWJkMzEtOTc2YjJjMmUwNzFiLnBuZyIsInVwc2VydCI6ZmFsc2UsImlhdCI6MTc2NzEzMjczNywiZXhwIjoxNzY3MTM5OTM3fQ.8g0UnES7SOD5S8OvUuQuuwhN3T8SzoxExgeiBJ5aCsk"
+								}
+							]
+						},
+						"description": "imzalanmış bir dosya yükleme isteğinin döndüğü uplaod_url\n\ndönen endpointe bu şekilde istek atılır.\n\nbruadan dönen key dönüşü içerisinde bucket ismi de tanımlı, ama sen backend'e finalize isteğini atarken\n\nbir önceki istekten aldığın file_key değerini girmelisin. ve original_filename özelliği de burada dosya ismini belirliyor."
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "login",
 			"request": {
 				"auth": {
@@ -377,7 +353,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "// {\"email\": \"expert1@mail.com\", \"password\": \"password123\"}\r\n{\"email\": \"client1@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"adminpassword\"}",
+					"raw": "// {\"email\": \"expert1@mail.com\", \"password\": \"password123\"}\r\n{\"email\": \"client5@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"adminpassword\"}",
 					"options": {
 						"raw": {
 							"language": "json"

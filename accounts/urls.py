@@ -1,7 +1,7 @@
 from django.urls import path
 from .views.views import ExpertRegisterView, ClientRegisterView, AdminRegisterView, LoginView, LogoutView, MeView, ExpertListView, ClientListView, PasswordResetRequestView, PasswordResetConfirmView
 from .views.profile import ProfileView
-from .views.document_views import DocumentUploadView, DocumentRetrieveView
+from .views.document_views import DocumentListCreateView, DocumentPresignUploadView
 
 urlpatterns = [
     path('register/expert/', ExpertRegisterView.as_view(), name='register_expert'),
@@ -14,8 +14,10 @@ urlpatterns = [
     path('clients/', ClientListView.as_view(), name='client_list'),
     
     path("profile/", ProfileView.as_view(), name="profile"),
-    path("documents/upload/", DocumentUploadView.as_view(), name="document_upload"),
-    path("documents/retrieve/", DocumentRetrieveView.as_view(), name="document_retrieve"),
+    
+    path("documents/presign-upload/", DocumentPresignUploadView.as_view(), name="document-presign-upload"),
+    path("documents/", DocumentListCreateView.as_view()),
+    # todo: DELETE metotları entegre edilmeli. Nasıl yapılacağını araştır.
 
     # password reset enpoints
     path('auth/password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),

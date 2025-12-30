@@ -1,75 +1,81 @@
 # accounts/views/document_views.py
 from accounts.serializers.document_serializers import DocumentSerializer
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from accounts.models import Document
 from django.http import FileResponse, JsonResponse
 from rest_framework.views import APIView
 import uuid
 
+from rest_framework.response import Response
+from rest_framework import status
+from accounts.storage import storage
+from accounts.models import DocumentType
+from appointments import serializers
+from lunova_backend.settings import SUPABASE_BUCKET
+
 permission_classes = [IsAuthenticated]
 
-class DocumentListView(ListAPIView):
-    serializer_class = DocumentSerializer
+class DocumentListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = DocumentSerializer
 
     def get_queryset(self):
         return Document.objects.filter(user=self.request.user)
-    
-    
-class DocumentUploadView(CreateAPIView):
-    serializer_class = DocumentSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
+        return {"request": self.request}
 
 
-class DocumentRetrieveView(APIView):
-    """
-    Kullanıcıya ait belgeyi UID, type ve filename ile döndürür.
-    """
+class DocumentPresignUploadView(APIView):
     permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """
+        Frontend buradan presigned upload URL alır.
+        Dosya backend'e gelmez.
+        """
+        doc_type = request.data.get("type")
+        filename = request.data.get("filename")
+        content_type = request.data.get("content_type")
 
-    def get(self, request, *args, **kwargs):
-        doc_type = request.query_params.get("type")
-        uid = request.query_params.get("uid")
-        filename = request.query_params.get("filename")
-
-        if not all([doc_type, uid, filename]):
-            return JsonResponse({"detail": "Eksik parametre."}, status=400)
-
-        # UID kontrolü
-        try:
-            uid_obj = uuid.UUID(uid)
-        except ValueError:
-            return JsonResponse({"detail": "Geçersiz UID formatı."}, status=400)
-
-        # DB'de kayıt var mı?
-        try:
-            document = Document.objects.get(
-                uid=uid_obj,
-                type=doc_type,
-                user=request.user,
-                file__icontains=filename
+        if not all([doc_type, filename, content_type]):
+            return Response(
+                {"detail": "type, filename ve content_type zorunludur."},
+                status=status.HTTP_400_BAD_REQUEST
             )
-        except Document.DoesNotExist:
-            return JsonResponse({"detail": "Belge kaydı bulunamadı."}, status=404)
 
-        # FİZİKSEL DOSYA GERÇEKTEN VAR MI?
-        try:
-            file_handle = document.file.open('rb')
-        except FileNotFoundError:
-            return JsonResponse({
-                "detail": "Dosya sunucuda bulunamadı.",
-                "error": "file_missing"
-            }, status=404)
-        except Exception:
-            return JsonResponse({
-                "detail": "Dosya okunurken bir hata oluştu."
-            }, status=500)
+        # bu kontrolü hem burada, hem de dosya finalize ederken yapıyoruz
+        count = Document.objects.filter(user=request.user, type=doc_type).count()
+        if count >= 3 and doc_type != DocumentType.PROFILE_PHOTO:
+            return Response(
+                {"detail": f"Aynı tipte ({doc_type}) en fazla 3 dosya yükleyebilirsiniz."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Her şey yolundaysa dosyayı gönder
-        return FileResponse(file_handle, filename=filename)
+        # Belge tipi kontrolü
+        valid_types = [c[0] for c in DocumentType.choices]
+        if doc_type not in valid_types:
+            return Response(
+                {"detail": "Geçersiz belge tipi."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # UID backend tarafından üretilir
+        uid = uuid.uuid4()
+
+        # file_key backend tarafından belirlenir
+        ext = filename.split(".")[-1]
+        role_path = "experts" if request.user.role == "expert" else "clients"
+        file_key = f"{role_path}/{request.user.id}/{doc_type}/{uid}.{ext}"
+
+        presigned = storage.presign_upload(
+            key=file_key,
+            content_type=content_type,
+        )
+
+        return Response({
+            "uid": str(uid),
+            "file_key": file_key,
+            "upload": presigned
+        })

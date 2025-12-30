@@ -1,127 +1,127 @@
-# accounts/serializers/document_serializers.py
-
 from rest_framework import serializers
 from accounts.models import Document, DocumentType
-from django.urls import reverse
+from accounts.storage import storage
 
 
 class DocumentSerializer(serializers.ModelSerializer):
     """
-    Kullanıcıların yüklediği belgeleri (profil fotoğrafı, diploma, vb.)
-    yönetmek için temel serializer.
+    Presigned upload tamamlandıktan sonra
+    document kaydını finalize eder.
     """
-    
-    file = serializers.FileField(write_only=True, required=True)
-    filename = serializers.SerializerMethodField()
-    access_url = serializers.SerializerMethodField()
+
+    file_key = serializers.CharField(write_only=True)
+    access_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Document
         fields = [
             "uid",
             "type",
-            "file",
-            "filename",
+            "file_key",
+            "original_filename",
             "is_primary",
             "access_url",
             "uploaded_at",
             "updated_at",
             "verified",
-            'verified_at',
+            "verified_at",
         ]
-        read_only_fields = ["uploaded_at", "verified", "filename"]
-        
+        read_only_fields = [
+            "uploaded_at",
+            "updated_at",
+            "verified",
+            "verified_at",
+        ]
 
-    def get_filename(self, obj):
-        if obj.file:  # file None değilse
-            return obj.file.name.split('/')[-1]
-        return None
-    
+    # -------- READ --------
+
     def get_access_url(self, obj):
-        request = self.context.get('request')
-        if request is None:
+        """
+        Dosya erişimi için signed GET URL üretir
+        """
+        request = self.context.get("request")
+        
+        user = request.user if request else None
+        
+        # Güvenlik: sadece sahibine
+        if not user or obj.user_id != user.id:
             return None
 
-        # Dosya kaydı yoksa hiç URL üretme
-        if not obj.file or not obj.file.name:
-            return None
-
-        # Filename boşsa yine None dön
-        filename = self.get_filename(obj)
-        if not filename:
-            return None
-
-        # URL üret
-        return request.build_absolute_uri(
-            reverse("document_retrieve") +
-            f"?uid={obj.uid}&type={obj.type}&filename={filename}"
+        return storage.presign_download(
+            key=obj.file_key,
+            expires=3600  # 1 saat (profil foto için ideal)
         )
 
+    # -------- VALIDATION --------
+
     def validate_type(self, value):
-        """
-        Yalnızca geçerli belge tiplerinin yüklenmesini sağlar.
-        """
-        valid_types = [choice[0] for choice in DocumentType.choices]
+        valid_types = [c[0] for c in DocumentType.choices]
         if value not in valid_types:
             raise serializers.ValidationError("Geçersiz belge tipi.")
         return value
 
-    def validate_file(self, value):
-        """
-        Dosya boyutu veya format kontrolü (isteğe bağlı).
-        Örneğin 10MB sınırı ve sadece PDF/JPG.
-        """
-        max_size_mb = 10
-        if value.size > max_size_mb * 1024 * 1024:
-            raise serializers.ValidationError("Dosya boyutu 10 MB'tan büyük olamaz.")
-        
-        allowed_types = ["image/jpeg", "image/png", "application/pdf"]
-        if value.content_type not in allowed_types:
-            raise serializers.ValidationError("Yalnızca JPG, PNG veya PDF dosyaları yüklenebilir.")
-        
-        return value
-    
     def validate(self, attrs):
-        user = self.context['request'].user
-        doc_type = attrs.get('type')
-        
-        # Sadece yeni oluşturma (create) durumunda limit kontrolü yapalım
-        if not self.instance:
-            existing_count = Document.objects.filter(user=user, type=doc_type).count()
-            if existing_count >= 3:
-                raise serializers.ValidationError({
-                    "type": f"Aynı tipte ({doc_type}) en fazla 3 dosya yükleyebilirsiniz."
-                })
-        
+        user = self.context["request"].user
+        doc_type = attrs.get("type")
+
+        # Aynı tipten max 3
+        count = Document.objects.filter(user=user, type=doc_type).count()
+        if count >= 3 and doc_type != DocumentType.PROFILE_PHOTO:
+            raise serializers.ValidationError({
+                "type": f"Aynı tipte ({doc_type}) en fazla 3 dosya yükleyebilirsiniz."
+            })
+
         return attrs
-    
+
+    # -------- CREATE --------
+
     def create(self, validated_data):
-        user = self.context['request'].user
-        doc_type = validated_data.get("type")
-        uploaded_file = validated_data.get("file")
+        request = self.context["request"]
+        user = request.user
+
+        file_key = validated_data.pop("file_key")
+        original_filename = validated_data["original_filename"]
+        doc_type = validated_data["type"]
         is_primary = validated_data.get("is_primary", False)
 
-        # Profil fotoğrafı gibi tek olması gereken tipler için eski mantığı koruyoruz
         single_instance_types = [DocumentType.PROFILE_PHOTO]
 
+        # Profil foto: tek kayıt
         if doc_type in single_instance_types:
-            # Profil fotoğrafı her zaman "primary" olmalı
-            document, created = Document.objects.get_or_create(
+            existing_doc = Document.objects.filter(
                 user=user,
-                type=doc_type,
-                defaults={"file": uploaded_file, "is_primary": True}
-            )
-            if not created and uploaded_file:
-                if document.file:
-                    document.file.delete(save=False)
-                document.file = uploaded_file
-                document.save()
-            return document
+                type=doc_type
+            ).first()
 
-        # Normal dökümanlar için create
+            if existing_doc:
+                # eski dosyayı storage'dan sil
+                storage.delete(existing_doc.file_key)
+
+                existing_doc.file_key = file_key
+                existing_doc.original_filename = original_filename
+                existing_doc.is_primary = True
+                existing_doc.save()
+                return existing_doc
+
+            return Document.objects.create(
+                user=user,
+                original_filename=original_filename,
+                file_key=file_key,
+                type=doc_type,
+                is_primary=True
+            )
+
+        # Normal doküman
         return Document.objects.create(
             user=user,
+            original_filename=original_filename,
+            file_key=file_key,
             type=doc_type,
-            file=uploaded_file,
             is_primary=is_primary
         )
+
+    
+    def delete(self, instance):
+        pass
+        # todo: dosya silme işlemleri entegre edilmeli.
+        # 3'ten fazla dosya silmek isteyen kullanıcılar için önce bazı dosyaların silinmesi istenecek.

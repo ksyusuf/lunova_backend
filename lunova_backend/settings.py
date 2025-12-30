@@ -31,9 +31,19 @@ DEBUG = env.bool('DEBUG', default=False)
 env_file = BASE_DIR / '.env'
 if env_file.exists():
     env.read_env(env_file)
-    
-MEDIA_ROOT = env.str('MEDIA_ROOT')
-MEDIA_URL = env.str('MEDIA_URL')
+
+MEDIA_API = env.str('MEDIA_API', default='False')
+if MEDIA_API == 'True':
+    print(">>> MEDIA API etkinleştirildi.")
+    MEDIA_ROOT = None
+    MEDIA_URL = None
+    SUPABASE_URL = env("SUPABASE_URL")
+    SUPABASE_SERVICE_ROLE_KEY = env("SUPABASE_SERVICE_ROLE_KEY")
+    SUPABASE_BUCKET = env("SUPABASE_BUCKET")
+
+else:
+    MEDIA_ROOT = env.str('MEDIA_ROOT')
+    MEDIA_URL = env.str('MEDIA_URL')
 
 # 1. Ortam Değişkenlerini Oku
 # Eğer ortam değişkenleri yoksa, varsayılan DB_NAME'i 'Lunova' (PostgreSQL) olarak ayarla.

@@ -182,7 +182,7 @@ class DocumentType(models.TextChoices):
 def upload_document_path(instance, filename):
     user = instance.user
     doc_type = instance.type
-    print(user.id)
+    print("User.id: ", user.id)
     role_path = "experts" if user.role == UserRole.EXPERT else "clients"
     
     # 2. Dosya ismini benzersiz yap (UUID kullanarak çakışmayı önle)
@@ -195,7 +195,8 @@ def upload_document_path(instance, filename):
 class Document(models.Model):
     user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="documents")
     uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    file = models.FileField(upload_to=upload_document_path)
+    file_key = models.CharField(max_length=255)
+    original_filename = models.CharField(max_length=255)
     type = models.CharField(max_length=32, choices=DocumentType.choices)
     is_primary = models.BooleanField("Birincil mi?", default=False)
     uploaded_at = models.DateTimeField(auto_now_add=True)

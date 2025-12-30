@@ -465,7 +465,7 @@ def main():
         seed_admin_user()
         seed_expert_profiles(count=15)  # Uzman sayısını artırdım
         seed_client_profiles(count=80)  # Danışan sayısını artırdım
-        seed_mock_documents_varied(count=150)
+        # seed_mock_documents_varied(count=150)
 
         print("\n" + "=" * 60)
         print("✅ Veritabanı Besleme Başarıyla Tamamlandı!")
