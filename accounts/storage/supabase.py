@@ -35,5 +35,3 @@ class SupabaseStorage(StorageProvider):
 
     def delete(self, key: str):
         self.client.storage.from_(self.bucket).remove([key])
-        
-        # todo: bunun da kullanılabilmesi gerekiyor.

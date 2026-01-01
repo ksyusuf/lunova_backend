@@ -1,6 +1,6 @@
-from .supabase import SupabaseStorage
+from .factory import get_storage
 
-storage = SupabaseStorage()
+storage = get_storage()
 
 # yarın aws s3 gelirse
 # from .s3 import S3Storage

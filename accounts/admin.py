@@ -1,10 +1,11 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import (
     User, ExpertProfile, ClientProfile, EmergencyContact, Service, Language,
     University, DegreeLevel, Major, Specialization, ApproachMethod,
     TargetGroup, SessionType, AddictionType, AdminProfile, Document
 )
+from django.utils import timezone
 
 
 # ====================================================================
@@ -151,12 +152,50 @@ class EmergencyContactAdmin(admin.ModelAdmin):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('user', 'type', 'uploaded_at', 'verified')
-    list_filter = ('type', 'verified')
-    search_fields = ('user__email', 'type')
-    readonly_fields = ('uploaded_at',)
+    list_display = (
+        'user', 'type', 'original_filename',
+        'is_primary', 'is_current',
+        'verified', 'uploaded_at'
+    )
+    list_filter = ('type', 'verified', 'is_primary', 'is_current')
+    search_fields = (
+        'user__email',
+        'user__first_name',
+        'user__last_name',
+        'file_key',
+        'original_filename',
+        'uid',
+    )
+    readonly_fields = (
+        'user',
+        'uid',
+        'file_key',
+        'original_filename',
+        'uploaded_at',
+        'updated_at',
+    )
+
     verbose_name = "Belge"
     verbose_name_plural = "Belgeler"
+    actions = None
+    fieldsets = (
+        ("Temel Bilgiler", {
+            "fields": ('user', 'type', 'original_filename')
+        }),
+        ("Durum", {
+            "fields": ('is_primary', 'is_current', 'verified', 'verified_at')
+        }),
+        ("Sistem Alanları", {
+            "fields": ('uid', 'file_key', 'uploaded_at', 'updated_at')
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        messages.warning(
+            request,
+            "Belgeler yalnızca sistem (API) üzerinden yüklenir. Admin panelinden belge eklenemez."
+        )
+        return False
 
 
 # ====================================================================

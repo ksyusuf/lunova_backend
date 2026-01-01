@@ -32,18 +32,21 @@ env_file = BASE_DIR / '.env'
 if env_file.exists():
     env.read_env(env_file)
 
-MEDIA_API = env.str('MEDIA_API', default='False')
-if MEDIA_API == 'True':
-    print(">>> MEDIA API etkinleştirildi.")
-    MEDIA_ROOT = None
-    MEDIA_URL = None
+STORAGE_PROVIDER = env.str('STORAGE_PROVIDER', default='mock')
+if STORAGE_PROVIDER == 'supabase':
+    print(">>> Supabase etkinleştirildi.")
     SUPABASE_URL = env("SUPABASE_URL")
     SUPABASE_SERVICE_ROLE_KEY = env("SUPABASE_SERVICE_ROLE_KEY")
     SUPABASE_BUCKET = env("SUPABASE_BUCKET")
-
+    
+elif STORAGE_PROVIDER == 'mock':
+    print(">>> MockStorage etkinleştirildi.")
+    
 else:
-    MEDIA_ROOT = env.str('MEDIA_ROOT')
-    MEDIA_URL = env.str('MEDIA_URL')
+    raise ImproperlyConfigured(
+        f"Invalid STORAGE_PROVIDER='{STORAGE_PROVIDER}'. "
+        "Allowed values: 'supabase', 'mock'."
+    )
 
 # 1. Ortam Değişkenlerini Oku
 # Eğer ortam değişkenleri yoksa, varsayılan DB_NAME'i 'Lunova' (PostgreSQL) olarak ayarla.
