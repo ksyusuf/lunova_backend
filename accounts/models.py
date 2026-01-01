@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.core.validators import RegexValidator
 import uuid
+from django.db.models import Q
 
 
 class UserRole(models.TextChoices):
@@ -195,7 +196,7 @@ def upload_document_path(instance, filename):
 class Document(models.Model):
     user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="documents")
     uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    file_key = models.CharField(max_length=255)
+    file_key = models.CharField(max_length=255, unique=True)
     original_filename = models.CharField(max_length=255)
     type = models.CharField(max_length=32, choices=DocumentType.choices)
     is_primary = models.BooleanField("Birincil mi?", default=False)
@@ -222,6 +223,12 @@ class Document(models.Model):
     class Meta:
         verbose_name = "Belge"
         verbose_name_plural = "Belgeler"
+        constraints = [
+        models.CheckConstraint(
+            condition=Q(is_primary=False) | Q(is_current=True),
+            name="primary_must_be_current",
+        ),
+    ]
 
 
 class Language(models.Model):

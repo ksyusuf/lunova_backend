@@ -287,7 +287,39 @@
 			"name": "Documents",
 			"item": [
 				{
-					"name": "Add remote bucket",
+					"name": "Documents Presign",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"type\": \"cv\",\r\n  \"content_type\": \"image/png\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/documents/presign-upload/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								"presign-upload",
+								""
+							]
+						},
+						"description": "Ön imzalı, dosya yükleme isteğini döndürür. Buradan dönen upload alanındaki url'e body kısmında ilgili dosya iliştirilerek istek atılır ve ilgili dosya artık uzak s3 bucket'a yüklenir. Daha sonra backend'e bu dosyanın s3'e yüklenmiş olduğu bilgisi de verilmelidir.\n\nDönüş değeri olan file_key ile AccessUrl talebi oluşturulabilir."
+					},
+					"response": []
+				},
+				{
+					"name": "Remote Bucket",
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -332,6 +364,81 @@
 							]
 						},
 						"description": "imzalanmış bir dosya yükleme isteğinin döndüğü uplaod_url\n\ndönen endpointe bu şekilde istek atılır.\n\nbruadan dönen key dönüşü içerisinde bucket ismi de tanımlı, ama sen backend'e finalize isteğini atarken\n\nbir önceki istekten aldığın file_key değerini girmelisin. ve original_filename özelliği de burada dosya ismini belirliyor."
+					},
+					"response": []
+				},
+				{
+					"name": "Add backend DB",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"type\": \"cv\",\r\n  \"file_key\": \"clients/21/cv/9d837a07-b517-4c51-8e1f-7b51f9990e09\",\r\n  \"original_filename\": \"özel-3.png\", \r\n  \"is_primary\": false\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/documents/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								""
+							]
+						},
+						"description": "Kullanıcı, uzak s3'e yüklediği dosyayı bize bu endpoint ile haber verir. eğer yükleme başarısız olduğu halde buraya yükleme yapılmaya çalışılırsa, uzak bucket üzerindeki dosyasına artık erişilemez."
+					},
+					"response": []
+				},
+				{
+					"name": "Documents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/documents/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remote Bucket",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/documents/{{uid}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								"{{uid}}",
+								""
+							]
+						},
+						"description": "uid formatında giriş vermezsen 404 not found alırsın."
 					},
 					"response": []
 				}
@@ -502,6 +609,13 @@
 					""
 				]
 			}
+		}
+	],
+	"variable": [
+		{
+			"key": "uid",
+			"value": "9d837a07-b517-4c51-8e1f-7b51f9990e09",
+			"type": "default"
 		}
 	]
 }

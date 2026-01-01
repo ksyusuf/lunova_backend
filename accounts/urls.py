@@ -1,7 +1,7 @@
 from django.urls import path
 from .views.views import ExpertRegisterView, ClientRegisterView, AdminRegisterView, LoginView, LogoutView, MeView, ExpertListView, ClientListView, PasswordResetRequestView, PasswordResetConfirmView
 from .views.profile import ProfileView
-from .views.document_views import DocumentListCreateView, DocumentPresignUploadView
+from .views.document_views import DocumentListCreateView, DocumentPresignUploadView, DocumentDeleteView
 
 urlpatterns = [
     path('register/expert/', ExpertRegisterView.as_view(), name='register_expert'),
@@ -17,7 +17,7 @@ urlpatterns = [
     
     path("documents/presign-upload/", DocumentPresignUploadView.as_view(), name="document-presign-upload"),
     path("documents/", DocumentListCreateView.as_view()),
-    # todo: DELETE metotları entegre edilmeli. Nasıl yapılacağını araştır.
+    path("documents/<uuid:uid>/", DocumentDeleteView.as_view(), name="document-delete"),
 
     # password reset enpoints
     path('auth/password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
