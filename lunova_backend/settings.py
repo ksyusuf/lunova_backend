@@ -48,16 +48,19 @@ else:
         "Allowed values: 'supabase', 'mock'."
     )
 
-# 1. Ortam Değişkenlerini Oku
-# Eğer ortam değişkenleri yoksa, varsayılan DB_NAME'i 'Lunova' (PostgreSQL) olarak ayarla.
-CUSTOM_DB_NAME = env.str('DB_NAME', default='Lunova')
+# 1. Ortam Değişkenlerini Oku ve Temizle
+# .strip() ile kenar boşluklarını, .title() ile harf hatalarını gideriyoruz (production -> Production)
+ENV_NAME = env.str('ENVIRONMENT', default='Development').strip().title()
+DB_URI = env.str('DB_URI', default='Lunova-lite').strip()
 
 # 2. Veritabanı Seçimi ve Konfigürasyonu
-if env.str('ENVIRONMENT') == 'Production':
+if ENV_NAME == 'Production':
+    # Production'da her zaman DB_URI üzerinden gidiyoruz
     DATABASES = {
-        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+        'default': dj_database_url.config(default=DB_URI)
     }
-elif env.str('ENVIRONMENT') == 'Development' and CUSTOM_DB_NAME == 'Lunova-lite':
+    
+elif ENV_NAME == 'Development' and DB_URI == 'Lunova-lite':
     print(">>> Veritabanı: Lunova-lite (SQLite) kullanılıyor.")
     DATABASES = {
         'default': {
@@ -65,19 +68,22 @@ elif env.str('ENVIRONMENT') == 'Development' and CUSTOM_DB_NAME == 'Lunova-lite'
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-else:
-    # C. LOCAL ANA KONFİGÜRASYON (PostgreSQL) - CUSTOM_DB_NAME = 'Lunova' veya başka bir değer
-    print(f">>> Veritabanı: {CUSTOM_DB_NAME} (PostgreSQL) kullanılıyor.")
+
+elif ENV_NAME == 'Development' and DB_URI != 'Lunova-lite':
+    # Slice hatasını önlemek için güvenli bir gösterim
+    display_uri = DB_URI[:20] + "..." if len(DB_URI) > 20 else DB_URI
+    print(f">>> Veritabanı: {display_uri} kullanılıyor.")
+    
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': CUSTOM_DB_NAME, # .env'den okunan DB_NAME
-            'USER': env.str('DB_USER'),
-            'PASSWORD': env.str('DB_PASSWORD'),
-            'HOST': env.str('DB_HOST'),
-            'PORT': env.int('DB_PORT', default=5432)
-        }
+        'default': dj_database_url.config(default=DB_URI)
     }
+    
+else:
+    # Hem ENVIRONMENT yanlışsa hem de DB_URI uymuyorsa buraya düşer
+    raise ImproperlyConfigured(
+        f"Geçersiz Yapılandırma! ENVIRONMENT='{ENV_NAME}' veya DB_URI='{DB_URI}' hatalı. "
+        "Lütfen ayarlarınızı kontrol edin."
+    )
 
 # STATIC_ROOT (production)
 STATIC_ROOT = 'staticfiles'
