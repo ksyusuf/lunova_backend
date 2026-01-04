@@ -1,7 +1,8 @@
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import PermissionDenied
-from accounts.models import ExpertProfile, ClientProfile, UserRole
+from rest_framework.exceptions import PermissionDenied, NotFound
+from accounts.models import Document, ExpertProfile, ClientProfile, UserRole
+from django.db.models import Prefetch
 from accounts.serializers.profile_update_serializers import (
     ExpertProfileUpdateSerializer,
     ClientProfileUpdateSerializer,
@@ -19,11 +20,21 @@ class ProfileView(RetrieveUpdateAPIView):
 
     def get_object(self):
         user = self.request.user
+        
+        active_documents = Document.objects.filter(is_current=True)
+        prefetch = Prefetch(
+            "user__documents", 
+            queryset=active_documents,
+        )
+        # 'user__documents' ifadesi: Profile -> User -> Documents yolunu izler
 
-        if user.role == UserRole.EXPERT:
-            return ExpertProfile.objects.get(user=user)
-        elif user.role == UserRole.CLIENT:
-            return ClientProfile.objects.get(user=user)
+        try:
+            if user.role == UserRole.EXPERT:
+                return ExpertProfile.objects.prefetch_related(prefetch).get(user=user)
+            elif user.role == UserRole.CLIENT:
+                return ClientProfile.objects.prefetch_related(prefetch).get(user=user)
+        except (ExpertProfile.DoesNotExist, ClientProfile.DoesNotExist):
+            raise NotFound("Profil bulunamadı.")
 
         raise PermissionDenied("Bu endpoint sadece uzman ve danışan kullanıcılar içindir.")
 

@@ -39,11 +39,10 @@ class DocumentPresignUploadView(APIView):
         Dosya backend'e gelmez.
         """
         doc_type = request.data.get("type")
-        content_type = request.data.get("content_type")
 
-        if not all([doc_type, content_type]):
+        if not all([doc_type]):
             return Response(
-                {"detail": "type ve content_type zorunludur."},
+                {"detail": "type zorunludur."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -71,8 +70,7 @@ class DocumentPresignUploadView(APIView):
         file_key = f"{role_path}/{request.user.id}/{doc_type}/{uid}"
 
         presigned = storage.presign_upload(
-            key=file_key,
-            content_type=content_type,
+            key=file_key
         )
 
         return Response({

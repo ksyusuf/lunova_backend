@@ -12,17 +12,14 @@ class SupabaseStorage(StorageProvider):
         )
         self.bucket = settings.SUPABASE_BUCKET
 
-    def presign_upload(self, key: str, content_type: str) -> dict:
+    def presign_upload(self, key: str) -> dict:
         res = self.client.storage.from_(self.bucket).create_signed_upload_url(
             key,
         )
 
         return {
             "url": res["signedUrl"],
-            "method": "PUT",
-            "headers": {
-                "Content-Type": content_type
-            }
+            "method": "PUT"
         }
 
 

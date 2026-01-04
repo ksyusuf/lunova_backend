@@ -293,7 +293,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"type\": \"cv\",\r\n  \"content_type\": \"image/png\"\r\n}\r\n",
+							"raw": "{\r\n  \"type\": \"cv\"\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -460,7 +460,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"email\": \"expert2@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"client5@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"adminpassword\"}",
+					"raw": "{\"email\": \"expert4@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"client5@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"adminpassword\"}",
 					"options": {
 						"raw": {
 							"language": "json"

@@ -16,18 +16,15 @@ class MockStorage(StorageProvider):
             "http://localhost:8000/mock-storage"
         )
 
-    def presign_upload(self, key: str, content_type: str) -> dict:
+    def presign_upload(self, key: str) -> dict:
         """
         Supabase create_signed_upload_url taklidi
         """
         safe_key = quote(key)
 
         return {
-            "url": f"{self.base_url}/upload/{safe_key}",
-            "method": "PUT",
-            "headers": {
-                "Content-Type": content_type
-            }
+            "url": f"{self.base_url}/upload/{safe_key}?token=mock-upload-token",
+            "method": "PUT"
         }
 
     def presign_download(self, key: str, expires: int = 600) -> str:
