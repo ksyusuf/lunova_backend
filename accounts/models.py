@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.core.validators import RegexValidator
 import uuid
+from django.db.models import Q
 
 
 class UserRole(models.TextChoices):
@@ -182,26 +183,23 @@ class DocumentType(models.TextChoices):
 def upload_document_path(instance, filename):
     user = instance.user
     doc_type = instance.type
-
-    if doc_type == DocumentType.PROFILE_PHOTO:
-        base_path = "experts" if user.role == "expert" else "clients"
-        return f"{base_path}/{user.id}/profile_photos/{filename}"
-
-    elif doc_type == DocumentType.DEGREE:
-        return f"experts/{user.id}/degree/{filename}"
-
-    elif doc_type == DocumentType.CV:
-        return f"experts/{user.id}/cv/{filename}"
-
-    else:
-        return f"clients/{user.id}/documents/{filename}"
+    print("User.id: ", user.id)
+    role_path = "experts" if user.role == UserRole.EXPERT else "clients"
+    
+    # 2. Dosya ismini benzersiz yap (UUID kullanarak çakışmayı önle)
+    ext = filename.split('.')[-1]
+    unique_filename = f"{instance.uid}.{ext}"
+    
+    return f"{role_path}/{user.id}/{doc_type}/{unique_filename}"
 
 
 class Document(models.Model):
     user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="documents")
     uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    file = models.FileField(upload_to=upload_document_path)
+    file_key = models.CharField(max_length=255, unique=True)
+    original_filename = models.CharField(max_length=255)
     type = models.CharField(max_length=32, choices=DocumentType.choices)
+    is_primary = models.BooleanField("Birincil mi?", default=False)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     verified = models.BooleanField(default=False)
@@ -210,10 +208,27 @@ class Document(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.get_type_display()}"
+    
+    def save(self, *args, **kwargs):
+        # Eğer bu dosya primary olarak set edildiyse, 
+        # aynı kullanıcı ve aynı tipteki diğer dosyaların primary özelliğini kaldır.
+        if self.is_primary:
+            Document.objects.filter(
+                user=self.user, 
+                type=self.type, 
+                is_primary=True
+            ).exclude(id=self.id).update(is_primary=False)
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Belge"
         verbose_name_plural = "Belgeler"
+        constraints = [
+        models.CheckConstraint(
+            condition=Q(is_primary=False) | Q(is_current=True),
+            name="primary_must_be_current",
+        ),
+    ]
 
 
 class Language(models.Model):

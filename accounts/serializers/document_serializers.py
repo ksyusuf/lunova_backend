@@ -1,107 +1,145 @@
-# accounts/serializers/document_serializers.py
-
 from rest_framework import serializers
 from accounts.models import Document, DocumentType
-from django.urls import reverse
+from accounts.storage import storage
+from django.db import transaction, IntegrityError
 
 
 class DocumentSerializer(serializers.ModelSerializer):
     """
-    Kullanıcıların yüklediği belgeleri (profil fotoğrafı, diploma, vb.)
-    yönetmek için temel serializer.
+    Presigned upload tamamlandıktan sonra
+    document kaydını finalize eder.
     """
-    
-    file = serializers.FileField(write_only=True, required=True)
-    filename = serializers.SerializerMethodField()
-    access_url = serializers.SerializerMethodField()
+
+    file_key = serializers.CharField(write_only=True)
+    access_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Document
         fields = [
             "uid",
             "type",
-            "file",
-            "filename",
+            "file_key",
+            "original_filename",
+            "is_primary",
             "access_url",
+            "uploaded_at",
             "updated_at",
             "verified",
-            'verified_at',
+            "verified_at",
         ]
-        read_only_fields = ["uploaded_at", "verified", "filename"]
-        
+        read_only_fields = [
+            "uploaded_at",
+            "updated_at",
+            "verified",
+            "verified_at",
+        ]
 
-    def get_filename(self, obj):
-        if obj.file:  # file None değilse
-            return obj.file.name.split('/')[-1]
-        return None
+    # -------- READ --------
     
     def get_access_url(self, obj):
-        request = self.context.get('request')
-        if request is None:
+        """
+        Dosya erişimi için signed GET URL üretir.
+        # todo: obje bulunamadığı zaman obje bulunamadı hatasını uygun şekilde döndürmeliyiz.
+        """
+        request = self.context.get("request")
+        user = request.user if request else None
+
+        if not user or obj.user_id != user.id:
             return None
 
-        # Dosya kaydı yoksa hiç URL üretme
-        if not obj.file or not obj.file.name:
+        if not obj.is_current:
             return None
 
-        # Filename boşsa yine None dön
-        filename = self.get_filename(obj)
-        if not filename:
+        try:
+            return storage.presign_download(
+                key=obj.file_key,
+                expires=3600
+            )
+        except Exception as exc:
+            # storage ile db tutarsız → sessizce yok say
             return None
 
-        # URL üret
-        return request.build_absolute_uri(
-            reverse("document_retrieve") +
-            f"?uid={obj.uid}&type={obj.type}&filename={filename}"
-        )
+
+    # -------- VALIDATION --------
 
     def validate_type(self, value):
-        """
-        Yalnızca geçerli belge tiplerinin yüklenmesini sağlar.
-        """
-        valid_types = [choice[0] for choice in DocumentType.choices]
+        valid_types = [c[0] for c in DocumentType.choices]
         if value not in valid_types:
             raise serializers.ValidationError("Geçersiz belge tipi.")
         return value
 
-    def validate_file(self, value):
-        """
-        Dosya boyutu veya format kontrolü (isteğe bağlı).
-        Örneğin 10MB sınırı ve sadece PDF/JPG.
-        """
-        max_size_mb = 10
-        if value.size > max_size_mb * 1024 * 1024:
-            raise serializers.ValidationError("Dosya boyutu 10 MB'tan büyük olamaz.")
-        
-        allowed_types = ["image/jpeg", "image/png", "application/pdf"]
-        if value.content_type not in allowed_types:
-            raise serializers.ValidationError("Yalnızca JPG, PNG veya PDF dosyaları yüklenebilir.")
-        
-        return value
-    
+    def validate(self, attrs):
+        user = self.context["request"].user
+        doc_type = attrs.get("type")
+
+        # Aynı tipten max 3
+        count = Document.objects.filter(user=user, type=doc_type, is_current=True).count()
+        if count >= 3 and doc_type != DocumentType.PROFILE_PHOTO:
+            raise serializers.ValidationError({
+                "type": f"Aynı tipte ({doc_type}) en fazla 3 dosya yükleyebilirsiniz."
+            })
+
+        return attrs
+
+    # -------- CREATE --------
+
     def create(self, validated_data):
-        user = self.context['request'].user
-        doc_type = validated_data.get("type")
-        uploaded_file = validated_data.get("file")
+        request = self.context["request"]
+        user = request.user
 
-        single_instance_types = [DocumentType.PROFILE_PHOTO]
+        file_key = validated_data.pop("file_key")
+        original_filename = validated_data["original_filename"]
+        doc_type = validated_data["type"]
+        is_primary = validated_data.get("is_primary", False)
 
-        if doc_type in single_instance_types:
-            document, created = Document.objects.get_or_create(
-                user=user,
-                type=doc_type,
-                defaults={"file": uploaded_file}
-            )
-            if not created and uploaded_file:
-                if document.file:
-                    document.file.delete(save=False)
-                document.file = uploaded_file
-                document.save()
-            return document
 
-        document = Document.objects.create(
-            user=user,
-            type=doc_type,
-            file=uploaded_file
-        )
-        return document
+        existing = Document.objects.filter(file_key=file_key).first()
+        
+        if existing:
+            if existing.user_id != user.id:
+                raise serializers.ValidationError({
+                    "file_key": "Bu dosya anahtarı size ait değil."
+                })
+
+            raise serializers.ValidationError({
+                "file_key": (
+                    "Bu dosya daha önce yüklenmiş. "
+                    "Yeni bir dosya yüklemek için tekrar upload başlatmalısınız."
+                )
+            })
+
+    
+        try:
+            with transaction.atomic():
+
+                single_instance_types = [DocumentType.PROFILE_PHOTO]
+
+                # Profil foto
+                if doc_type in single_instance_types:
+                    existing_doc = Document.objects.filter(
+                        user=user,
+                        type=doc_type,
+                        is_current=True
+                    ).first()
+
+                    if existing_doc:
+                        storage.delete(existing_doc.file_key)
+
+                        existing_doc.file_key = file_key
+                        existing_doc.original_filename = original_filename
+                        existing_doc.is_primary = True
+                        existing_doc.save()
+                        return existing_doc
+
+                # Normal doküman
+                return Document.objects.create(
+                    user=user,
+                    original_filename=original_filename,
+                    file_key=file_key,
+                    type=doc_type,
+                    is_primary=is_primary
+                )
+                
+        except IntegrityError:
+            # race condition fallback
+            return Document.objects.get(file_key=file_key)

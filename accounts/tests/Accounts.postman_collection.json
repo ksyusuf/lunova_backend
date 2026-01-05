@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "c8acdf53-f54b-41da-8795-077c3e087a8b",
+		"_postman_id": "08de4942-6d4a-4b8b-95d8-724aeca81703",
 		"name": "Accounts",
 		"description": "Lunova Backend servisimizin testlerini yaptığımız çalışma alanı.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "37991120",
-		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-c8acdf53-f54b-41da-8795-077c3e087a8b?action=share&source=collection_link&creator=37991120"
+		"_collection_link": "https://www.postman.com/red-shuttle-701984/workspace/lunova/collection/37991120-08de4942-6d4a-4b8b-95d8-724aeca81703?action=share&source=collection_link&creator=37991120"
 	},
 	"item": [
 		{
@@ -141,7 +141,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    /*==========================================================\n    EXPERT (Uzman) rolü için body\n    ==========================================================*/\n\n    // \"about\": \"Bilişsel Davranışçı Terapi (BDT) ve Kabul ve Kararlılık Terapisi (ACT) yöntemlerini kullanarak danışanlarıma destek sağlıyorum.\",\n    // \"experience_years\": 8,\n    \"title\": \"Uzm. Klinik Psk.\",\n    \"session_price\": 450.00,\n    \"currency\": \"TRY\",\n    \"availability_status\": \"active\",/* Foreign Key alanlar: İlgili tablonun ID'sini göndermelisiniz */\n    \"university\": 5, \n    \"degree_level\": 2, \n    \"major\": 1\n\n    // /* Many-to-Many alanlar: Güncel ID listesini göndermelisiniz. */\n    // \"services\": [1, 3, 2],\n    // \"specializations\": [1, 2],\n    // \"languages\": [\"tr\", \"en\"],\n    // \"approach_methods\": [2, 3]\n\n/* Kalan Expert alanları: */\n    // \"institution\": \"Ankara Üniversitesi\",\n    // \"license_number\": \"TR-4567\",\n    // \"appointment_duration\": 45,\n    // \"free_first_session\": true,\n    // \"video_intro_url\": \"https://youtube.com/myintro\"\n\n\n/* ========================================================== */\n\n/* CLIENT (Danışan) rolü için body\n(kullanmak için yukarıdaki Expert body'sini silin ve aşağıdaki body'nin yorum satırlarını kaldırın): */\n    // \"support_goal\": \"Yaşadığım panik ataklar için etkili başa çıkma stratejileri geliştirmek istiyorum.\",\n    // \"received_service_before\": true, \n    // \"onboarding_complete\": true,   \n    // \"is_active_in_treatment\": true,  \n    \n    // // Many-to-Many (M2M) Alan: Bağımlılık Türleri (AddictionType) \n    // \"substances_used\": [1, 3] // AddictionType ID'leri\n/* ========================================================== */\n}",
+							"raw": "{\n    /*==========================================================\n    EXPERT (Uzman) rolü için body\n    ==========================================================*/\n\n    // \"user_data\": {\n    //     \"gender\": \"male\"\n    // }\n\n    // \"about\": \"Bilişsel Davranışçı Terapi (BDT) ve Kabul ve Kararlılık Terapisi (ACT) yöntemlerini kullanarak danışanlarıma destek sağlıyorum.\",\n    // \"experience_years\": 8,\n    // \"title\": \"Uzm. Klinik Psk.\",\n    // \"session_price\": 450.00,\n    // \"currency\": \"TRY\",\n    // \"availability_status\": \"active\",/* Foreign Key alanlar: İlgili tablonun ID'sini göndermelisiniz */\n    // \"university\": 5, \n    // \"degree_level\": 2, \n    // \"major\": 1\n\n    // /* Many-to-Many alanlar: Güncel ID listesini göndermelisiniz. */\n    // \"services\": [1, 3, 2],\n    // \"specializations\": [1, 2],\n    // \"languages\": [\"tr\", \"en\"],\n    // \"approach_methods\": [2, 3]\n    // session_types: [1, 2, 3] şeklinde olmalı\n    // \"session_types\": [1, 2]\n    // \"target_groups\": [1, 2]\n\n/* Kalan Expert alanları: */\n    // \"institution\": \"Ankara Üniversitesi\",\n    // \"license_number\": \"TR-4567\",\n    // \"appointment_duration\": 45,\n    // \"free_first_session\": true,\n    // \"video_intro_url\": \"https://youtube.com/myintro\"\n\n\n/* ========================================================== */\n\n/* CLIENT (Danışan) rolü için body\n(kullanmak için yukarıdaki Expert body'sini silin ve aşağıdaki body'nin yorum satırlarını kaldırın): */\n    // \"support_goal\": \"Yaşadığım panik ataklar için etkili başa çıkma stratejileri geliştirmek istiyorum.\",\n    // \"received_service_before\": true, \n    // \"onboarding_complete\": true,   \n    // \"is_active_in_treatment\": false,\n\n    // \"user_data\": {\n    //     \"gender\": \"male\"\n    // },\n\n    // \"emergency_contacts\": [\n    //     {\n    //         \"name\": \"selam\",\n    //         \"phone_number\": 159159951,\n    //         \"relationship\": \"kardeşşş\",\n    //         \"is_primary\": true\n    //     }\n    // ]\n    \n    // // Many-to-Many (M2M) Alan: Bağımlılık Türleri (AddictionType) \n    // \"substances_used\": [1, 3] // AddictionType ID'leri\n/* ========================================================== */\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -162,84 +162,6 @@
 							]
 						},
 						"description": "Bu istek, giriş yapmış kullanıcının rolüne göre profilini günceller. Expert ve Client için ayrı body yapıları gereklidir. Aşağıdaki örnek EXPERT rolü içindir."
-					},
-					"response": []
-				},
-				{
-					"name": "documents",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "type",
-									"value": "cv",
-									"type": "text"
-								},
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/accounts/documents/upload/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"accounts",
-								"documents",
-								"upload",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "documents",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8000/api/v1/accounts/documents/retrieve/?uid=f41987da-dcba-4791-a2b3-a4a8ada56e60&type=profile_photo&filename=mock_profile_2.jpg",
-							"protocol": "http",
-							"host": [
-								"127",
-								"0",
-								"0",
-								"1"
-							],
-							"port": "8000",
-							"path": [
-								"api",
-								"v1",
-								"accounts",
-								"documents",
-								"retrieve",
-								""
-							],
-							"query": [
-								{
-									"key": "uid",
-									"value": "f41987da-dcba-4791-a2b3-a4a8ada56e60"
-								},
-								{
-									"key": "type",
-									"value": "profile_photo"
-								},
-								{
-									"key": "filename",
-									"value": "mock_profile_2.jpg"
-								}
-							]
-						}
 					},
 					"response": []
 				}
@@ -362,6 +284,167 @@
 			]
 		},
 		{
+			"name": "Documents",
+			"item": [
+				{
+					"name": "Documents Presign",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"type\": \"cv\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/documents/presign-upload/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								"presign-upload",
+								""
+							]
+						},
+						"description": "Ön imzalı, dosya yükleme isteğini döndürür. Buradan dönen upload alanındaki url'e body kısmında ilgili dosya iliştirilerek istek atılır ve ilgili dosya artık uzak s3 bucket'a yüklenir. Daha sonra backend'e bu dosyanın s3'e yüklenmiş olduğu bilgisi de verilmelidir.\n\nDönüş değeri olan file_key ile AccessUrl talebi oluşturulabilir."
+					},
+					"response": []
+				},
+				{
+					"name": "Remote Bucket",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "",
+									"type": "file",
+									"src": "/C:/Users/ksyus/Downloads/bilgisayar-muh.-final-v4.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://ccmuclvpabfwzphswxae.supabase.co/storage/v1/object/upload/sign/selam/clients/21/profile_photo/92aa7d10-ad8e-48f2-bd31-976b2c2e071b.png?token={{vault:json-web-token}}",
+							"protocol": "https",
+							"host": [
+								"ccmuclvpabfwzphswxae",
+								"supabase",
+								"co"
+							],
+							"path": [
+								"storage",
+								"v1",
+								"object",
+								"upload",
+								"sign",
+								"selam",
+								"clients",
+								"21",
+								"profile_photo",
+								"92aa7d10-ad8e-48f2-bd31-976b2c2e071b.png"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{vault:json-web-token}}"
+								}
+							]
+						},
+						"description": "imzalanmış bir dosya yükleme isteğinin döndüğü uplaod_url\n\ndönen endpointe bu şekilde istek atılır.\n\nbruadan dönen key dönüşü içerisinde bucket ismi de tanımlı, ama sen backend'e finalize isteğini atarken\n\nbir önceki istekten aldığın file_key değerini girmelisin. ve original_filename özelliği de burada dosya ismini belirliyor."
+					},
+					"response": []
+				},
+				{
+					"name": "Add backend DB",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"type\": \"profile_photo\",\r\n  \"file_key\": \"clients/21/cv/9d837a07-b517-4c51-8e1f-7b51f9990e09\",\r\n  \"original_filename\": \"özel-3.png\", \r\n  \"is_primary\": false\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/documents/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								""
+							]
+						},
+						"description": "Kullanıcı, uzak s3'e yüklediği dosyayı bize bu endpoint ile haber verir. eğer yükleme başarısız olduğu halde buraya yükleme yapılmaya çalışılırsa, uzak bucket üzerindeki dosyasına artık erişilemez."
+					},
+					"response": []
+				},
+				{
+					"name": "Documents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/documents/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remote Bucket",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/accounts/documents/{{uid}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"accounts",
+								"documents",
+								"{{uid}}",
+								""
+							]
+						},
+						"description": "uid formatında giriş vermezsen 404 not found alırsın."
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "login",
 			"request": {
 				"auth": {
@@ -377,7 +460,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"email\": \"expert1@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"client1@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"adminpassword\"}",
+					"raw": "{\"email\": \"expert4@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"client5@mail.com\", \"password\": \"password123\"}\r\n// {\"email\": \"admin@lunova.com\", \"password\": \"adminpassword\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -479,7 +562,7 @@
 			},
 			"response": []
 		},
-    {
+		{
 			"name": "clients-list",
 			"request": {
 				"auth": {
@@ -526,6 +609,13 @@
 					""
 				]
 			}
+		}
+	],
+	"variable": [
+		{
+			"key": "uid",
+			"value": "9d837a07-b517-4c51-8e1f-7b51f9990e09",
+			"type": "default"
 		}
 	]
 }
