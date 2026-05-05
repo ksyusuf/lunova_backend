@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ksyus\\\\Documents\\\\IS-GUC\\\\Lunova\\\\Site_Dosyalari\\\\expert-frontend\" -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "Bash(Get-ChildItem -Recurse -Directory -Depth 2)",
+      "Bash(Select-Object -First 50 FullName)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\ksyus\\\\Documents\\\\IS-GUC\\\\Lunova\\\\Site_Dosyalari\\\\expert-frontend\\\\src\" -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer } | Select-Object FullName | ForEach-Object { $_.FullName.Substring\\(\"c:\\\\Users\\\\ksyus\\\\Documents\\\\IS-GUC\\\\Lunova\\\\Site_Dosyalari\\\\expert-frontend\\\\src\".Length\\).TrimStart\\('\\\\'\\) } | Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\ksyus\\\\Documents\\\\IS-GUC\\\\Lunova\\\\Site_Dosyalari\\\\client-frontend\\\\src\" -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer } | Select-Object FullName | ForEach-Object { $_.FullName.Substring\\(\"c:\\\\Users\\\\ksyus\\\\Documents\\\\IS-GUC\\\\Lunova\\\\Site_Dosyalari\\\\client-frontend\\\\src\".Length\\).TrimStart\\('\\\\'\\) } | Sort-Object | Select-Object -First 40)",
+      "Bash(cd /c/Users/ksyus/Documents/IS-GUC/Lunova/Site_Dosyalari/client-frontend && ls -la)",
+      "Read(//c/c/Users/ksyus/Documents/IS-GUC/Lunova/Site_Dosyalari/**)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ksyus\\\\Documents\\\\IS-GUC\\\\Lunova\\\\Site_Dosyalari\\\\backend\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ksyus\\\\Documents\\\\IS-GUC\\\\Lunova\\\\Site_Dosyalari\\\\backend\" -Recurse -Filter \"*.py\" -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "PowerShell(head -50)"
+    ]
+  }
+}
