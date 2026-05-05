@@ -157,6 +157,10 @@ class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
         Kısmi güncelleme işlemi (PATCH)
         Sadece kendi randevularını güncelleyebilir
         """
+        # Status güncellemeleri status_update'e yönlendir (Zoom oluşturma, geçiş validasyonu vs. orada)
+        if 'status' in request.data:
+            return self.status_update(request, *args, **kwargs)
+
         print(f"PATCH request received for user: {request.user}")
         print(f"Request data: {request.data}")
 
